@@ -25,19 +25,26 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 
 `backend/company-backend`(Spring Boot)와 짝을 이루는 프론트엔드. 회사(IBS)는 반도체·스마트팩토리 영역이고, 화면의 시각 언어를 여기서 끌어왔다.
 
-현재 구현된 것은 **로그인 화면 하나**다. 설계 근거와 폐기된 대안까지 [docs/superpowers/specs/2026-08-10-login-screen-design.md](docs/superpowers/specs/2026-08-10-login-screen-design.md) 에 있다. 화면을 손대기 전에 읽을 것.
+화면은 **로그인 · 회원가입 · 홈 · 승인 관리** 넷이다. 설계 근거와 폐기된 대안은 `docs/superpowers/specs/` 에 날짜별로 있다 — 화면을 손대기 전에 해당 문서를 읽을 것.
+
+| 문서 | 다루는 것 |
+|---|---|
+| [2026-08-10-login-screen-design.md](docs/superpowers/specs/2026-08-10-login-screen-design.md) | 로그인 화면, 웨이퍼 캔버스 |
+| [2026-08-12-signup-screen-design.md](docs/superpowers/specs/2026-08-12-signup-screen-design.md) | 회원가입, 라우터 도입 |
+| [2026-08-17-app-shell-design.md](docs/superpowers/specs/2026-08-17-app-shell-design.md) | 헤더, 테마, 승인 관리 |
 
 ## 구조 — feature 기반 3레이어
 
 ```
 src/
-├── app/         조립 계층 + 라우팅 + store. 여기만 아래를 다 안다
-├── pages/       라우트 단위 화면 (Home · Login · Signup)
-├── features/    도메인 단위. 지금은 auth 하나
+├── app/         조립 계층 + 라우팅 + store + 레이아웃. 여기만 아래를 다 안다
+├── pages/       라우트 단위 화면 (Home · Login · Signup · AdminUsers)
+├── widgets/     여러 feature 를 모으는 조립물 (AppHeader)
+├── features/    도메인 단위 (auth · admin)
 └── shared/      도메인을 모르는 것들
 ```
 
-**의존성은 `app → pages → features → shared` 단방향이다.**
+**의존성은 `app → pages → widgets → features → shared` 단방향이다.**
 
 - `shared` 는 `features` 를 절대 참조하지 않는다
 - feature끼리 직접 import 하지 않는다. 조립은 상위 레이어에서 한다
@@ -48,17 +55,26 @@ src/
 
 `pages` 는 얇다. 화면 제목(`<title>`)과 feature 컴포넌트 조립만 한다. 폼 같은 실제 구현은 `features/auth/ui` 에 있다.
 
-`entities`, `widgets` 는 아직 없다. 필요해질 때 **추가만** 한다.
+**`widgets` 는 여러 feature 를 조립하는 UI 를 둔다.** `AppHeader` 가 auth 의 `me` 와 앞으로의 업무 메뉴를 한자리에 모으는데, `features/auth` 에 두면 auth 가 나머지 도메인을 알아야 해서 "feature 끼리 직접 import 하지 않는다"가 깨진다.
+
+**`admin` 을 `auth` 와 나눈 기준.** `auth` 는 "내가 로그인한다"에 머문다. "관리자가 남의 상태를 바꾼다"는 다른 도메인이라 `features/admin` 이다.
+
+`entities` 는 아직 없다. 필요해질 때 **추가만** 한다.
 
 ### 라우팅
 
 ```
-/         RequireAuth              → HomePage
-/login    RedirectIfAuthenticated  → AuthLayout → LoginPage
-/signup   RedirectIfAuthenticated  → AuthLayout → SignupPage
+/             RequireAuth → AppLayout → HomePage
+/admin/users  RequireAuth → AppLayout → RequireAdmin → AdminUsersPage
+/login        RedirectIfAuthenticated → AuthLayout → LoginPage
+/signup       RedirectIfAuthenticated → AuthLayout → SignupPage
 ```
 
-**`AuthLayout` 이 `WaferCanvas` 를 소유하고 각 페이지는 `<Outlet />` 자리에 들어간다.** 각 페이지가 캔버스를 따로 들면 화면을 오갈 때마다 재마운트되어 다이 3,600개 재계산과 폰트 샘플링이 다시 일어난다. 지금 구조에서는 `/login` ↔ `/signup` 이동 시 캔버스가 **같은 DOM 노드로 유지된다**(확인함).
+**가드가 바깥, 레이아웃이 안쪽이다.** 순서가 반대면 인증되지 않은 사용자에게 헤더가 한 번 그려졌다 사라진다.
+
+**레이아웃이 헤더와 캔버스를 소유하고 각 페이지는 `<Outlet />` 자리에 들어간다.** `AppLayout` 은 `AppHeader` 를, `AuthLayout` 은 `WaferCanvas` 를 갖는다. 페이지마다 따로 렌더하면 라우트를 옮길 때마다 언마운트·재마운트되어 — 캔버스는 다이 3,600개 재계산과 폰트 샘플링이 다시 일어나고, 헤더는 포커스와 열린 UI 상태가 날아간다. 지금 구조에서는 `/login` ↔ `/signup` 이동 시 캔버스가 **같은 DOM 노드로 유지된다**(확인함).
+
+**`RequireAdmin` 은 `me` 가 로딩 중일 때 아무것도 렌더하지 않는다.** `role` 을 모르는 채로 판단하면 관리자인데도 홈으로 튕긴다. 이 가드는 화면 정리용이고 실제 차단은 백엔드가 매 요청 DB 로 한다.
 
 페이지 제목은 React 19 가 `<title>` 을 자동으로 head 로 올려주므로 각 Page 컴포넌트에서 직접 렌더한다.
 
@@ -127,6 +143,22 @@ export const request = async <T,>(path: string): Promise<T> => { ... }
 - `_mixins.scss` 는 컴파일 타임 상수(브레이크포인트)와 믹스인. 슬라이스에서는 `@use '@/shared/styles' as s;` 로 가져온다
 - **`@import` 는 폐기 예정이라 쓰지 않는다.** `@use` / `@forward` 만
 
+### 테마 — 다크 · 라이트
+
+`_tokens.scss` 가 라이트를 `:root` 기본값으로 두고, `@mixin dark-tokens` 를 미디어 쿼리와 `[data-theme='dark']` 두 곳에 건다. 상태는 셋이다 — 명시적 라이트, 명시적 다크, **아무것도 안 고름(시스템 따름, 기본값)**.
+
+**토큰 이름은 톤이 아니라 역할이다.** `--bg-deep` 이 아니라 `--bg-sunken`, `--text-hi` 가 아니라 `--text-strong`. 톤 기반 이름은 반대 테마에서 뜻을 잃는다. `--text-subtle` 은 양쪽 다 대비 2.9:1 이라 **장식성 라벨 전용이고 본문에 쓰지 않는다.**
+
+**`--accent` 는 테마마다 관계가 뒤집힌다.** 다크는 시안 바탕에 어두운 글자, 라이트는 어두운 청록 바탕에 흰 글자다. 시안(`#22d3ee`)은 흰 배경에서 대비 1.6:1 이라 그대로 쓸 수 없다. `--accent-ink` 가 "강조색 위에 얹는 글자색"이라는 역할 이름이라 값만 뒤집으면 `Button` 은 안 바뀐다.
+
+**`index.html` 의 인라인 스크립트를 지우지 말 것.** 첫 페인트 전에 `data-theme` 을 박지 않으면 새로고침마다 반대 테마가 한 번 번쩍인다. React 이펙트는 첫 페인트 뒤에 돈다.
+
+**테마를 Redux 에 넣지 말 것.** 진실은 `<html data-theme>` 속성이고 `shared/theme` 이 `useSyncExternalStore` 로 구독한다. store 에 복사하면 그 인라인 스크립트와 진실이 두 곳으로 갈린다.
+
+**로그인 · 회원가입은 항상 다크다.** `AuthLayout` 이 `<main data-theme="dark">` 로 서브트리를 고정한다. 웨이퍼 노광은 어두운 배경에 다이가 빛나는 게 개념의 전부라 라이트에서 성립하지 않는다. 셀렉터에 `:root` 를 붙이지 않은 이유가 이것이다 — 하위 요소에 붙여도 동작해야 한다.
+
+**토큰 믹스인을 `.module.scss` 에서 `@use` 하지 말 것.** `_tokens.scss` 에 최상위 CSS(`:root` 블록)가 있어서 팔레트가 그 모듈 CSS 에 통째로 복제된다.
+
 ### 폰트 — Wanted Sans Variable
 
 npm 패키지의 **split 서브셋** 버전을 `main.tsx` 에서 import 한다. `unicode-range` 로 실제 쓰는 글자 범위만 내려받는다. 통짜(complete) 파일은 1.29MB 라 쓰지 않는다.
@@ -161,9 +193,30 @@ npm 패키지의 **split 서브셋** 버전을 `main.tsx` 에서 import 한다. 
 
 ## 인증
 
-JWT. 가입·로그인·재발급·로그아웃이 **실제 백엔드와 붙어 동작한다.** 계약은 [docs/api/auth.md](docs/api/auth.md) 에 있고, 백엔드와 공유하는 문서이므로 계약이 바뀌면 거기를 먼저 고친다.
+JWT. 가입·로그인·재발급·로그아웃이 **실제 백엔드와 붙어 동작한다.** 계약은 [docs/api/auth.md](docs/api/auth.md) 와 [docs/api/users.md](docs/api/users.md) 에 있고, 백엔드와 공유하는 문서이므로 계약이 바뀌면 거기를 먼저 고친다.
 
 백엔드 띄우는 순서는 `docker compose up -d --wait` → `./gradlew bootRun` (백엔드 저장소에서).
+
+### 승인제 — 가입해도 바로 못 쓴다
+
+가입하면 `PENDING` 이고 관리자가 승인해야 로그인할 수 있다. **승인 전 로그인·재발급은 401 이 아니라 403** 이다.
+
+| code | 뜻 |
+|---|---|
+| `APPROVAL_PENDING` | 승인 대기 |
+| `SIGNUP_REJECTED` | 거절됨 |
+
+`useLogin` 이 이 코드들을 401 과 갈라서 처리한다. **섞으면 "이메일 또는 비밀번호가 올바르지 않습니다"가 떠서 사용자가 맞는 비밀번호를 계속 다시 친다.**
+
+**거절은 access token 을 무효화하지 못한다.** 서명만으로 검증되어 서버가 취소할 방법이 없고, 그래서 거절 후에도 최대 30분(`access-token-ttl`) 동안 인증 API 가 열려 있다. `useRejectedGuard` 가 `me.status` 를 보고 이 브라우저에서만 끊는다 — **완화책이지 차단이 아니다.**
+
+### 내가 누구인지는 `me` 로만 안다
+
+access token 클레임에는 `sub`(userId)와 `email` 뿐이다. **이름도 역할도 없다.** 헤더에 이름을 띄우거나 관리자 메뉴를 판단하려면 `GET /api/users/me` 를 부른다.
+
+역할을 토큰이나 로그인 응답에 담지 않는 것은 백엔드의 의도다 — 담으면 강등해도 토큰 수명 동안 관리자로 남는다.
+
+**헤더 조각들이 각자 `useMeQuery()` 를 부른다.** 캐시 키가 같아 요청은 한 번이고, 레이아웃이 `me` 를 받아 내려주는 props 사슬이 생기지 않는다. 로그아웃 시 `resetApiState()` 가 캐시도 비운다.
 
 ### 토큰을 어디에 두는가
 

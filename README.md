@@ -2,7 +2,9 @@
 
 사내 시스템 프론트엔드. 백엔드(`company-backend`, Spring Boot)와 짝을 이룬다.
 
-현재 구현된 화면은 **로그인 · 회원가입 · 홈** 세 개이고, 인증은 JWT 로 실제 백엔드와 붙어 동작한다.
+현재 구현된 화면은 **로그인 · 회원가입 · 홈 · 승인 관리** 네 개이고, 인증은 JWT 로 실제 백엔드와 붙어 동작한다.
+
+가입하면 승인 대기 상태이고 관리자가 승인해야 로그인할 수 있다. 다크·라이트 테마를 모두 지원한다(로그인 화면은 항상 다크).
 
 ## 실행
 
@@ -51,4 +53,5 @@ src/
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | 코드베이스 규칙과 함정. 작업 전에 읽을 것 |
 | [docs/api/auth.md](docs/api/auth.md) | 인증 API 계약. 백엔드와 공유한다 |
+| [docs/api/users.md](docs/api/users.md) | 사용자·관리자 API 계약. 승인제가 여기 있다 |
 | [docs/superpowers/specs/](docs/superpowers/specs/) | 화면 설계와 폐기된 대안 |
