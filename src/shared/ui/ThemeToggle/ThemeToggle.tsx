@@ -1,5 +1,4 @@
 import { useTheme } from '@/shared/theme'
-import { MoonIcon, SunIcon } from './icons'
 import styles from './ThemeToggle.module.scss'
 
 // 3상태(light·dark·system)를 한 버튼으로 순환시키면 무엇이 선택됐는지 알기 어렵다.
@@ -15,7 +14,14 @@ export const ThemeToggle = () => {
       aria-label={next === 'dark' ? '다크 모드로 전환' : '라이트 모드로 전환'}
       onClick={() => setPreference(next)}
     >
-      {resolved === 'dark' ? <MoonIcon /> : <SunIcon />}
+      {/* alt 를 비운다. 버튼에 aria-label 이 있어 채우면 스크린리더가 두 번 읽는다 */}
+      <img
+        src={resolved === 'dark' ? '/theme-moon.png' : '/theme-sun.png'}
+        alt=""
+        width={20}
+        height={20}
+        className={styles.icon}
+      />
     </button>
   )
 }
