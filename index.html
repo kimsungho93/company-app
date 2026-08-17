@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>company-app</title>
+    <!--
+      React 이펙트는 첫 페인트 뒤에 돈다. 여기서 미리 박지 않으면
+      새로고침할 때마다 반대 테마가 한 번 번쩍인다.
+      키는 shared/theme/themeStore.ts 의 THEME_STORAGE_KEY 와 같아야 한다.
+    -->
+    <script>
+      try {
+        var t = localStorage.getItem('ibs.theme')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
