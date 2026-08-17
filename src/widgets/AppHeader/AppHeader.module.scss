@@ -16,8 +16,10 @@
   gap: 9px;
   color: var(--text-strong);
   font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.14em;
+  font-size: 15px;
+  // 라틴 대문자용으로 벌려뒀던 0.14em 을 뺐다. 한글에 그대로 쓰면
+  // 자간이 어색하게 벌어지고 폰트도 폴백으로 떨어진다.
+  letter-spacing: -0.2px;
   text-decoration: none;
 
   @include s.focus-ring;

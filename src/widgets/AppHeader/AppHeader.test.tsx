@@ -53,7 +53,7 @@ describe('AppHeader', () => {
 
     render(<AppHeader />, { wrapper })
 
-    expect(screen.getByRole('link', { name: 'IBS 홈' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: '아이비에스 홈' })).toHaveAttribute('href', '/')
   })
 
   it('로그아웃 버튼이 있다', () => {

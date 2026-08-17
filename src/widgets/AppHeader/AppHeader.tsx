@@ -13,9 +13,9 @@ export const AppHeader = () => {
         스크린리더가 "IBS 홈 IBS 홈" 으로 두 번 읽는다.
         width·height 를 박아 이미지 로드 전 레이아웃이 밀리지 않게 한다.
       */}
-      <Link to="/" className={styles.logo} aria-label="IBS 홈">
+      <Link to="/" className={styles.logo} aria-label="아이비에스 홈">
         <img src="/logo-mark.png" alt="" width={32} height={32} className={styles.logoMark} />
-        IBS
+        아이비에스
       </Link>
 
       <div className={styles.spacer} />
