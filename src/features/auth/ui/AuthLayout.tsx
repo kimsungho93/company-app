@@ -36,7 +36,9 @@ export const AuthLayout = () => {
   }, [])
 
   return (
-    <main className={styles.page}>
+    // 웨이퍼 노광은 어두운 배경에 다이가 빛나는 것이 개념의 전부라
+    // 라이트 테마에서 성립하지 않는다. 이 서브트리만 다크로 고정한다.
+    <main className={styles.page} data-theme="dark">
       <section className={styles.waferPane} aria-hidden="true">
         <WaferCanvas
           text={WAFER_TEXT}

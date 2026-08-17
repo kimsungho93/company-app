@@ -3,11 +3,19 @@ import { AuthLayout, RedirectIfAuthenticated, RequireAuth } from '@/features/aut
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
+import { AppLayout } from './layouts/AppLayout'
 
 export const router = createBrowserRouter([
   {
+    // 가드가 바깥, 레이아웃이 안쪽이다. 반대로 두면 인증되지 않은 사용자에게
+    // 헤더가 한 번 그려졌다 사라진다.
     element: <RequireAuth />,
-    children: [{ index: true, element: <HomePage /> }],
+    children: [
+      {
+        element: <AppLayout />,
+        children: [{ index: true, element: <HomePage /> }],
+      },
+    ],
   },
   {
     // AuthLayout 이 WaferCanvas 를 소유한다. /login ↔ /signup 을 오가도
