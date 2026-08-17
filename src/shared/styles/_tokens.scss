@@ -1,21 +1,26 @@
 // 런타임에 바뀌는 값과 테마 값은 CSS 커스텀 프로퍼티로 둔다.
 // 컴파일 타임 상수(브레이크포인트 등)는 _mixins.scss 의 SCSS 변수로.
+//
+// 이름은 톤이 아니라 역할로 짓는다. '--bg-deep'(깊은 어둠) 같은 이름은
+// 라이트 모드에서 뜻이 없어서 테마를 두 벌로 만드는 순간 걸림돌이 된다.
 
-:root {
-  --bg-deep: #070c13;
-  --bg-base: #0a1119;
-  --bg-glow: #12253a;
+@mixin dark-tokens {
+  --bg-sunken: #070c13;
+  --bg: #0a1119;
 
+  // 반투명을 유지한다. AuthCard 가 이걸 통해 뒤쪽 웨이퍼 글로우를 비친다.
+  // 불투명하게 바꾸면 로그인 카드가 납작해진다.
   --surface: rgba(12, 22, 34, 0.74);
   --surface-input: rgba(255, 255, 255, 0.035);
+
   --border: rgba(120, 190, 220, 0.16);
   --border-input: rgba(140, 190, 215, 0.14);
   --border-faint: rgba(140, 190, 215, 0.13);
 
-  --text-hi: #eaf3f8;
+  --text-strong: #eaf3f8;
   --text: #8aa1b4;
-  --text-dim: #6e869b;
-  --text-faint: #4e6376;
+  --text-muted: #6e869b;
+  --text-subtle: #4e6376;
   --text-placeholder: #5c7085;
 
   // 버튼 위에는 반드시 --accent-ink 를 얹는다 (대비 10.4:1)
@@ -29,6 +34,51 @@
   --danger: #fb7185;
   --danger-soft: rgba(251, 113, 133, 0.1);
 
+  --shadow-card:
+    0 26px 64px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(160, 220, 240, 0.06);
+
+  color-scheme: dark;
+}
+
+:root {
+  // 라이트가 기본값이다.
+  --bg-sunken: #eef1f5;
+  --bg: #f4f6f9;
+
+  --surface: #ffffff;
+  --surface-input: #f8fafc;
+
+  --border: #e2e8f0;
+  --border-input: #d7dee7;
+  --border-faint: #e8edf3;
+
+  --text-strong: #0f1c2b;
+  --text: #334155;
+  --text-muted: #64748b;
+  // 대비 2.9:1 — 장식성 라벨 전용이다. 본문에 쓰지 말 것.
+  --text-subtle: #94a3b8;
+  --text-placeholder: #94a3b8;
+
+  // 시안(#22d3ee)은 흰 배경에서 대비 1.6:1 이라 쓸 수 없다.
+  // 라이트에서는 관계가 뒤집힌다 — 어두운 청록 바탕에 흰 글자(6.4:1).
+  --accent: #0e7490;
+  --accent-hi: #0891b2;
+  --accent-lo: #155e75;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(14, 116, 144, 0.06);
+  --accent-ring: rgba(14, 116, 144, 0.16);
+
+  --danger: #b91c1c;
+  --danger-soft: rgba(185, 28, 28, 0.07);
+
+  --shadow-card: 0 1px 2px rgba(15, 28, 43, 0.06);
+
+  color-scheme: light;
+
+  // 웨이퍼 배경 전용. 어두운 배경이 전제라 테마를 따르지 않는다.
+  // 로그인 화면은 항상 다크이므로 짝이 필요 없다.
+  --wafer-glow: #12253a;
+
   // 형태 — 장비 UI 답게 각지게
   --radius-xs: 3px;
   --radius-sm: 4px;
@@ -36,7 +86,16 @@
 
   --font-sans: 'Wanted Sans Variable', system-ui, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, Consolas, 'D2Coding', monospace;
+}
 
-  --shadow-card:
-    0 26px 64px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(160, 220, 240, 0.06);
+// 아무것도 고르지 않았으면 OS 설정을 따른다.
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tokens;
+  }
+}
+
+// 사용자가 명시적으로 고르면 OS 설정을 이긴다.
+:root[data-theme='dark'] {
+  @include dark-tokens;
 }
