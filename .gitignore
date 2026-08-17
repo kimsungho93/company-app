@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .superpowers
 
+# 공개 저장소에 올리지 않는 내부 메모 (미해결 보안 항목 등)
+docs/internal/
+
 # Yarn — 릴리스 파일은 커밋해야 한다.
 # .yarnrc.yml 의 yarnPath 가 이 파일을 가리키므로, 빠지면 다른 사람이 yarn 을 못 쓴다.
 .yarn/*

@@ -87,7 +87,7 @@ refreshToken=<값>; Path=/api/auth; Max-Age=1209600; HttpOnly; SameSite=Lax
 
 로그인 401 은 어느 쪽이 틀렸는지 알려주지 않지만(계정 열거 방지), **회원가입 409 는 "이미 가입된 이메일"이라고 알려준다.** 의도한 결정이다 — 도메인이 사내로 제한되어 열거 대상이 좁고, 안내가 없으면 사용자가 가입이 안 되는 이유를 알 수 없다.
 
-전제 조건인 **rate limiting 은 아직 없다.** 외부 공개 서비스가 되면 이 결정을 다시 봐야 한다.
+**이 트레이드오프는 요청 제한을 전제로 한다.** 외부 공개 서비스가 되면 다시 봐야 한다 — 그때의 대안은 응답을 "가입 안내 메일을 보냈습니다"로 통일하고 실제 분기를 메일 내용에서 처리하는 방식이다.
 
 ## 7. 프론트 연결 지점
 
@@ -108,16 +108,13 @@ refreshToken=<값>; Path=/api/auth; Max-Age=1209600; HttpOnly; SameSite=Lax
 ### 확인용 요청
 
 ```bash
-curl -i -X POST http://localhost:8080/api/auth/signup -H "Content-Type: application/json" -d '{"email":"tiger@ibslab.com","name":"Tiger","password":"password1234"}'
+curl -i -X POST http://localhost:8080/api/auth/signup -H "Content-Type: application/json" -d '{"email":"example@ibslab.com","name":"Tester","password":"password1234"}'
 ```
 
-## 8. 남은 것
+## 8. 확장 예정
 
 | 항목 | 메모 |
 |---|---|
-| rate limiting | 6장의 전제 조건 |
-| `AuthService.login` 이메일 정규화 | 대문자 로그인이 되는 건 MySQL 기본 collation 덕이지 코드 덕이 아니다. `_bin`·`_cs` 로 바뀌면 조용히 깨진다 |
-| 동시 가입 409 변환 | `existsByEmail` → `save` 경쟁을 DB UNIQUE 제약이 막지만, `DataIntegrityViolationException` 을 409 로 바꾸는 처리가 없어 500 이 나간다 |
 | 만료 선제 갱신 | `expiresIn` 을 활용해 401 을 기다리지 않고 미리 갱신 |
 | 탭 간 동기화 | 한 탭에서 로그아웃하면 다른 탭도 반영 |
 | 이메일 인증 메일 | 붙이면 201 의 의미가 "가입 완료"에서 "인증 대기"로 바뀐다 |
