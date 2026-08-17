@@ -92,6 +92,17 @@
   color: var(--danger);
 }
 
+.failureText {
+  margin: 0;
+}
+
+.failureDetail {
+  margin: 5px 0 0;
+  padding-left: 16px;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
 .empty {
   margin: 0;
   padding: 34px 16px;

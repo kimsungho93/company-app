@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useMeQuery } from '@/features/auth'
 import type { UserStatus } from '@/features/auth'
-import { toErrorInfo } from '@/shared/api'
 import { Checkbox } from '@/shared/ui/Checkbox'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import {
@@ -11,6 +10,8 @@ import {
 } from '../api/adminUsersApi'
 import type { AdminUser } from '../api/types'
 import { formatJoinedAt } from '../model/formatJoinedAt'
+import { summarizeResults } from '../model/summarizeResults'
+import type { ActionNotice } from '../model/summarizeResults'
 import styles from './UserApprovalList.module.scss'
 
 const TABS: { status: UserStatus; label: string; empty: string }[] = [
@@ -55,7 +56,7 @@ export const UserApprovalList = () => {
   const [status, setStatus] = useState<UserStatus>('PENDING')
   const [selected, setSelected] = useState<ReadonlySet<number>>(new Set())
   const [pending, setPending] = useState<PendingAction | null>(null)
-  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
+  const [notice, setNotice] = useState<ActionNotice | null>(null)
 
   const { data: me } = useMeQuery()
   const { data: users, isFetching } = useAdminUsersQuery(status)
@@ -95,19 +96,11 @@ export const UserApprovalList = () => {
     const verb = pending.kind === 'approve' ? '승인' : '거절'
 
     // 백엔드에 일괄 엔드포인트가 없어 건별로 보낸다.
-    // allSettled 라야 일부가 실패해도 나머지 결과를 알 수 있다.
+    // allSettled 라야 일부가 실패해도 나머지 결과를 알 수 있고, 순서가 보존되어
+    // 어느 사람이 실패했는지 짝지을 수 있다.
     const results = await Promise.allSettled(pending.targets.map((u) => mutate(u.id).unwrap()))
-    const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-    const total = pending.targets.length
 
-    // 단건이면 서버가 준 사유를 그대로 보여준다. '1명 중 1명 실패' 는 아무것도 알려주지 않는다.
-    setNotice(
-      failures.length === 0
-        ? { ok: true, text: `${total}명을 ${verb}했습니다.` }
-        : total === 1
-          ? { ok: false, text: toErrorInfo(failures[0].reason).message }
-          : { ok: false, text: `${total}명 중 ${failures.length}명을 ${verb}하지 못했습니다.` },
-    )
+    setNotice(summarizeResults(pending.targets, results, verb))
     setSelected(new Set())
     setPending(null)
   }
@@ -182,9 +175,16 @@ export const UserApprovalList = () => {
             {notice.text}
           </p>
         ) : (
-          <p className={styles.failure} role="alert">
-            {notice.text}
-          </p>
+          <div className={styles.failure} role="alert">
+            <p className={styles.failureText}>{notice.text}</p>
+            {notice.detail.length > 0 && (
+              <ul className={styles.failureDetail}>
+                {notice.detail.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            )}
+          </div>
         ))}
 
       <div className={styles.panel} role="tabpanel" aria-busy={isFetching}>

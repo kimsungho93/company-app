@@ -214,7 +214,8 @@ describe('UserApprovalList', () => {
     expect(screen.queryByText('1명 선택')).not.toBeInTheDocument()
   })
 
-  it('일부가 실패하면 몇 명이 실패했는지 알린다', async () => {
+  // 개수만 세면 '2명 중 1명 실패' 로 끝나서, 관리자가 누구를 다시 봐야 할지 모른다
+  it('일부가 실패하면 실패한 사람과 사유를 짚어준다', async () => {
     const user = userEvent.setup()
     vi.stubGlobal(
       'fetch',
@@ -222,7 +223,9 @@ describe('UserApprovalList', () => {
         const url = typeof input === 'string' ? input : input.url
         if (url.includes('/users/me')) return Promise.resolve(jsonResponse(ME))
         if (url.includes('/admin/users/3/approve')) {
-          return Promise.resolve(jsonResponse({ code: 'USER_NOT_FOUND' }, 404))
+          return Promise.resolve(
+            jsonResponse({ code: 'USER_NOT_FOUND', message: '사용자를 찾을 수 없습니다.' }, 404),
+          )
         }
         if (url.includes('/approve')) return Promise.resolve(emptyResponse(204))
         return Promise.resolve(jsonResponse([row(2, '이영희'), row(3, '박철수')]))
@@ -237,9 +240,9 @@ describe('UserApprovalList', () => {
     await user.click(screen.getByRole('button', { name: '일괄 승인' }))
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
 
-    await waitFor(() =>
-      expect(screen.getByRole('alert')).toHaveTextContent('2명 중 1명을 승인하지 못했습니다.'),
-    )
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('1명을 승인했습니다. 1명은 처리하지 못했습니다.')
+    expect(alert).toHaveTextContent('사용자를 찾을 수 없습니다. — 박철수')
   })
 
   // 거절은 사실상 그 주소를 영구 차단한다. 누르기 전에 알아야 한다.
