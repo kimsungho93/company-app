@@ -3,6 +3,9 @@ export { LoginForm } from './ui/LoginForm'
 export { SignupForm } from './ui/SignupForm'
 export { RequireAuth, RedirectIfAuthenticated } from './ui/routeGuards'
 
+export { useMeQuery } from './api/authApi'
+export type { Me, Role, UserStatus } from './api/types'
+
 export { authSlice, selectAuthStatus } from './model/authSlice'
 export type { AuthStatus } from './model/authSlice'
 export { useAuthBootstrap } from './model/useAuthBootstrap'

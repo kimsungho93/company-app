@@ -1,6 +1,6 @@
 import { baseApi, tokenStore } from '@/shared/api'
 import { anonymous, authenticated } from '../model/authSlice'
-import type { LoginRequest, LoginResponse } from './types'
+import type { LoginRequest, LoginResponse, Me } from './types'
 
 export interface SignupRequest {
   email: string
@@ -11,6 +11,11 @@ export interface SignupRequest {
 // 명세: docs/api/auth.md
 export const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
+    me: build.query<Me, void>({
+      query: () => '/users/me',
+      providesTags: ['Me'],
+    }),
+
     login: build.mutation<LoginResponse, LoginRequest>({
       query: (body) => ({ url: '/auth/login', method: 'POST', body }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
@@ -45,4 +50,4 @@ export const authApi = baseApi.injectEndpoints({
   }),
 })
 
-export const { useLoginMutation, useSignupMutation, useLogoutMutation } = authApi
+export const { useMeQuery, useLoginMutation, useSignupMutation, useLogoutMutation } = authApi
