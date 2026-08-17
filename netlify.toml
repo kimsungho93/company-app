@@ -1,0 +1,15 @@
+# /api 를 백엔드로 넘겨 브라우저에게는 같은 오리진으로 보이게 한다.
+# dev 의 vite proxy 와 같은 역할이다 — 이게 없으면 refresh 쿠키가
+# 서드파티 쿠키가 되어 Safari 에서 차단되고 재발급이 조용히 실패한다.
+[[redirects]]
+  from = "/api/*"
+  to = "https://company-backend-production-2da7.up.railway.app/api/:splat"
+  status = 200
+  force = true
+
+# SPA 폴백. 반드시 /api 규칙보다 뒤에 와야 한다 - Netlify 는 위에서부터
+# 처음 맞는 규칙 하나만 적용해서, 순서가 바뀌면 API 요청이 index.html 로 삼켜진다.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
