@@ -23,11 +23,10 @@
   @include s.focus-ring;
 }
 
-// 로고에 어두운 배경이 박혀 있다(알파 채널이 없는 PNG).
-// 모서리를 둥글려 앱 배지처럼 보이게 하면 라이트 테마에서도 의도한 것으로 읽힌다.
+// 배경이 투명한 PNG 라 라이트·다크 어느 쪽에도 그대로 얹힌다.
+// 96px 원본을 32px 로 내려 그리므로 고해상도 화면에서도 선명하다.
 .logoMark {
   display: block;
-  border-radius: var(--radius-sm);
 }
 
 .spacer {

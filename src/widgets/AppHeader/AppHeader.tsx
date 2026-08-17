@@ -14,7 +14,7 @@ export const AppHeader = () => {
         width·height 를 박아 이미지 로드 전 레이아웃이 밀리지 않게 한다.
       */}
       <Link to="/" className={styles.logo} aria-label="IBS 홈">
-        <img src="/logo-mark.png" alt="" width={26} height={26} className={styles.logoMark} />
+        <img src="/logo-mark.png" alt="" width={32} height={32} className={styles.logoMark} />
         IBS
       </Link>
 
