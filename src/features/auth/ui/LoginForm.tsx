@@ -95,7 +95,7 @@ export const LoginForm = () => {
       <form onSubmit={onSubmit} noValidate>
         {signedUpEmail && !formError && (
           <p className={styles.formNotice} role="status">
-            가입이 완료됐습니다. 비밀번호를 입력해 로그인하세요.
+            가입 신청이 접수됐습니다. 관리자 승인 후 로그인할 수 있습니다.
           </p>
         )}
 

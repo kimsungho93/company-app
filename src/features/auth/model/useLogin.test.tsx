@@ -84,6 +84,42 @@ describe('useLogin', () => {
     expect(result.current.formError).toBe('네트워크에 연결할 수 없습니다.')
   })
 
+  // 403 은 자격 증명이 아니라 승인 상태의 문제다. 401 문구로 덮으면
+  // 사용자가 맞는 비밀번호를 계속 다시 친다.
+  it('승인 대기 중이면 그 사실을 알린다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse({ code: 'APPROVAL_PENDING', message: '관리자 승인 대기 중입니다.' }, 403),
+      ),
+    )
+    const { wrapper } = createTestWrapper()
+    const { result } = renderHook(() => useLogin(), { wrapper })
+
+    await act(async () => {
+      await result.current.submit(CREDENTIALS)
+    })
+
+    expect(result.current.formError).toBe('관리자 승인 대기 중입니다. 승인 후 이용할 수 있습니다.')
+  })
+
+  it('거절된 계정이면 그 사실을 알린다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse({ code: 'SIGNUP_REJECTED', message: '가입이 거절되었습니다.' }, 403),
+      ),
+    )
+    const { wrapper } = createTestWrapper()
+    const { result } = renderHook(() => useLogin(), { wrapper })
+
+    await act(async () => {
+      await result.current.submit(CREDENTIALS)
+    })
+
+    expect(result.current.formError).toBe('가입이 거절되었습니다. 관리자에게 문의해 주세요.')
+  })
+
   it('clearError 로 오류를 지운다', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({}, 500)))
     const { wrapper } = createTestWrapper()
