@@ -141,6 +141,107 @@ describe('UserApprovalList', () => {
     expect(urlsOf(fetchMock).some((u) => u.includes('/reject'))).toBe(false)
   })
 
+  it('체크한 사람만 일괄 승인한다', async () => {
+    const user = userEvent.setup()
+    const fetchMock = stubFetch([row(2, '이영희'), row(3, '박철수')])
+    const { wrapper } = createTestWrapper()
+
+    render(<UserApprovalList />, { wrapper })
+    await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('checkbox', { name: '이영희 선택' }))
+    await user.click(screen.getByRole('button', { name: '일괄 승인' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
+
+    await waitFor(() =>
+      expect(urlsOf(fetchMock).some((u) => u.includes('/admin/users/2/approve'))).toBe(true),
+    )
+    expect(urlsOf(fetchMock).some((u) => u.includes('/admin/users/3/approve'))).toBe(false)
+  })
+
+  it('전체 선택으로 모두 고른다', async () => {
+    const user = userEvent.setup()
+    const fetchMock = stubFetch([row(2, '이영희'), row(3, '박철수')])
+    const { wrapper } = createTestWrapper()
+
+    render(<UserApprovalList />, { wrapper })
+    await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('checkbox', { name: '전체 선택' }))
+    expect(screen.getByText('2명 선택')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '일괄 승인' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveAccessibleName('2명을 승인하시겠습니까?')
+
+    await user.click(within(dialog).getByRole('button', { name: '승인' }))
+
+    await waitFor(() =>
+      expect(urlsOf(fetchMock).filter((u) => u.includes('/approve'))).toHaveLength(2),
+    )
+  })
+
+  // 백엔드가 CANNOT_REJECT_SELF 로 400 을 준다. 일괄에서도 같은 규칙이다.
+  it('본인이 선택에 들어 있으면 일괄 거절을 막고 이유를 알린다', async () => {
+    const user = userEvent.setup()
+    stubFetch([row(1, '김성호'), row(2, '이영희')])
+    const { wrapper } = createTestWrapper()
+
+    render(<UserApprovalList />, { wrapper })
+    await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('checkbox', { name: '전체 선택' }))
+
+    expect(screen.getByRole('button', { name: '일괄 거절' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '일괄 승인' })).toBeEnabled()
+    expect(screen.getByText('본인은 거절할 수 없습니다')).toBeInTheDocument()
+  })
+
+  // 남겨두면 다른 탭에서 고른 사람이 그대로 처리된다
+  it('탭을 옮기면 선택이 비워진다', async () => {
+    const user = userEvent.setup()
+    stubFetch([row(2, '이영희')])
+    const { wrapper } = createTestWrapper()
+
+    render(<UserApprovalList />, { wrapper })
+    await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('checkbox', { name: '이영희 선택' }))
+    expect(screen.getByText('1명 선택')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: '승인됨' }))
+
+    expect(screen.queryByText('1명 선택')).not.toBeInTheDocument()
+  })
+
+  it('일부가 실패하면 몇 명이 실패했는지 알린다', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: Request | string) => {
+        const url = typeof input === 'string' ? input : input.url
+        if (url.includes('/users/me')) return Promise.resolve(jsonResponse(ME))
+        if (url.includes('/admin/users/3/approve')) {
+          return Promise.resolve(jsonResponse({ code: 'USER_NOT_FOUND' }, 404))
+        }
+        if (url.includes('/approve')) return Promise.resolve(emptyResponse(204))
+        return Promise.resolve(jsonResponse([row(2, '이영희'), row(3, '박철수')]))
+      }),
+    )
+    const { wrapper } = createTestWrapper()
+
+    render(<UserApprovalList />, { wrapper })
+    await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('checkbox', { name: '전체 선택' }))
+    await user.click(screen.getByRole('button', { name: '일괄 승인' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('2명 중 1명을 승인하지 못했습니다.'),
+    )
+  })
+
   // 거절은 사실상 그 주소를 영구 차단한다. 누르기 전에 알아야 한다.
   it('거절 확인창이 재가입 불가를 알린다', async () => {
     const user = userEvent.setup()

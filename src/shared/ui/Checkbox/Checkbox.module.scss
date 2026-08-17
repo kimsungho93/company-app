@@ -35,6 +35,7 @@
 }
 
 .box {
+  position: relative;
   display: flex;
   flex: none;
   align-items: center;
@@ -68,11 +69,22 @@
   }
 }
 
+// 일부만 선택된 상태. 체크 표시로 두면 '전부 선택됨' 으로 읽힌다.
+.dash {
+  position: absolute;
+  width: 9px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentcolor;
+  opacity: 0;
+}
+
 .label:hover .box {
   border-color: var(--accent);
 }
 
-.input:checked + .label .box {
+.input:checked + .label .box,
+.input:indeterminate + .label .box {
   border-color: var(--accent);
   background: var(--accent);
 }
@@ -80,6 +92,15 @@
 .input:checked + .label .check {
   opacity: 1;
   scale: 1;
+}
+
+// indeterminate 는 checked 보다 우선한다. 브라우저도 그렇게 그린다.
+.input:indeterminate + .label .check {
+  opacity: 0;
+}
+
+.input:indeterminate + .label .dash {
+  opacity: 1;
 }
 
 .input:focus-visible + .label .box {
