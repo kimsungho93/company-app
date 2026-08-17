@@ -195,6 +195,14 @@ access token 은 메모리라 새로고침하면 사라지지만 refresh 쿠키�
 
 `changeOrigin: true` 는 `Host` 만 바꾸고 `Origin` 은 그대로 넘긴다. 백엔드 CORS 허용 목록이 `localhost:5173` 고정이라, autoPort 로 다른 포트가 잡히면 **모든 요청이 403** 이 된다(실제로 겪었다). 브라우저 입장에서는 이미 같은 오리진이므로 헤더를 지워 CORS 판정 자체를 없앤다.
 
+### 운영 프록시 — `netlify.toml` (dev proxy 와 한 쌍이다)
+
+`apiBase.ts` 는 `${location.origin}/api` 를 쓴다. 배포된 사이트에서 이게 실제 백엔드에 닿는 것은 `netlify.toml` 이 `/api/*` 를 Railway 로 200 rewrite 하기 때문이다. **dev 의 vite proxy 와 정확히 같은 역할**이라, 한쪽만 알고 있으면 반드시 헷갈린다.
+
+프록시를 없애고 Railway 주소를 직접 부르면 안 된다. refresh 쿠키가 **서드파티 쿠키**가 되어 Safari 가 차단하고, 백엔드의 토큰 회전·재사용 탐지가 통째로 무력해진다. `netlify.app` 과 `up.railway.app` 은 둘 다 Public Suffix List 에 있어 무슨 수를 써도 같은 사이트가 되지 않는다.
+
+**`/api` 규칙이 SPA 폴백보다 위에 있어야 한다.** Netlify 는 위에서부터 처음 맞는 규칙 하나만 적용하므로, 순서가 바뀌면 API 요청이 `index.html` 로 삼켜진다. 그 SPA 폴백도 없으면 안 된다 — 없이 배포했을 때 `/login` 과 `/signup` 이 **404** 였다(실측).
+
 ### 백엔드 응답에서 주의할 것
 
 **검증 오류는 전부 `INVALID_INPUT` 하나로 온다.** `GlobalExceptionHandler` 가 Bean Validation 실패를 뭉쳐 첫 필드 메시지만 내려주므로 어느 필드인지 알 수 없다. 그래서 폼 상단에 띄운다. 필드로 보낼 수 있는 코드는 `EMAIL_ALREADY_EXISTS` 뿐이다.
