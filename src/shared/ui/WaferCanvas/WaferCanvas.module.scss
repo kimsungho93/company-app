@@ -1,0 +1,23 @@
+.host {
+  position: relative;
+  // 부모가 flex 컨테이너다. 퍼센트 높이는 부모 높이가 확정되어야 풀리는데
+  // stretch 로 늘어난 flex 아이템에서는 타이밍을 타므로 flex 로 채운다.
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  cursor: crosshair;
+
+  // 터치 기기에는 커서가 없다
+  @media (pointer: coarse) {
+    cursor: default;
+  }
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+

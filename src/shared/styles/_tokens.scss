@@ -1,0 +1,42 @@
+// 런타임에 바뀌는 값과 테마 값은 CSS 커스텀 프로퍼티로 둔다.
+// 컴파일 타임 상수(브레이크포인트 등)는 _mixins.scss 의 SCSS 변수로.
+
+:root {
+  --bg-deep: #070c13;
+  --bg-base: #0a1119;
+  --bg-glow: #12253a;
+
+  --surface: rgba(12, 22, 34, 0.74);
+  --surface-input: rgba(255, 255, 255, 0.035);
+  --border: rgba(120, 190, 220, 0.16);
+  --border-input: rgba(140, 190, 215, 0.14);
+  --border-faint: rgba(140, 190, 215, 0.13);
+
+  --text-hi: #eaf3f8;
+  --text: #8aa1b4;
+  --text-dim: #6e869b;
+  --text-faint: #4e6376;
+  --text-placeholder: #5c7085;
+
+  // 버튼 위에는 반드시 --accent-ink 를 얹는다 (대비 10.4:1)
+  --accent: #22d3ee;
+  --accent-hi: #67e8f9;
+  --accent-lo: #0ea5e9;
+  --accent-ink: #04121b;
+  --accent-soft: rgba(34, 211, 238, 0.055);
+  --accent-ring: rgba(34, 211, 238, 0.12);
+
+  --danger: #fb7185;
+  --danger-soft: rgba(251, 113, 133, 0.1);
+
+  // 형태 — 장비 UI 답게 각지게
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  --font-sans: 'Wanted Sans Variable', system-ui, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, Consolas, 'D2Coding', monospace;
+
+  --shadow-card:
+    0 26px 64px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(160, 220, 240, 0.06);
+}

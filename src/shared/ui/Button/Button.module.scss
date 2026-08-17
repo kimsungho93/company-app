@@ -1,0 +1,77 @@
+@use '@/shared/styles' as s;
+
+.button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+
+  // 밝은 시안 위에 어두운 글자 — 대비 10.4:1.
+  // 반대로 흰 글자를 얹으면 3:1 대로 떨어지므로 뒤집지 말 것.
+  color: var(--accent-ink);
+  background: linear-gradient(100deg, var(--accent-hi), var(--accent) 45%, var(--accent-lo));
+  box-shadow: 0 6px 22px rgba(34, 211, 238, 0.3);
+  transition:
+    box-shadow 0.2s ease,
+    translate 0.12s ease;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 10px 34px rgba(34, 211, 238, 0.48);
+    translate: 0 -1px;
+  }
+
+  &:active:not(:disabled) {
+    translate: 0 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+    box-shadow: none;
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      translate: none;
+    }
+  }
+}
+
+.label {
+  display: inline-block;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(4, 18, 27, 0.28);
+  border-top-color: var(--accent-ink);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+
+  @include s.reduced-motion {
+    animation: none;
+    border-top-color: transparent;
+    opacity: 0.7;
+  }
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}

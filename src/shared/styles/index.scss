@@ -1,0 +1,4 @@
+// 슬라이스에서는 이 파일 하나만 @use 하면 된다.
+//   @use '@/shared/styles' as s;
+//   .foo { @include s.below(s.$bp-mobile) { ... } }
+@forward './mixins';
