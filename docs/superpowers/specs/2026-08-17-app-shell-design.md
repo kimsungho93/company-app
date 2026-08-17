@@ -275,11 +275,13 @@ RequireAuth → AppLayout → RequireAdmin → AdminUsersPage
 | 가입 직후 | `/login` 으로 보내며 "로그인하세요" | **거짓말이다.** 승인 전에는 로그인이 안 된다. "관리자 승인 후 이용할 수 있습니다"로 |
 | 승인 대기 중 로그인 | 403 `APPROVAL_PENDING` → 서버 메시지가 그대로 노출 | `useLogin` 에서 명시적으로 처리 |
 | 거절된 사용자 로그인 | 403 `SIGNUP_REJECTED` → 같음 | 같음 |
-| 세션 중에 거절당함 | 최대 30분간 그대로 사용 | `me.status === 'REJECTED'` 면 즉시 로그아웃 |
+| 세션 중에 거절당함 | 화면이 그대로 | `me.status === 'REJECTED'` 면 즉시 로그아웃 |
 
 지금 403 이 그럴듯하게 보이는 것은 **우연이다.** `errorInfo.ts` 는 401 만 특별 취급하고 403 은 `kind: 'CLIENT'` 로 떨어뜨려 서버 메시지를 그대로 쓰는데, 마침 백엔드 문구가 적절할 뿐이다. 의도한 동작으로 만든다.
 
-마지막 항목이 `me` 에 `status` 를 요청한 이유다. **완전한 차단은 아니다** — access token 은 서명만으로 검증되어 서버가 취소할 수 없고, 직접 요청을 만드는 클라이언트에는 통하지 않는다. 브라우저에서만 즉시 끊긴다. 근본 해법은 백엔드 몫으로 남겨뒀다.
+마지막 항목이 `me` 에 `status` 를 요청한 이유다. 브라우저에서 즉시 끊는 장치이고, 서버 쪽 사정과 남은 과제는 `docs/internal/` 에 적어뒀다.
+
+**`useRejectedGuard` 는 한 번만 쏘아야 한다.** `logout` 이 `resetApiState` 로 캐시를 비우면 `useMeQuery` 가 다시 조회하고, 상태가 그대로 `REJECTED` 라 막지 않으면 이펙트가 계속 돈다(테스트로 실증됨).
 
 ## 9. 접근성
 
@@ -344,7 +346,7 @@ RequireAuth → AppLayout → RequireAdmin → AdminUsersPage
 
 ## 13. 후속 작업
 
-- 백엔드: 거절된 사용자의 access token 이 최대 30분 유효한 문제 (8장). 판단은 백엔드 몫으로 넘겨뒀다
+- 백엔드: 거절 즉시성 관련 항목 — `docs/internal/backend-followups.md` 참고
 - 백엔드: `GET /api/admin/users` 의 `status` 를 선택 파라미터로 — 전체 목록을 세 번 부르지 않아도 된다
 - 구현 후 [docs/api/users.md](../../api/users.md) 를 계약 문서로 작성 (요청서는 백엔드에서 처리 후 삭제됐다)
 - CLAUDE.md 갱신 — `widgets` 레이어 추가, 테마 규칙, 토큰 이름 변경

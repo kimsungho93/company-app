@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useMeQuery } from '../api/authApi'
 import { useLogout } from './useLogout'
 
@@ -15,8 +15,14 @@ import { useLogout } from './useLogout'
 export const useRejectedGuard = (): void => {
   const { data: me } = useMeQuery()
   const { logout } = useLogout()
+  const firedRef = useRef(false)
 
   useEffect(() => {
-    if (me?.status === 'REJECTED') void logout()
+    if (me?.status !== 'REJECTED' || firedRef.current) return
+
+    // 한 번만 쏜다. logout 이 resetApiState 로 캐시를 비우면 useMeQuery 가
+    // 다시 조회하고, 상태가 그대로 REJECTED 라 이 이펙트가 또 돈다.
+    firedRef.current = true
+    void logout()
   }, [me?.status, logout])
 }
