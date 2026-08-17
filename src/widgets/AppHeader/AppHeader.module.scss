@@ -11,6 +11,9 @@
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   color: var(--text-strong);
   font-weight: 600;
   font-size: 14px;
@@ -18,6 +21,13 @@
   text-decoration: none;
 
   @include s.focus-ring;
+}
+
+// 로고에 어두운 배경이 박혀 있다(알파 채널이 없는 PNG).
+// 모서리를 둥글려 앱 배지처럼 보이게 하면 라이트 테마에서도 의도한 것으로 읽힌다.
+.logoMark {
+  display: block;
+  border-radius: var(--radius-sm);
 }
 
 .spacer {
