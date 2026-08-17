@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { ThemeToggle } from '@/shared/ui/ThemeToggle'
+import { AdminLink } from './AdminLink'
 import { UserMenu } from './UserMenu'
 import styles from './AppHeader.module.scss'
 
@@ -20,6 +21,7 @@ export const AppHeader = () => {
 
       <div className={styles.spacer} />
 
+      <AdminLink />
       <ThemeToggle />
       <UserMenu />
     </header>

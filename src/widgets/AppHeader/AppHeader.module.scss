@@ -35,6 +35,32 @@
   flex: 1;
 }
 
+.navLink {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    color: var(--text-strong);
+    background: var(--accent-soft);
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.navLinkActive {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .user {
   display: flex;
   align-items: center;

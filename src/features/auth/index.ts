@@ -2,6 +2,7 @@ export { AuthLayout } from './ui/AuthLayout'
 export { LoginForm } from './ui/LoginForm'
 export { SignupForm } from './ui/SignupForm'
 export { RequireAuth, RedirectIfAuthenticated } from './ui/routeGuards'
+export { RequireAdmin } from './ui/RequireAdmin'
 
 export { useMeQuery } from './api/authApi'
 export type { Me, Role, UserStatus } from './api/types'
