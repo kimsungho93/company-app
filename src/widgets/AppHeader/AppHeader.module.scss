@@ -1,25 +1,38 @@
 @use '@/shared/styles' as s;
 
+// 헤더만 넉넉한 곡률을 쓴다. 전역 --radius-* 는 "장비 UI 답게 각지게" 라는
+// 다른 의도로 3~6px 에 잡혀 있고, 그걸 올리면 카드·다이얼로그·입력칸까지
+// 전부 따라 바뀐다. 그래서 여기서만 쓰는 컴파일 타임 상수로 둔다.
+$pill: 999px;
+$nav-radius: 10px;
+$panel-radius: 14px;
+
 .header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  height: 52px;
-  padding: 0 20px;
+  gap: 6px;
+  height: 68px;
+  padding: 0 28px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+
+  @include s.below(s.$bp-mobile) {
+    height: 58px;
+    padding: 0 16px;
+  }
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
+  margin-right: 10px;
   color: var(--text-strong);
-  font-weight: 600;
-  font-size: 15px;
+  font-weight: 700;
+  font-size: 17px;
   // 라틴 대문자용으로 벌려뒀던 0.14em 을 뺐다. 한글에 그대로 쓰면
   // 자간이 어색하게 벌어지고 폰트도 폴백으로 떨어진다.
-  letter-spacing: -0.2px;
+  letter-spacing: -0.4px;
   text-decoration: none;
 
   @include s.focus-ring;
@@ -38,21 +51,24 @@
 .navLink {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
+  gap: 5px;
+  padding: 9px 14px;
   border: 0;
+  border-radius: $nav-radius;
   background: transparent;
+  color: var(--text);
   font-family: inherit;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
   text-decoration: none;
+  cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
 
+  // 색 대비를 올리는 대신 옅은 판을 깐다. 글자색이 이미 --text 라 더 올릴 곳이 없다.
   &:hover {
     color: var(--text-strong);
-    background: var(--accent-soft);
+    background: var(--bg-sunken);
   }
 
   @include s.focus-ring;
@@ -76,7 +92,9 @@
 .userName {
   min-width: 3.5em;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
   text-align: right;
 
   @include s.below(s.$bp-mobile) {
@@ -85,18 +103,21 @@
 }
 
 .logout {
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 13px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: $pill;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
 
   &:hover:not(:disabled) {
     color: var(--text-strong);
-    border-color: var(--accent-ring);
+    background: var(--accent-soft);
   }
 
   &:disabled {
@@ -112,7 +133,7 @@
 }
 
 .mainNav {
-  margin-left: 6px;
+  display: flex;
 }
 
 .menu {
@@ -122,37 +143,50 @@
 .caret {
   width: 0;
   height: 0;
-  margin-left: 2px;
+  margin-top: 1px;
   border-top: 4px solid currentcolor;
   border-right: 3.5px solid transparent;
   border-left: 3.5px solid transparent;
+  transition: rotate 0.15s ease;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.caretOpen {
+  rotate: 180deg;
 }
 
 .menuList {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 10px);
   left: 0;
   z-index: 10;
-  min-width: 132px;
+  min-width: 176px;
   margin: 0;
-  padding: 4px;
-  list-style: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  padding: 8px;
+  // 테두리를 빼면 라이트에서는 더 가벼워지지만 다크에서 배경과 붙어버린다.
+  // 곡률과 그림자로 떠 보이게 하고 선은 가장 옅은 것으로 남긴다.
+  border: 1px solid var(--border-faint);
+  border-radius: $panel-radius;
   background: var(--surface);
   box-shadow: var(--shadow-card);
+  list-style: none;
 }
 
 .menuItem {
   display: block;
-  padding: 7px 10px;
-  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+  border-radius: $nav-radius;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
   text-decoration: none;
 
   &:hover {
-    background: var(--accent-soft);
+    background: var(--bg-sunken);
     color: var(--text-strong);
   }
 
@@ -161,5 +195,6 @@
 
 .menuItemActive {
   color: var(--accent);
+  background: var(--accent-soft);
   font-weight: 600;
 }

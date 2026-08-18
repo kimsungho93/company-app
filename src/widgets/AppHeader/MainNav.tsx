@@ -44,7 +44,10 @@ export const MainNav = () => {
           }}
         >
           업무
-          <span className={styles.caret} aria-hidden="true" />
+          <span
+            className={open ? `${styles.caret} ${styles.caretOpen}` : styles.caret}
+            aria-hidden="true"
+          />
         </button>
 
         {open && (
