@@ -8,6 +8,7 @@ $nav-radius: 10px;
 $panel-radius: 14px;
 
 .header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -133,68 +134,98 @@ $panel-radius: 14px;
 }
 
 .mainNav {
+  // 헤더 높이를 가득 채워야 트리거에서 패널로 내려가는 길이 끊기지 않는다.
+  // 가운데 정렬된 버튼만 감싸면 그 사이 여백에서 pointerleave 가 떠 깜빡인다.
   display: flex;
+  align-self: stretch;
+  align-items: center;
 }
 
-.menu {
-  position: relative;
+.navLinkOpen {
+  color: var(--text-strong);
+  font-weight: 600;
 }
 
-.caret {
-  width: 0;
-  height: 0;
-  margin-top: 1px;
-  border-top: 4px solid currentcolor;
-  border-right: 3.5px solid transparent;
-  border-left: 3.5px solid transparent;
-  transition: rotate 0.15s ease;
+.megaPanel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 18px 32px -24px rgb(0 0 0 / 45%);
+  animation: reveal 0.16s ease-out;
+
+  @include s.reduced-motion {
+    animation: none;
+  }
+}
+
+// 촤락 내려오는 느낌. 위에서 살짝 밀려 내려오며 밝아진다.
+@keyframes reveal {
+  from {
+    opacity: 0;
+    translate: 0 -8px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.megaInner {
+  display: flex;
+  gap: 56px;
+  // 헤더 좌우 여백과 맞춰 로고 아래에서 열이 시작되게 한다
+  padding: 30px 28px 34px;
+
+  @include s.below(s.$bp-mobile) {
+    gap: 28px;
+    padding: 20px 16px 24px;
+  }
+}
+
+.megaGroup {
+  min-width: 148px;
+}
+
+.megaCaption {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: -0.3px;
+}
+
+.megaList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.megaItem {
+  color: var(--text-strong);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--accent);
+  }
+
+  @include s.focus-ring;
 
   @include s.reduced-motion {
     transition: none;
   }
 }
 
-.caretOpen {
-  rotate: 180deg;
-}
-
-.menuList {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  z-index: 10;
-  min-width: 176px;
-  margin: 0;
-  padding: 8px;
-  // 테두리를 빼면 라이트에서는 더 가벼워지지만 다크에서 배경과 붙어버린다.
-  // 곡률과 그림자로 떠 보이게 하고 선은 가장 옅은 것으로 남긴다.
-  border: 1px solid var(--border-faint);
-  border-radius: $panel-radius;
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  list-style: none;
-}
-
-.menuItem {
-  display: block;
-  padding: 10px 12px;
-  border-radius: $nav-radius;
-  color: var(--text);
-  font-size: 14.5px;
-  font-weight: 500;
-  letter-spacing: -0.3px;
-  text-decoration: none;
-
-  &:hover {
-    background: var(--bg-sunken);
-    color: var(--text-strong);
-  }
-
-  @include s.focus-ring;
-}
-
-.menuItemActive {
+.megaItemActive {
   color: var(--accent);
-  background: var(--accent-soft);
-  font-weight: 600;
 }
