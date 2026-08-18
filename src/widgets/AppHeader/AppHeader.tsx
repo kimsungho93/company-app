@@ -1,6 +1,5 @@
 import { Link } from 'react-router'
 import { ThemeToggle } from '@/shared/ui/ThemeToggle'
-import { AdminLink } from './AdminLink'
 import { MainNav } from './MainNav'
 import { UserMenu } from './UserMenu'
 import styles from './AppHeader.module.scss'
@@ -27,7 +26,6 @@ export const AppHeader = () => {
       <MainNav />
 
       <div className={`${styles.side} ${styles.sideEnd}`}>
-        <AdminLink />
         <ThemeToggle />
         <UserMenu />
       </div>

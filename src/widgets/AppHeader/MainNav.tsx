@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { NavLink, useLocation } from 'react-router'
+import { useMeQuery } from '@/features/auth'
 import styles from './AppHeader.module.scss'
 
 // 메뉴를 늘리면 항목이 하나 늘고, 그룹을 늘리면 패널에 열이 하나 늘어난다.
@@ -25,6 +26,16 @@ const MENUS = [
   },
 ]
 
+const ADMIN_MENU = {
+  label: '관리',
+  groups: [
+    {
+      caption: '팀을 살피고',
+      items: [{ to: '/admin/users', label: '승인 관리' }],
+    },
+  ],
+}
+
 // 포인터가 트리거에서 패널로 내려가는 사이 잠깐 바깥을 지난다. 즉시 닫으면 깜빡인다.
 const CLOSE_DELAY_MS = 120
 
@@ -36,6 +47,9 @@ export const MainNav = () => {
   const triggerRefs = useRef(new Map<string, HTMLButtonElement>())
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { pathname } = useLocation()
+  const { data: me } = useMeQuery()
+
+  const menus = me?.role === 'ADMIN' ? [...MENUS, ADMIN_MENU] : MENUS
 
   const cancelClose = () => {
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
@@ -53,7 +67,7 @@ export const MainNav = () => {
   // 터치에는 호버가 없다. 여기서 열어버리면 첫 탭이 열기로 먹혀 링크가 한 번에 안 눌린다.
   const isMouse = (pointerType: string) => pointerType === 'mouse'
 
-  const open = MENUS.find((menu) => menu.label === openLabel)
+  const open = menus.find((menu) => menu.label === openLabel)
 
   return (
     <nav
@@ -71,7 +85,7 @@ export const MainNav = () => {
         setOpenLabel(null)
       }}
     >
-      {MENUS.map((menu) => (
+      {menus.map((menu) => (
         <button
           key={menu.label}
           ref={(el) => {

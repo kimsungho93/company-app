@@ -1,10 +1,19 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
-import { createTestWrapper } from '@/test/storeWrapper'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createTestWrapper, jsonResponse } from '@/test/storeWrapper'
 import { MainNav } from './MainNav'
 
-const setup = () => {
+const meWith = (role: string) => ({
+  id: 1,
+  email: 'tiger@ibslab.com',
+  name: '김성호',
+  role,
+  status: 'APPROVED',
+})
+
+const setup = (role = 'USER') => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(meWith(role))))
   const { wrapper } = createTestWrapper({ withRouter: true })
   return { user: userEvent.setup(), ...render(<MainNav />, { wrapper }) }
 }
@@ -14,6 +23,10 @@ const nav = () => screen.getByRole('navigation', { name: '주 메뉴' })
 const gameTrigger = () => screen.getByRole('button', { name: '게임' })
 
 describe('MainNav', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('처음에는 닫혀 있다', () => {
     setup()
 
@@ -97,5 +110,42 @@ describe('MainNav', () => {
     await user.click(screen.getByRole('link', { name: '휴가' }))
 
     await waitFor(() => expect(trigger()).toHaveAttribute('aria-expanded', 'false'))
+  })
+
+  // 헤더 오른쪽에 있던 승인 관리를 주 메뉴 안으로 옮겼다
+  describe('관리 메뉴', () => {
+    it('관리자에게만 보인다', async () => {
+      setup('ADMIN')
+
+      await waitFor(() => expect(screen.getByRole('button', { name: '관리' })).toBeInTheDocument())
+    })
+
+    it('일반 사용자에게는 없다', async () => {
+      setup('USER')
+
+      await waitFor(() => expect(screen.getByRole('button', { name: '업무' })).toBeInTheDocument())
+      expect(screen.queryByRole('button', { name: '관리' })).not.toBeInTheDocument()
+    })
+
+    it('게임 오른쪽에 붙는다', async () => {
+      setup('ADMIN')
+      await waitFor(() => expect(screen.getByRole('button', { name: '관리' })).toBeInTheDocument())
+
+      const labels = screen.getAllByRole('button').map((button) => button.textContent)
+
+      expect(labels).toEqual(['업무', '게임', '관리'])
+    })
+
+    it('열면 승인 관리 링크가 나온다', async () => {
+      const { user } = setup('ADMIN')
+      await waitFor(() => expect(screen.getByRole('button', { name: '관리' })).toBeInTheDocument())
+
+      await user.hover(screen.getByRole('button', { name: '관리' }))
+
+      expect(screen.getByRole('link', { name: '승인 관리' })).toHaveAttribute(
+        'href',
+        '/admin/users',
+      )
+    })
   })
 })
