@@ -1,0 +1,200 @@
+@use '@/shared/styles' as s;
+
+.form {
+  display: flex;
+  flex: 0 0 292px;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+
+  @include s.below(s.$bp-mobile) {
+    flex: none;
+  }
+}
+
+.who {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+}
+
+.whoName {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.whoDate {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.kinds {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.kindOption {
+  flex: 1;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  span {
+    display: block;
+    padding: 6px 4px;
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: inset 0 0 0 1px var(--border);
+    transition:
+      color 0.15s ease,
+      background 0.15s ease,
+      box-shadow 0.15s ease,
+      translate 0.15s ease,
+      scale 0.1s ease;
+  }
+
+  &:hover input:not(:checked) + span {
+    background: var(--accent-soft);
+    color: var(--text-strong);
+    box-shadow: inset 0 0 0 1px var(--accent-ring);
+    translate: 0 -1px;
+  }
+
+  input:checked + span {
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 4px 12px -5px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  &:hover input:checked + span {
+    translate: 0 -1px;
+    box-shadow: 0 7px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+
+  &:active span {
+    translate: 0 0;
+    scale: 0.96;
+  }
+
+  input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @include s.reduced-motion {
+    span,
+    &:hover input + span,
+    &:active span {
+      transition: none;
+      translate: none;
+      scale: none;
+    }
+  }
+}
+
+.range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rangeLabel {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.rangeInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border-input);
+  border-radius: 7px;
+  background: var(--surface-input);
+  color: var(--text-strong);
+  font-family: inherit;
+  font-size: 12px;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--text-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.submit {
+  margin-top: auto;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 10px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    translate 0.15s ease,
+    scale 0.1s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-hi);
+    box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--accent) 75%, transparent);
+    translate: 0 -1px;
+  }
+
+  &:active:not(:disabled) {
+    translate: 0 0;
+    scale: 0.985;
+    box-shadow: 0 2px 6px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.5;
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      translate: none;
+      scale: none;
+    }
+  }
+}

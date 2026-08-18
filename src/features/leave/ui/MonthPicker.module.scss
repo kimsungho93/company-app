@@ -1,0 +1,133 @@
+@use '@/shared/styles' as s;
+
+.picker {
+  position: relative;
+}
+
+.heading {
+  min-width: 7.5em;
+  margin: 0;
+  text-align: center;
+}
+
+.trigger {
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-strong);
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--accent-soft);
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  z-index: 20;
+  translate: -50% 0;
+  width: 232px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.yearBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.yearNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    background: var(--bg-sunken);
+    color: var(--text-strong);
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.year {
+  min-width: 4.5em;
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.month {
+  padding: 8px 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    background: var(--accent-soft);
+    color: var(--text-strong);
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.monthCurrent {
+  background: var(--accent);
+  color: var(--accent-ink);
+
+  &:hover {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+}

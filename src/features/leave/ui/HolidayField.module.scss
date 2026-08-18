@@ -1,0 +1,152 @@
+@use '@/shared/styles' as s;
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.endLabel {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border-input);
+  border-radius: 7px;
+  background: var(--surface-input);
+  color: var(--text-strong);
+  font-family: inherit;
+  font-size: 12px;
+  transition: border-color 0.15s ease;
+
+  &::placeholder {
+    color: var(--text-placeholder);
+  }
+
+  &:hover {
+    border-color: var(--text-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.submit {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--border);
+  transition: color 0.15s ease, background 0.15s ease, scale 0.1s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-soft);
+    color: var(--text-strong);
+  }
+
+  &:active:not(:disabled) {
+    scale: 0.96;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+
+    &:active:not(:disabled) {
+      scale: none;
+    }
+  }
+}
+
+.span {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.fixed,
+.set {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tag {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--day-sunday) 14%, transparent);
+  color: var(--day-sunday);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.clear {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, scale 0.1s ease;
+
+  &:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+
+  &:active {
+    scale: 0.94;
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+
+    &:active {
+      scale: none;
+    }
+  }
+}

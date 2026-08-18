@@ -1,0 +1,22 @@
+$annual: #e8737f;
+$half-am: #f2a33c;
+$half-pm: #e07526;
+$official: #5cbf88;
+
+@mixin kind-classes {
+  .kindAnnual {
+    --kind-color: #{$annual};
+  }
+
+  .kindHalfAm {
+    --kind-color: #{$half-am};
+  }
+
+  .kindHalfPm {
+    --kind-color: #{$half-pm};
+  }
+
+  .kindOfficial {
+    --kind-color: #{$official};
+  }
+}
