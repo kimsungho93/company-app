@@ -10,7 +10,8 @@ const setup = () => {
 }
 
 const trigger = () => screen.getByRole('button', { name: '업무' })
-const nav = () => screen.getByRole('navigation', { name: '업무' })
+const nav = () => screen.getByRole('navigation', { name: '주 메뉴' })
+const gameTrigger = () => screen.getByRole('button', { name: '게임' })
 
 describe('MainNav', () => {
   it('처음에는 닫혀 있다', () => {
@@ -24,7 +25,7 @@ describe('MainNav', () => {
   it('마우스를 올리면 열리고 하위 항목이 보인다', async () => {
     const { user } = setup()
 
-    await user.hover(nav())
+    await user.hover(trigger())
 
     expect(trigger()).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByRole('link', { name: '휴가' })).toHaveAttribute('href', '/leave')
@@ -33,7 +34,7 @@ describe('MainNav', () => {
 
   it('벗어나면 닫힌다', async () => {
     const { user } = setup()
-    await user.hover(nav())
+    await user.hover(trigger())
 
     await user.unhover(nav())
 
@@ -71,10 +72,27 @@ describe('MainNav', () => {
     expect(trigger()).toHaveAttribute('aria-expanded', 'false')
   })
 
+  // 열린 채로 옆 메뉴로 옮기면 패널은 그대로 두고 내용만 바뀌어야 한다
+  it('옆 메뉴로 옮기면 그 메뉴 내용으로 바뀐다', async () => {
+    const { user } = setup()
+    await user.hover(trigger())
+    expect(screen.getByRole('link', { name: '휴가' })).toBeInTheDocument()
+
+    await user.hover(gameTrigger())
+
+    expect(gameTrigger()).toHaveAttribute('aria-expanded', 'true')
+    expect(trigger()).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('link', { name: '끝말잇기' })).toHaveAttribute(
+      'href',
+      '/games/word-chain',
+    )
+    expect(screen.queryByRole('link', { name: '휴가' })).not.toBeInTheDocument()
+  })
+
   // 열린 채로 남으면 이동한 화면을 패널이 가린다
   it('항목을 고르면 닫힌다', async () => {
     const { user } = setup()
-    await user.hover(nav())
+    await user.hover(trigger())
 
     await user.click(screen.getByRole('link', { name: '휴가' }))
 

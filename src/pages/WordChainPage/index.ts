@@ -1,0 +1,1 @@
+export { WordChainPage } from './WordChainPage'

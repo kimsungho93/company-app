@@ -5,6 +5,7 @@ import { HomePage } from '@/pages/HomePage'
 import { LeavePage } from '@/pages/LeavePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
+import { WordChainPage } from '@/pages/WordChainPage'
 import { AppLayout } from './layouts/AppLayout'
 
 export const router = createBrowserRouter([
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <HomePage /> },
           { path: 'leave', element: <LeavePage /> },
+          { path: 'games/word-chain', element: <WordChainPage /> },
           {
             element: <RequireAdmin />,
             children: [{ path: 'admin/users', element: <AdminUsersPage /> }],

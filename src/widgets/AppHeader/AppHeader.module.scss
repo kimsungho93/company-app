@@ -27,7 +27,6 @@ $panel-radius: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-right: 10px;
   color: var(--text-strong);
   font-weight: 700;
   font-size: 17px;
@@ -45,8 +44,16 @@ $panel-radius: 14px;
   display: block;
 }
 
-.spacer {
-  flex: 1;
+.side {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  min-width: 0;
+}
+
+.sideEnd {
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .navLink {
@@ -139,6 +146,9 @@ $panel-radius: 14px;
   display: flex;
   align-self: stretch;
   align-items: center;
+  // 메뉴가 늘면 가운데를 기준으로 양옆으로 자란다
+  justify-content: center;
+  gap: 4px;
 }
 
 .navLinkOpen {
@@ -152,21 +162,37 @@ $panel-radius: 14px;
   right: 0;
   left: 0;
   z-index: 10;
-  border-bottom: 1px solid var(--border);
   background: var(--surface);
-  box-shadow: 0 18px 32px -24px rgb(0 0 0 / 45%);
-  animation: reveal 0.16s ease-out;
+  // 아래로 갈수록 배경이 사라져 화면과 이어진다. 선으로 끊으면 얹어놓은 판처럼 보인다.
+  // 색을 transparent 로 보간하면 브라우저에 따라 회색이 끼므로 마스크로 지운다.
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  animation: panel-drop 0.2s ease-out;
 
   @include s.reduced-motion {
     animation: none;
   }
 }
 
-// 촤락 내려오는 느낌. 위에서 살짝 밀려 내려오며 밝아진다.
-@keyframes reveal {
+// 패널은 배경만 짧게 펼쳐진다. 흐르는 느낌은 안쪽 항목들이 만든다.
+@keyframes panel-drop {
   from {
     opacity: 0;
-    translate: 0 -8px;
+    translate: 0 -6px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+// 열과 행이 어긋나며 차례로 들어온다.
+// 항목이 많아져도 끝이 늘어지지 않도록 지연을 620ms 에서 끊는다.
+@keyframes flow-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
   }
 
   to {
@@ -177,18 +203,29 @@ $panel-radius: 14px;
 
 .megaInner {
   display: flex;
+  // 메뉴가 가운데 있으므로 열도 가운데에서 양옆으로 펼쳐진다
+  justify-content: center;
   gap: 56px;
-  // 헤더 좌우 여백과 맞춰 로고 아래에서 열이 시작되게 한다
-  padding: 30px 28px 34px;
+  padding: 34px 28px 76px;
 
   @include s.below(s.$bp-mobile) {
     gap: 28px;
-    padding: 20px 16px 24px;
+    padding: 20px 16px 56px;
   }
 }
 
 .megaGroup {
   min-width: 148px;
+}
+
+.megaCaption,
+.megaList > li {
+  animation: flow-in 0.46s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+  animation-delay: min(calc(var(--col, 0) * 130ms + var(--row, 0) * 95ms), 620ms);
+
+  @include s.reduced-motion {
+    animation: none;
+  }
 }
 
 .megaCaption {
