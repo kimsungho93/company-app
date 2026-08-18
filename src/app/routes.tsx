@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { AuthLayout, RedirectIfAuthenticated, RequireAdmin, RequireAuth } from '@/features/auth'
 import { AdminUsersPage } from '@/pages/AdminUsersPage'
 import { HomePage } from '@/pages/HomePage'
+import { LeavePage } from '@/pages/LeavePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { AppLayout } from './layouts/AppLayout'
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <HomePage /> },
+          { path: 'leave', element: <LeavePage /> },
           {
             element: <RequireAdmin />,
             children: [{ path: 'admin/users', element: <AdminUsersPage /> }],

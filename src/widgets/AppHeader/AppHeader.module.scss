@@ -36,8 +36,14 @@
 }
 
 .navLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: 13px;
@@ -103,4 +109,57 @@
   @include s.reduced-motion {
     transition: none;
   }
+}
+
+.mainNav {
+  margin-left: 6px;
+}
+
+.menu {
+  position: relative;
+}
+
+.caret {
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-top: 4px solid currentcolor;
+  border-right: 3.5px solid transparent;
+  border-left: 3.5px solid transparent;
+}
+
+.menuList {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 10;
+  min-width: 132px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.menuItem {
+  display: block;
+  padding: 7px 10px;
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  font-size: 13px;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--accent-soft);
+    color: var(--text-strong);
+  }
+
+  @include s.focus-ring;
+}
+
+.menuItemActive {
+  color: var(--accent);
+  font-weight: 600;
 }
