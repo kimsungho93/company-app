@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useLogout, useMeQuery } from '@/features/auth'
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import styles from './AppHeader.module.scss'
 
 // 드롭다운으로 만들지 않는다. 항목이 이름과 로그아웃 둘뿐인데
@@ -6,6 +8,7 @@ import styles from './AppHeader.module.scss'
 export const UserMenu = () => {
   const { data: me } = useMeQuery()
   const { logout, isLoading } = useLogout()
+  const [asking, setAsking] = useState(false)
 
   return (
     <div className={styles.user}>
@@ -18,10 +21,22 @@ export const UserMenu = () => {
         className={styles.logout}
         disabled={isLoading}
         aria-busy={isLoading}
-        onClick={logout}
+        onClick={() => setAsking(true)}
       >
         로그아웃
       </button>
+
+      <ConfirmDialog
+        open={asking}
+        busy={isLoading}
+        title="로그아웃하시겠습니까?"
+        confirmLabel="로그아웃"
+        onConfirm={() => {
+          setAsking(false)
+          void logout()
+        }}
+        onCancel={() => setAsking(false)}
+      />
     </div>
   )
 }
