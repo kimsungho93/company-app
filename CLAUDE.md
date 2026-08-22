@@ -25,7 +25,7 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 
 `backend/company-backend`(Spring Boot)와 짝을 이루는 프론트엔드. 회사(IBS)는 반도체·스마트팩토리 영역이고, 화면의 시각 언어를 여기서 끌어왔다.
 
-화면은 **로그인 · 회원가입 · 홈 · 승인 관리 · 휴가 · 끝말잇기** 여섯이다. 끝말잇기는 자리만 잡아둔 빈 화면이다.
+화면은 **로그인 · 회원가입 · 홈 · 승인 관리 · 휴가 · 끝말잇기** 여섯이다. 끝말잇기는 방 목록과 대기실까지 되어 있고 게임 진행은 아직이다.
 
 설계 근거와 폐기된 대안은 `docs/superpowers/specs/` 에 날짜별로 있다 — 화면을 손대기 전에 해당 문서를 읽을 것.
 
@@ -34,6 +34,8 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 | [2026-08-10-login-screen-design.md](docs/superpowers/specs/2026-08-10-login-screen-design.md) | 로그인 화면, 웨이퍼 캔버스 |
 | [2026-08-12-signup-screen-design.md](docs/superpowers/specs/2026-08-12-signup-screen-design.md) | 회원가입, 라우터 도입 |
 | [2026-08-17-app-shell-design.md](docs/superpowers/specs/2026-08-17-app-shell-design.md) | 헤더, 테마, 승인 관리 |
+| [2026-08-22-word-chain-design.md](docs/superpowers/specs/2026-08-22-word-chain-design.md) | 끝말잇기 전체 그림, 방 목록 |
+| [2026-08-23-word-chain-room-design.md](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) | 대기실, 소켓 계약, 배포 경로 |
 
 ## 구조 — feature 기반 3레이어
 
@@ -68,12 +70,13 @@ src/
 ### 라우팅
 
 ```
-/                 RequireAuth → AppLayout → HomePage
-/leave            RequireAuth → AppLayout → LeavePage
-/games/word-chain RequireAuth → AppLayout → WordChainPage
-/admin/users      RequireAuth → AppLayout → RequireAdmin → AdminUsersPage
-/login            RedirectIfAuthenticated → AuthLayout → LoginPage
-/signup           RedirectIfAuthenticated → AuthLayout → SignupPage
+/                         RequireAuth → AppLayout → HomePage
+/leave                    RequireAuth → AppLayout → LeavePage
+/games/word-chain         RequireAuth → AppLayout → WordChainRoomsPage
+/games/word-chain/:roomId RequireAuth → AppLayout → WordChainRoomPage
+/admin/users              RequireAuth → AppLayout → RequireAdmin → AdminUsersPage
+/login                    RedirectIfAuthenticated → AuthLayout → LoginPage
+/signup                   RedirectIfAuthenticated → AuthLayout → SignupPage
 ```
 
 **가드가 바깥, 레이아웃이 안쪽이다.** 순서가 반대면 인증되지 않은 사용자에게 헤더가 한 번 그려졌다 사라진다.
@@ -262,6 +265,8 @@ access token 은 메모리라 새로고침하면 사라지지만 refresh 쿠키�
 
 **`/api` 규칙이 SPA 폴백보다 위에 있어야 한다.** Netlify 는 위에서부터 처음 맞는 규칙 하나만 적용하므로, 순서가 바뀌면 API 요청이 `index.html` 로 삼켜진다. 그 SPA 폴백도 없으면 안 된다 — 없이 배포했을 때 `/login` 과 `/signup` 이 **404** 였다(실측).
 
+**WebSocket 은 이 프록시를 타지 못한다.** 아래 끝말잇기 절을 볼 것.
+
 ### 백엔드 응답에서 주의할 것
 
 **검증 오류는 전부 `INVALID_INPUT` 하나로 온다.** `GlobalExceptionHandler` 가 Bean Validation 실패를 뭉쳐 첫 필드 메시지만 내려주므로 어느 필드인지 알 수 없다. 그래서 폼 상단에 띄운다. 필드로 보낼 수 있는 코드는 `EMAIL_ALREADY_EXISTS` 뿐이다.
@@ -287,6 +292,76 @@ access token 은 메모리라 새로고침하면 사라지지만 refresh 쿠키�
 **격자는 항상 6주다.** 행 수가 달마다 바뀌면 달을 넘길 때 아래 내용이 들썩인다.
 
 칸에는 3명까지만 그리고 나머지는 `+N명` 으로 접는다. 칸 높이가 화면에서 계산되므로 넘치면 격자가 깨진다. 전체는 날짜를 눌러 팝업에서 본다.
+
+## 끝말잇기 — 방과 소켓
+
+`features/word-chain` 이다. 계약이 REST 와 STOMP 두 벌이고 둘 다 스펙에 있다 —
+[방 목록·생성·입장](docs/superpowers/specs/2026-08-22-word-chain-design.md),
+[대기실 소켓](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) 5장.
+
+### 소켓만 Netlify 프록시를 우회한다 (실측)
+
+**`netlify.toml` 의 200 rewrite 는 `Upgrade`·`Connection` 헤더를 떨군다.** 요청은 Railway 까지
+가지만 업그레이드가 성립하지 않아 Tomcat 이 400 으로 거절한다. 재시도로 풀릴 문제가 아니다.
+
+| 경로 | 결과 |
+|---|---|
+| `wss://ibs-app.netlify.app/api/ws` | 실패 |
+| `wss://<railway>/api/ws` | 101 Switching Protocols |
+
+그래서 **운영에서는 `VITE_WS_URL` 로 Railway 주소를 직접 준다.** 없으면 `wsUrl.ts` 가
+same-origin 으로 떨어져 배포된 사이트에서 소켓이 붙지 않는다. 코드가 아니라 Netlify 환경변수라
+저장소를 봐서는 알 수 없다.
+
+**REST 는 그대로 프록시를 거친다.** refresh 쿠키가 서드파티 쿠키가 되면 Safari 가 막고 토큰
+회전·재사용 탐지가 무력해진다. 이건 바뀌면 안 된다.
+
+### 인증은 CONNECT 프레임에서 한다
+
+**핸드셰이크 경로(`/api/ws`)는 백엔드에서 `permitAll` 이어야 한다.** 브라우저의
+`new WebSocket(url)` 은 헤더를 붙일 수 없어 업그레이드 요청에 토큰을 실을 방법이 없다.
+HTTP 단에서 인증을 요구하면 CONNECT 프레임까지 가지도 못하고 401 로 끝난다.
+
+구멍이 아니다 — 인증은 CONNECT 에서, 구독 권한은 SUBSCRIBE 프레임 검사에서 한다.
+**토큰을 쿼리 스트링에 넣지 말 것.** 접속 로그에 그대로 남는다.
+
+**연결 전에 `reissueOnce()` 를 거친다.** 소켓에는 REST 처럼 401 을 받고 재발급하는 흐름이 없다.
+
+**본문이 있는 메시지에는 `content-type: application/json` 을 붙인다.** STOMP 클라이언트가
+자동으로 붙여주지 않고, 없으면 서버가 역직렬화하지 못한다.
+
+### 끊기면 재연결하지 않고 방 목록으로 보낸다
+
+서버가 연결 끊김을 곧 퇴장으로 처리하므로 **끊긴 순간 좌석은 이미 사라졌다.** 소켓만 다시 열어도
+그 방의 참가자가 아니다. 가만히 두면 화면이 거짓말을 한다 — 사람들이 그대로 서 있고 버튼도
+눌리는데 아무 일도 일어나지 않는다.
+
+### 방 상태는 Redux 에 넣지 않는다
+
+서버가 통째로 브로드캐스트하므로 `useRoomSocket` 이 받은 스냅샷을 그대로 그린다. 조각내 받으면
+순서가 뒤집혔을 때 화면이 어긋난다.
+
+**`RoomView` 는 소켓을 모른다.** 상태와 콜백만 props 로 받아 소켓 없이 전부 테스트된다.
+소켓은 페이지가 붙인다.
+
+### 시작 조건에 인원 수가 따로 있다
+
+**`2명 이상` AND `방장을 뺀 전원이 준비`.** 뒤쪽만 세면 방장 혼자일 때 빈 집합이라 그냥 참이
+되어 혼자 게임이 시작된다.
+
+방장의 `ready` 는 **사실대로 온다.** 버튼이 없어 대개 `false` 다. 표시를 위해 값을 속이면
+양도한 순간 그 사람의 진짜 준비 상태를 잃는다.
+
+**`ready` 는 토글이 아니라 값을 보낸다.** 토글이면 메시지가 한 번 유실됐을 때 화면과 서버가
+영원히 반대가 된다.
+
+### 아바타
+
+`public/avatars/{male,female}.png` 이고 경로·라벨은 `model/avatars.ts` 한 곳에 있다.
+연단과 선택 UI 가 같은 표를 본다.
+
+**안 고른 쪽을 흐리게 물리는 것은 장식이 아니다.** 이미지 안쪽에 링을 그렸더니 아바타 배경
+채도에 묻혀 어느 쪽을 골랐는지 보이지 않았다. jsdom 에는 픽셀이 없어 테스트가 못 잡는다.
 
 ## 접근성 — 라이브러리가 없으므로 직접 챙긴다
 
