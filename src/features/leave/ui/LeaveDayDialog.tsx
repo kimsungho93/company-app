@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
-import type { LeaveDraft } from '../model/conflict'
-import type { CustomHoliday, LeaveEntry, LeaveKind } from '../model/types'
+import { LEAVE_KIND_LABEL } from '../model/types'
+import type { Holiday, HolidayDraft, LeaveDraft, LeaveEntry, LeaveKind } from '../model/types'
 import { HolidayField } from './HolidayField'
 import { LeaveForm } from './LeaveForm'
 import styles from './LeaveDayDialog.module.scss'
@@ -9,10 +9,10 @@ import styles from './LeaveDayDialog.module.scss'
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 const KIND_CLASS: Record<LeaveKind, string> = {
-  연차: styles.kindAnnual,
-  오전반차: styles.kindHalfAm,
-  오후반차: styles.kindHalfPm,
-  공가: styles.kindOfficial,
+  ANNUAL: styles.kindAnnual,
+  HALF_DAY_AM: styles.kindHalfAm,
+  HALF_DAY_PM: styles.kindHalfPm,
+  OFFICIAL: styles.kindOfficial,
 }
 
 const dayTitle = (iso: string): string => {
@@ -33,26 +33,32 @@ const spanOf = (entry: LeaveEntry): string | null =>
 export interface LeaveDayDialogProps {
   date: string | null
   dayEntries: LeaveEntry[]
-  allEntries: LeaveEntry[]
   userName?: string
+  userId?: number
   isAdmin?: boolean
   fixedHoliday: string | null
-  customHoliday: CustomHoliday | null
+  holiday: Holiday | null
+  busy: boolean
+  leaveError: string | null
+  holidayError: string | null
   onAdd: (draft: LeaveDraft) => void
   onRemove: (entry: LeaveEntry) => void
-  onSetHoliday: (name: string, endDate: string) => void
-  onClearHoliday: () => void
+  onSetHoliday: (draft: HolidayDraft) => void
+  onClearHoliday: (holiday: Holiday) => void
   onClose: () => void
 }
 
 export const LeaveDayDialog = ({
   date,
   dayEntries,
-  allEntries,
   userName,
+  userId,
   isAdmin = false,
   fixedHoliday,
-  customHoliday,
+  holiday,
+  busy,
+  leaveError,
+  holidayError,
   onAdd,
   onRemove,
   onSetHoliday,
@@ -89,8 +95,8 @@ export const LeaveDayDialog = ({
             <h2 id={titleId} className={styles.title}>
               {dayTitle(date)}
             </h2>
-            {(customHoliday?.name ?? fixedHoliday) && (
-              <span className={styles.holiday}>{customHoliday?.name ?? fixedHoliday}</span>
+            {(holiday?.name ?? fixedHoliday) && (
+              <span className={styles.holiday}>{holiday?.name ?? fixedHoliday}</span>
             )}
             <span className={styles.count}>{dayEntries.length}명</span>
             <button type="button" className={styles.close} aria-label="닫기" onClick={onClose}>
@@ -104,20 +110,22 @@ export const LeaveDayDialog = ({
             <ul className={styles.list}>
               {dayEntries.map((entry) => {
                 const span = spanOf(entry)
+                const label = LEAVE_KIND_LABEL[entry.kind]
 
                 return (
                   <li key={entry.id} className={styles.row}>
                     <span className={`${styles.dot} ${KIND_CLASS[entry.kind]}`} aria-hidden="true" />
-                    <span className={styles.name}>{entry.name}</span>
+                    <span className={styles.name}>{entry.name ?? '알 수 없음'}</span>
                     <span className={styles.meta}>
-                      {entry.kind}
+                      {label}
                       {span && ` · ${span}`}
                     </span>
-                    {entry.name === userName && (
+                    {entry.userId === userId && (
                       <button
                         type="button"
                         className={styles.remove}
-                        aria-label={`${entry.name} ${entry.kind} 삭제`}
+                        disabled={busy}
+                        aria-label={`${entry.name ?? '내'} ${label} 삭제`}
                         onClick={() => setRemoving(entry)}
                       >
                         삭제
@@ -132,11 +140,9 @@ export const LeaveDayDialog = ({
           <LeaveForm
             date={date}
             name={userName}
-            entries={allEntries}
-            onAdd={(draft) => {
-              onAdd(draft)
-              onClose()
-            }}
+            busy={busy}
+            error={leaveError}
+            onAdd={onAdd}
           />
 
           {isAdmin && (
@@ -144,7 +150,9 @@ export const LeaveDayDialog = ({
               <HolidayField
                 date={date}
                 fixedHoliday={fixedHoliday}
-                customHoliday={customHoliday}
+                holiday={holiday}
+                busy={busy}
+                error={holidayError}
                 onSet={onSetHoliday}
                 onClear={onClearHoliday}
               />
@@ -155,14 +163,17 @@ export const LeaveDayDialog = ({
 
       <ConfirmDialog
         open={removing !== null}
+        busy={busy}
         title="휴가를 삭제하시겠습니까?"
-        description={removing && `${dayTitle(removing.startDate)} ${removing.kind}가 사라집니다.`}
+        description={
+          removing &&
+          `${dayTitle(removing.startDate)} ${LEAVE_KIND_LABEL[removing.kind]}가 사라집니다.`
+        }
         confirmLabel="삭제"
         tone="danger"
         onConfirm={() => {
           if (removing) onRemove(removing)
           setRemoving(null)
-          onClose()
         }}
         onCancel={() => setRemoving(null)}
       />

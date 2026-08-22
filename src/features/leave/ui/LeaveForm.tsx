@@ -1,10 +1,7 @@
 import { useEffect, useId, useState } from 'react'
-import { findConflict } from '../model/conflict'
-import type { LeaveDraft } from '../model/conflict'
-import type { LeaveEntry, LeaveKind } from '../model/types'
+import { LEAVE_KINDS, LEAVE_KIND_LABEL, isHalfDay } from '../model/types'
+import type { LeaveDraft, LeaveKind } from '../model/types'
 import styles from './LeaveForm.module.scss'
-
-const KINDS: LeaveKind[] = ['연차', '오전반차', '오후반차', '공가']
 
 const dayText = (iso: string): string => {
   const [, month, day] = iso.split('-')
@@ -14,53 +11,30 @@ const dayText = (iso: string): string => {
 export interface LeaveFormProps {
   date: string
   name: string | undefined
-  entries: LeaveEntry[]
+  busy: boolean
+  error: string | null
   onAdd: (draft: LeaveDraft) => void
 }
 
-export const LeaveForm = ({ date, name, entries, onAdd }: LeaveFormProps) => {
-  const [kind, setKind] = useState<LeaveKind>('연차')
+export const LeaveForm = ({ date, name, busy, error, onAdd }: LeaveFormProps) => {
+  const [kind, setKind] = useState<LeaveKind>('ANNUAL')
   const [endDate, setEndDate] = useState(date)
-  const [error, setError] = useState<string | null>(null)
   const endId = useId()
   const groupId = useId()
 
   useEffect(() => {
     setEndDate(date)
-    setError(null)
   }, [date])
 
-  const ranged = kind !== '오전반차' && kind !== '오후반차'
-  const draft: LeaveDraft = {
-    name: name ?? '',
-    kind,
-    startDate: date,
-    endDate: ranged ? endDate : date,
-  }
-
-  const submit = () => {
-    if (!name) return
-
-    if (draft.endDate < draft.startDate) {
-      setError('종료일이 시작일보다 빠릅니다.')
-      return
-    }
-
-    const conflict = findConflict(entries, draft)
-    if (conflict) {
-      setError(`${dayText(conflict.startDate)}부터 ${conflict.kind}가 이미 있습니다.`)
-      return
-    }
-
-    onAdd(draft)
-  }
+  const ranged = !isHalfDay(kind)
 
   return (
     <form
       className={styles.form}
       onSubmit={(event) => {
         event.preventDefault()
-        submit()
+        if (!name || busy) return
+        onAdd({ kind, startDate: date, endDate: ranged ? endDate : date })
       }}
     >
       <p className={styles.who}>
@@ -72,19 +46,16 @@ export const LeaveForm = ({ date, name, entries, onAdd }: LeaveFormProps) => {
         <legend id={groupId} className="visually-hidden">
           휴가 종류
         </legend>
-        {KINDS.map((option) => (
+        {LEAVE_KINDS.map((option) => (
           <label key={option} className={styles.kindOption}>
             <input
               type="radio"
               name="leave-kind"
               value={option}
               checked={kind === option}
-              onChange={() => {
-                setKind(option)
-                setError(null)
-              }}
+              onChange={() => setKind(option)}
             />
-            <span>{option}</span>
+            <span>{LEAVE_KIND_LABEL[option]}</span>
           </label>
         ))}
       </fieldset>
@@ -100,10 +71,7 @@ export const LeaveForm = ({ date, name, entries, onAdd }: LeaveFormProps) => {
             className={styles.rangeInput}
             value={endDate}
             min={date}
-            onChange={(event) => {
-              setEndDate(event.target.value)
-              setError(null)
-            }}
+            onChange={(event) => setEndDate(event.target.value)}
           />
         </div>
       )}
@@ -114,8 +82,8 @@ export const LeaveForm = ({ date, name, entries, onAdd }: LeaveFormProps) => {
         </p>
       )}
 
-      <button type="submit" className={styles.submit} disabled={!name}>
-        등록
+      <button type="submit" className={styles.submit} disabled={!name || busy} aria-busy={busy}>
+        {busy ? '등록 중…' : '등록'}
       </button>
     </form>
   )

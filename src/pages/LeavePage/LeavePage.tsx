@@ -9,7 +9,7 @@ export const LeavePage = () => {
     <>
       <title>휴가 · IBS</title>
       <h1 className={styles.title}>휴가</h1>
-      <LeaveCalendar userName={me?.name} isAdmin={me?.role === 'ADMIN'} />
+      <LeaveCalendar userName={me?.name} userId={me?.id} isAdmin={me?.role === 'ADMIN'} />
     </>
   )
 }

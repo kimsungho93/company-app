@@ -1,5 +1,5 @@
-import { useId, useState } from 'react'
-import type { CustomHoliday } from '../model/types'
+import { useEffect, useId, useState } from 'react'
+import type { Holiday, HolidayDraft } from '../model/types'
 import styles from './HolidayField.module.scss'
 
 const shortDate = (iso: string): string => {
@@ -10,23 +10,31 @@ const shortDate = (iso: string): string => {
 export interface HolidayFieldProps {
   date: string
   fixedHoliday: string | null
-  customHoliday: CustomHoliday | null
-  onSet: (name: string, endDate: string) => void
-  onClear: () => void
+  holiday: Holiday | null
+  busy: boolean
+  error: string | null
+  onSet: (draft: HolidayDraft) => void
+  onClear: (holiday: Holiday) => void
 }
 
 export const HolidayField = ({
   date,
   fixedHoliday,
-  customHoliday,
+  holiday,
+  busy,
+  error,
   onSet,
   onClear,
 }: HolidayFieldProps) => {
   const [name, setName] = useState('')
   const [endDate, setEndDate] = useState(date)
-  const [error, setError] = useState<string | null>(null)
   const nameId = useId()
   const endId = useId()
+
+  useEffect(() => {
+    setName('')
+    setEndDate(date)
+  }, [date, holiday?.id])
 
   if (fixedHoliday) {
     return (
@@ -37,19 +45,25 @@ export const HolidayField = ({
     )
   }
 
-  if (customHoliday) {
-    const ranged = customHoliday.startDate !== customHoliday.endDate
+  if (holiday) {
+    const ranged = holiday.startDate !== holiday.endDate
 
     return (
       <p className={styles.set}>
         <span className={styles.tag}>{ranged ? '연휴' : '공휴일'}</span>
-        {customHoliday.name}
+        {holiday.name}
         {ranged && (
           <span className={styles.span}>
-            {shortDate(customHoliday.startDate)}–{shortDate(customHoliday.endDate)}
+            {shortDate(holiday.startDate)}–{shortDate(holiday.endDate)}
           </span>
         )}
-        <button type="button" className={styles.clear} onClick={onClear}>
+        <button
+          type="button"
+          className={styles.clear}
+          disabled={busy}
+          aria-busy={busy}
+          onClick={() => onClear(holiday)}
+        >
           해제
         </button>
       </p>
@@ -57,17 +71,6 @@ export const HolidayField = ({
   }
 
   const trimmed = name.trim()
-
-  const submit = () => {
-    if (!trimmed) return
-
-    if (endDate < date) {
-      setError('종료일이 시작일보다 빠릅니다.')
-      return
-    }
-
-    onSet(trimmed, endDate)
-  }
 
   return (
     <div className={styles.field}>
@@ -81,18 +84,20 @@ export const HolidayField = ({
           value={name}
           placeholder="설날"
           maxLength={12}
-          onChange={(event) => {
-            setName(event.target.value)
-            setError(null)
-          }}
+          onChange={(event) => setName(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault()
-              submit()
-            }
+            if (event.key !== 'Enter') return
+            event.preventDefault()
+            if (trimmed && !busy) onSet({ name: trimmed, startDate: date, endDate })
           }}
         />
-        <button type="button" className={styles.submit} disabled={!trimmed} onClick={submit}>
+        <button
+          type="button"
+          className={styles.submit}
+          disabled={!trimmed || busy}
+          aria-busy={busy}
+          onClick={() => onSet({ name: trimmed, startDate: date, endDate })}
+        >
           지정
         </button>
       </div>
@@ -107,10 +112,7 @@ export const HolidayField = ({
           className={styles.input}
           value={endDate}
           min={date}
-          onChange={(event) => {
-            setEndDate(event.target.value)
-            setError(null)
-          }}
+          onChange={(event) => setEndDate(event.target.value)}
         />
       </div>
 

@@ -92,6 +92,13 @@
   }
 }
 
+.listError {
+  margin: 0 16px 12px;
+  color: var(--danger);
+  font-size: 13px;
+  text-align: center;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
