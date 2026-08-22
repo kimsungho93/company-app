@@ -1,0 +1,52 @@
+@use '@/shared/styles' as s;
+
+.picker {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.option {
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  img {
+    display: block;
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 0 0 1px var(--border);
+    opacity: 0.5;
+    filter: grayscale(0.55);
+    transition: box-shadow 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+  }
+
+  &:hover img {
+    opacity: 0.8;
+    filter: grayscale(0.2);
+  }
+
+  input:checked + img {
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+    opacity: 1;
+    filter: none;
+  }
+
+  input:focus-visible + img {
+    outline: 2px solid var(--accent);
+    outline-offset: 6px;
+  }
+
+  @include s.reduced-motion {
+    img {
+      transition: none;
+    }
+  }
+}
