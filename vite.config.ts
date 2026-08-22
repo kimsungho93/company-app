@@ -20,11 +20,13 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
+        ws: true,
         configure: (proxy) => {
           // changeOrigin 은 Host 만 바꾸고 Origin 은 그대로 넘긴다. 그러면 백엔드가
           // CORS 검사를 하는데, 허용 목록이 5173 고정이라 다른 포트에서 403 이 난다.
           // 브라우저 입장에서는 이미 같은 오리진이므로 헤더를 지워 CORS 판정을 없앤다.
           proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
+          proxy.on('proxyReqWs', (proxyReq) => proxyReq.removeHeader('origin'))
         },
       },
     },
