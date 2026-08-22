@@ -1,0 +1,22 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.empty,
+.error {
+  margin: 32px 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.empty {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger);
+}

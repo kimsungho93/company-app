@@ -1,0 +1,3 @@
+@use './shell' as sh;
+
+@include sh.dialog-classes(400px);

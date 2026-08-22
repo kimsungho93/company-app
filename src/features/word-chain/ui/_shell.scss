@@ -1,0 +1,97 @@
+@use '@/shared/styles' as s;
+
+@mixin dialog-classes($width) {
+  .dialog {
+    width: min($width, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-card);
+
+    &::backdrop {
+      background: rgb(4 10 16 / 62%);
+      backdrop-filter: blur(2px);
+    }
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px 22px 18px;
+  }
+
+  .title {
+    margin: 0 0 6px;
+    color: var(--text-strong);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+  }
+
+  .error {
+    margin: 0;
+    color: var(--danger);
+    font-size: 12px;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .cancel,
+  .submit {
+    flex-shrink: 0;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    @include s.focus-ring;
+  }
+
+  .submit {
+    border: 0;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+    transition: background 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--accent-hi);
+    }
+
+    @include s.reduced-motion {
+      transition: none;
+    }
+  }
+
+  .cancel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    transition: color 0.15s ease, border-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+      color: var(--text-strong);
+      border-color: var(--text-muted);
+    }
+
+    @include s.reduced-motion {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,9 @@
+@use './shell' as sh;
+
+@include sh.dialog-classes(360px);
+
+.sub {
+  margin: -4px 0 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}

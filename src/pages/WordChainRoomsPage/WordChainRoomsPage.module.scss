@@ -1,0 +1,53 @@
+@use '@/shared/styles' as s;
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 20px;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.create {
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 10px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+  transition: background 0.15s ease, translate 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    background: var(--accent-hi);
+    translate: 0 -1px;
+    box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--accent) 75%, transparent);
+  }
+
+  &:active {
+    translate: 0 0;
+    scale: 0.98;
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+
+    &:hover,
+    &:active {
+      translate: none;
+      scale: none;
+    }
+  }
+}
