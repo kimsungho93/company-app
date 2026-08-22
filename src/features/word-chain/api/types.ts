@@ -19,3 +19,21 @@ export interface JoinRoomDraft {
   id: number
   password?: string
 }
+
+export type Avatar = 'MALE' | 'FEMALE'
+
+export interface Player {
+  userId: number
+  name: string
+  avatar: Avatar | null
+  ready: boolean
+}
+
+export interface RoomState {
+  id: number
+  name: string
+  status: RoomStatus
+  hostId: number
+  capacity: number
+  players: Player[]
+}

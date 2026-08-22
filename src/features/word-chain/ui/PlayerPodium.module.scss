@@ -1,0 +1,80 @@
+@use '@/shared/styles' as s;
+
+.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  list-style: none;
+}
+
+.hit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  transition: translate 0.15s ease;
+
+  &:hover {
+    translate: 0 -3px;
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+
+    &:hover {
+      translate: none;
+    }
+  }
+}
+
+.avatar {
+  display: block;
+  margin-bottom: -8px;
+}
+
+.podium {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px 6px 3px 3px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.name {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.host,
+.ready {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.host {
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+}
+
+.ready {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
