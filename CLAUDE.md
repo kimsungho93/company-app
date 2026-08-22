@@ -25,7 +25,9 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 
 `backend/company-backend`(Spring Boot)와 짝을 이루는 프론트엔드. 회사(IBS)는 반도체·스마트팩토리 영역이고, 화면의 시각 언어를 여기서 끌어왔다.
 
-화면은 **로그인 · 회원가입 · 홈 · 승인 관리** 넷이다. 설계 근거와 폐기된 대안은 `docs/superpowers/specs/` 에 날짜별로 있다 — 화면을 손대기 전에 해당 문서를 읽을 것.
+화면은 **로그인 · 회원가입 · 홈 · 승인 관리 · 휴가 · 끝말잇기** 여섯이다. 끝말잇기는 자리만 잡아둔 빈 화면이다.
+
+설계 근거와 폐기된 대안은 `docs/superpowers/specs/` 에 날짜별로 있다 — 화면을 손대기 전에 해당 문서를 읽을 것.
 
 | 문서 | 다루는 것 |
 |---|---|
@@ -38,9 +40,9 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 ```
 src/
 ├── app/         조립 계층 + 라우팅 + store + 레이아웃. 여기만 아래를 다 안다
-├── pages/       라우트 단위 화면 (Home · Login · Signup · AdminUsers)
+├── pages/       라우트 단위 화면 (Home · Login · Signup · AdminUsers · Leave · WordChain)
 ├── widgets/     여러 feature 를 모으는 조립물 (AppHeader)
-├── features/    도메인 단위 (auth · admin)
+├── features/    도메인 단위 (auth · admin · leave)
 └── shared/      도메인을 모르는 것들
 ```
 
@@ -55,7 +57,9 @@ src/
 
 `pages` 는 얇다. 화면 제목(`<title>`)과 feature 컴포넌트 조립만 한다. 폼 같은 실제 구현은 `features/auth/ui` 에 있다.
 
-**`widgets` 는 여러 feature 를 조립하는 UI 를 둔다.** `AppHeader` 가 auth 의 `me` 와 앞으로의 업무 메뉴를 한자리에 모으는데, `features/auth` 에 두면 auth 가 나머지 도메인을 알아야 해서 "feature 끼리 직접 import 하지 않는다"가 깨진다.
+**`widgets` 는 여러 feature 를 조립하는 UI 를 둔다.** `AppHeader` 가 auth 의 `me` 와 업무·게임·관리 메뉴를 한자리에 모으는데, `features/auth` 에 두면 auth 가 나머지 도메인을 알아야 해서 "feature 끼리 직접 import 하지 않는다"가 깨진다.
+
+**주 메뉴의 `관리` 는 `me.role` 이 `ADMIN` 일 때만 붙는다.** 숨기는 것은 화면 정리일 뿐 보안이 아니다 — 실제 차단은 백엔드가 매 요청 DB 로 하고 `RequireAdmin` 가드도 그대로 있다.
 
 **`admin` 을 `auth` 와 나눈 기준.** `auth` 는 "내가 로그인한다"에 머문다. "관리자가 남의 상태를 바꾼다"는 다른 도메인이라 `features/admin` 이다.
 
@@ -64,10 +68,12 @@ src/
 ### 라우팅
 
 ```
-/             RequireAuth → AppLayout → HomePage
-/admin/users  RequireAuth → AppLayout → RequireAdmin → AdminUsersPage
-/login        RedirectIfAuthenticated → AuthLayout → LoginPage
-/signup       RedirectIfAuthenticated → AuthLayout → SignupPage
+/                 RequireAuth → AppLayout → HomePage
+/leave            RequireAuth → AppLayout → LeavePage
+/games/word-chain RequireAuth → AppLayout → WordChainPage
+/admin/users      RequireAuth → AppLayout → RequireAdmin → AdminUsersPage
+/login            RedirectIfAuthenticated → AuthLayout → LoginPage
+/signup           RedirectIfAuthenticated → AuthLayout → SignupPage
 ```
 
 **가드가 바깥, 레이아웃이 안쪽이다.** 순서가 반대면 인증되지 않은 사용자에게 헤더가 한 번 그려졌다 사라진다.
@@ -261,6 +267,26 @@ access token 은 메모리라 새로고침하면 사라지지만 refresh 쿠키�
 **검증 오류는 전부 `INVALID_INPUT` 하나로 온다.** `GlobalExceptionHandler` 가 Bean Validation 실패를 뭉쳐 첫 필드 메시지만 내려주므로 어느 필드인지 알 수 없다. 그래서 폼 상단에 띄운다. 필드로 보낼 수 있는 코드는 `EMAIL_ALREADY_EXISTS` 뿐이다.
 
 **201 처럼 본문 없이 성공하는 응답이 있다.** `fetchBaseQuery` 가 알아서 처리하지만, 직접 파싱하는 코드를 쓸 때는 상태 코드가 아니라 본문이 실제로 비었는지로 판단할 것 — `res.json()` 은 빈 본문에서 `SyntaxError` 를 던진다.
+
+## 휴가 캘린더
+
+`features/leave` 다. 계약은 [docs/api/leaves.md](docs/api/leaves.md) 에 있고 백엔드와 공유하는 문서이므로 계약이 바뀌면 거기를 먼저 고친다.
+
+**조회 범위는 그 달의 1일·말일이 아니라 6주 격자의 양끝이다.** 2026년 8월이면 `from=2026-07-26&to=2026-09-05` 다. 달 범위로 물으면 격자 가장자리(지난 달·다음 달 칸)가 빈다. 서버 조회도 포함이 아니라 겹침 조건이라, 기간이 창을 걸치기만 해도 나온다.
+
+**겹침을 프론트에서 미리 검사하지 않는다.** 화면이 가진 것은 보이는 달의 목록뿐이라 범위 밖 휴가와의 겹침을 놓치고 "괜찮다"고 안내한 뒤 서버가 409 를 낸다. 오히려 틀린 안내다. 서버가 준 `message` 를 그대로 폼에 띄운다.
+
+**본인 판정은 `userId` 로 한다.** 이름으로 비교하면 동명이인이 남의 휴가를 지운다.
+
+**종류는 코드다.** `ANNUAL` · `HALF_DAY_AM` · `HALF_DAY_PM` · `OFFICIAL` 이고 화면 문구는 `LEAVE_KIND_LABEL` 이 옮긴다. 표시 문구를 API 에 싣지 않는다.
+
+**공휴일은 두 곳에서 온다.** 법정공휴일은 `shared/lib/holidays.ts` 의 상수, 나머지는 서버다. 화면이 합쳐 그리고 **서버 것이 우선**이다. 상수에 있는 날에는 관리자에게도 지정·해제 UI 가 뜨지 않는다 — 광복절을 지울 수 있으면 그건 운영이 아니라 데이터 수정이다.
+
+**날짜 문자열을 `Date` 로 왕복시키지 말 것.** `toIsoDate` 는 `toISOString()` 을 쓰지 않는다. UTC 로 변환하므로 KST 에서는 자정 근처가 하루 밀려 8월 13일이 12일로 나온다. 이 프로젝트에서 이미 두 번 걸린 함정이다.
+
+**격자는 항상 6주다.** 행 수가 달마다 바뀌면 달을 넘길 때 아래 내용이 들썩인다.
+
+칸에는 3명까지만 그리고 나머지는 `+N명` 으로 접는다. 칸 높이가 화면에서 계산되므로 넘치면 격자가 깨진다. 전체는 날짜를 눌러 팝업에서 본다.
 
 ## 접근성 — 라이브러리가 없으므로 직접 챙긴다
 
