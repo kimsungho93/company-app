@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { CreateRoomDialog, JoinRoomDialog, RoomList } from '@/features/word-chain'
 import type { RoomSummary } from '@/features/word-chain'
 import styles from './WordChainRoomsPage.module.scss'
 
 export const WordChainRoomsPage = () => {
   const navigate = useNavigate()
+  const { state } = useLocation()
+  const notice = (state as { notice?: string } | null)?.notice ?? null
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState<RoomSummary | null>(null)
 
@@ -20,6 +22,12 @@ export const WordChainRoomsPage = () => {
           방 만들기
         </button>
       </header>
+
+      {notice && (
+        <p className={styles.notice} role="status">
+          {notice}
+        </p>
+      )}
 
       <RoomList onJoin={(room) => (room.locked ? setJoining(room) : enter(room.id))} />
 
