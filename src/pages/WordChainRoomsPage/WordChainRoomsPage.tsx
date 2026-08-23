@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { toErrorInfo } from '@/shared/api'
 import {
@@ -10,13 +10,23 @@ import {
 import type { RoomSummary } from '@/features/word-chain'
 import styles from './WordChainRoomsPage.module.scss'
 
+const NOTICE_MS = 5000
+
 export const WordChainRoomsPage = () => {
   const navigate = useNavigate()
-  const { state } = useLocation()
-  const notice = (state as { notice?: string } | null)?.notice ?? null
+  const { pathname, state } = useLocation()
+  const [notice, setNotice] = useState((state as { notice?: string } | null)?.notice ?? null)
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState<RoomSummary | null>(null)
   const [joinRoom, { isLoading, error }] = useJoinRoomMutation()
+
+  useEffect(() => {
+    if (!notice) return
+
+    void navigate(pathname, { replace: true, state: null })
+    const timer = setTimeout(() => setNotice(null), NOTICE_MS)
+    return () => clearTimeout(timer)
+  }, [notice, navigate, pathname])
 
   const enter = (roomId: number) => void navigate(`/games/word-chain/${roomId}`)
 
