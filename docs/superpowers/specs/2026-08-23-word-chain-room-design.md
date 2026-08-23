@@ -66,7 +66,7 @@ A 에서 만든 `POST /api/rooms/{id}/join` 이 **이미 참가자로 넣는다.
 Player
   userId    Long
   name      String                 화면에 그릴 이름
-  avatar    MALE | FEMALE | null   (아직 안 고름)
+  avatar    MALE | FEMALE | null   (아직 안 고름 · 지금은 7개, model/avatars.ts)
   ready     boolean
 ```
 

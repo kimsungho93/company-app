@@ -25,7 +25,7 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 
 `backend/company-backend`(Spring Boot)와 짝을 이루는 프론트엔드. 회사(IBS)는 반도체·스마트팩토리 영역이고, 화면의 시각 언어를 여기서 끌어왔다.
 
-화면은 **로그인 · 회원가입 · 홈 · 승인 관리 · 휴가 · 끝말잇기** 여섯이다. 끝말잇기는 방 목록·대기실·게임 진행까지 되어 있고 사전 실연동만 남았다.
+화면은 **로그인 · 회원가입 · 홈 · 승인 관리 · 휴가 · 끝말잇기** 여섯이다. 끝말잇기는 방 목록·대기실·게임 진행·사전 실연동까지 다 붙어 운영에서 확인했다.
 
 설계 근거와 폐기된 대안은 `docs/superpowers/specs/` 에 날짜별로 있다 — 화면을 손대기 전에 해당 문서를 읽을 것.
 
@@ -37,6 +37,7 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 | [2026-08-22-word-chain-design.md](docs/superpowers/specs/2026-08-22-word-chain-design.md) | 끝말잇기 전체 그림, 방 목록 |
 | [2026-08-23-word-chain-room-design.md](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) | 대기실, 소켓 계약, 배포 경로 |
 | [2026-08-23-word-chain-game-design.md](docs/superpowers/specs/2026-08-23-word-chain-game-design.md) | 턴·판정·탈락, 3초가 만드는 제약 |
+| [2026-08-23-word-chain-dictionary-design.md](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md) | 표준국어대사전 실연동, 캐시, 검증의 함정 |
 
 ## 구조 — feature 기반 3레이어
 
@@ -298,7 +299,9 @@ access token 은 메모리라 새로고침하면 사라지지만 refresh 쿠키�
 
 `features/word-chain` 이다. 계약이 REST 와 STOMP 두 벌이고 둘 다 스펙에 있다 —
 [방 목록·생성·입장](docs/superpowers/specs/2026-08-22-word-chain-design.md),
-[대기실 소켓](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) 5장.
+[대기실 소켓](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) 5장,
+[턴·판정](docs/superpowers/specs/2026-08-23-word-chain-game-design.md),
+[사전 실연동](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md).
 
 ### 소켓만 Netlify 프록시를 우회한다 (실측)
 
@@ -336,6 +339,11 @@ HTTP 단에서 인증을 요구하면 CONNECT 프레임까지 가지도 못하�
 서버가 연결 끊김을 곧 퇴장으로 처리하므로 **끊긴 순간 좌석은 이미 사라졌다.** 소켓만 다시 열어도
 그 방의 참가자가 아니다. 가만히 두면 화면이 거짓말을 한다 — 사람들이 그대로 서 있고 버튼도
 눌리는데 아무 일도 일어나지 않는다.
+
+**서버가 정상 종료하면 `onWebSocketError` 가 아니라 `onWebSocketClose` 만 뜬다.** close 를
+안 들으면 재배포 때마다 붙어 있던 클라이언트가 정확히 위 상태가 된다(실제로 겪었다). 대신
+내가 `close()` 로 나가는 것과 **플래그로 갈라야** 한다 — 안 그러면 방을 나갈 때마다 끊김
+안내가 뜬다.
 
 ### 방 상태는 Redux 에 넣지 않는다
 
