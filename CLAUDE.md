@@ -39,6 +39,7 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 | [2026-08-23-word-chain-game-design.md](docs/superpowers/specs/2026-08-23-word-chain-game-design.md) | 턴·판정·탈락, 짧은 턴이 만드는 제약 |
 | [2026-08-23-word-chain-dictionary-design.md](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md) | 표준국어대사전 실연동, 캐시, 검증의 함정 |
 | [2026-08-23-word-chain-seat-order-design.md](docs/superpowers/specs/2026-08-23-word-chain-seat-order-design.md) | 좌석 순서 = 턴 순서, 드래그 재배치 |
+| [2026-08-23-word-chain-sudden-death-design.md](docs/superpowers/specs/2026-08-23-word-chain-sudden-death-design.md) | 첫 탈락 종료, 결과는 승자가 아니라 탈락자 |
 
 ## 구조 — feature 기반 3레이어
 
@@ -303,7 +304,8 @@ access token 은 메모리라 새로고침하면 사라지지만 refresh 쿠키�
 [대기실 소켓](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) 5장,
 [턴·판정](docs/superpowers/specs/2026-08-23-word-chain-game-design.md),
 [사전 실연동](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md),
-[좌석 순서](docs/superpowers/specs/2026-08-23-word-chain-seat-order-design.md).
+[좌석 순서](docs/superpowers/specs/2026-08-23-word-chain-seat-order-design.md),
+[첫 탈락 종료](docs/superpowers/specs/2026-08-23-word-chain-sudden-death-design.md).
 
 ### 소켓만 Netlify 프록시를 우회한다 (실측)
 
