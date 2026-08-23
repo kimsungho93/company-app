@@ -1,3 +1,5 @@
+@use '@/shared/styles' as s;
+
 .stage {
   display: flex;
   flex-direction: column;
@@ -19,4 +21,40 @@
 
 .back {
   padding: 0 40px;
+}
+
+.handle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  translate: -50% -6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--text-strong);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  @include s.focus-ring;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
 }

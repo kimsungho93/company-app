@@ -37,6 +37,7 @@ const setup = (over: Partial<Parameters<typeof RoomView>[0]> = {}) => {
     onLeave: vi.fn(),
     onAnswer: vi.fn(),
     onOptionsChange: vi.fn(),
+    onReorder: vi.fn(),
     ...over,
   }
   return { user: userEvent.setup(), props, ...render(<RoomView {...props} />) }
@@ -100,7 +101,7 @@ describe('RoomView', () => {
   it('방장이 남의 연단을 누르면 확인창이 뜨고, 확인하면 알린다', async () => {
     const { user, props } = setup({ myUserId: 1 })
 
-    await user.click(screen.getByRole('button', { name: /사람2/ }))
+    await user.click(screen.getByRole('button', { name: '사람2 님에게 방장 넘기기' }))
     expect(screen.getByRole('dialog')).toHaveAccessibleName('사람2 님에게 방장을 넘기시겠습니까?')
 
     await user.click(screen.getByRole('button', { name: '넘기기' }))
@@ -110,7 +111,7 @@ describe('RoomView', () => {
 
   it('양도를 취소하면 알리지 않는다', async () => {
     const { user, props } = setup({ myUserId: 1 })
-    await user.click(screen.getByRole('button', { name: /사람2/ }))
+    await user.click(screen.getByRole('button', { name: '사람2 님에게 방장 넘기기' }))
 
     await user.click(screen.getByRole('button', { name: '취소' }))
 

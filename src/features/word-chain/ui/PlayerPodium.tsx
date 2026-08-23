@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Bubble, Player } from '../api/types'
 import type { PlayerPhase } from '../model/playerPhase'
 import { avatarOption } from '../model/avatars'
@@ -24,9 +25,19 @@ export interface PlayerPodiumProps {
   onSelect?: () => void
   phase?: PlayerPhase
   bubble?: Bubble
+  handle?: ReactNode
+  dragging?: boolean
 }
 
-export const PlayerPodium = ({ player, isHost, onSelect, phase, bubble }: PlayerPodiumProps) => {
+export const PlayerPodium = ({
+  player,
+  isHost,
+  onSelect,
+  phase,
+  bubble,
+  handle,
+  dragging,
+}: PlayerPodiumProps) => {
   const avatar = avatarOption(player.avatar)
   const phaseLabel = phase ? PHASE_LABEL[phase] : undefined
 
@@ -50,14 +61,21 @@ export const PlayerPodium = ({ player, isHost, onSelect, phase, bubble }: Player
 
   return (
     <li
-      className={`${styles.seat} ${phase ? PHASE_CLASS[phase] : ''}`}
+      className={`${styles.seat} ${phase ? PHASE_CLASS[phase] : ''} ${dragging ? styles.dragging : ''}`}
       aria-label={player.name}
+      data-user-id={player.userId}
     >
+      {handle}
       {phase && (
         <span className={styles.bubbleSlot}>{bubble && <SpeechBubble bubble={bubble} />}</span>
       )}
       {onSelect ? (
-        <button type="button" className={styles.hit} onClick={onSelect}>
+        <button
+          type="button"
+          className={styles.hit}
+          aria-label={`${player.name} 님에게 방장 넘기기`}
+          onClick={onSelect}
+        >
           {body}
         </button>
       ) : (

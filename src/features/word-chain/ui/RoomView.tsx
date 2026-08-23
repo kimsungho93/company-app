@@ -19,6 +19,7 @@ export interface RoomViewProps {
   onLeave: () => void
   onAnswer: (word: string) => void
   onOptionsChange: (options: GameOptionsValue) => void
+  onReorder: (userIds: number[]) => void
 }
 
 export const RoomView = ({
@@ -31,6 +32,7 @@ export const RoomView = ({
   onLeave,
   onAnswer,
   onOptionsChange,
+  onReorder,
 }: RoomViewProps) => {
   const [handingTo, setHandingTo] = useState<Player | null>(null)
 
@@ -72,6 +74,7 @@ export const RoomView = ({
         players={room.players}
         hostId={room.hostId}
         game={playing ? game : undefined}
+        onReorder={isHost && !playing ? onReorder : undefined}
         onSelectPlayer={
           isHost && !playing
             ? (userId) =>

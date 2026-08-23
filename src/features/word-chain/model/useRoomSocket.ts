@@ -12,6 +12,7 @@ export interface RoomActions {
   leave: () => void
   answer: (word: string) => void
   options: (value: GameOptionsValue) => void
+  order: (userIds: number[]) => void
 }
 
 export interface RoomSocket {
@@ -76,6 +77,7 @@ export const useRoomSocket = (roomId: number): RoomSocket => {
       leave: () => publish('leave'),
       answer: (word) => publish('answer', { word }),
       options: (value) => publish('options', value),
+      order: (userIds) => publish('order', { userIds }),
     },
   }
 }
