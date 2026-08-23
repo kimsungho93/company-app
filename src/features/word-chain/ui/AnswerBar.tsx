@@ -48,8 +48,11 @@ export const AnswerBar = ({
 
   useEffect(() => {
     pendingSubmit.current = false
-    if (myTurn) inputRef.current?.focus()
   }, [myTurn])
+
+  useEffect(() => {
+    if (canType) inputRef.current?.focus()
+  }, [canType])
 
   const submit = (value: string) => {
     const trimmed = value.trim()
