@@ -1,5 +1,6 @@
 import { splitSeats } from '../model/seats'
-import type { Player } from '../api/types'
+import { playerPhase } from '../model/playerPhase'
+import type { GameState, Player } from '../api/types'
 import { PlayerPodium } from './PlayerPodium'
 import styles from './Stage.module.scss'
 
@@ -7,9 +8,10 @@ export interface StageProps {
   players: Player[]
   hostId: number
   onSelectPlayer?: (userId: number) => void
+  game?: GameState
 }
 
-export const Stage = ({ players, hostId, onSelectPlayer }: StageProps) => {
+export const Stage = ({ players, hostId, onSelectPlayer, game }: StageProps) => {
   const { back, front } = splitSeats(players)
 
   const row = (seats: Player[], className: string) => (
@@ -19,6 +21,8 @@ export const Stage = ({ players, hostId, onSelectPlayer }: StageProps) => {
           key={player.userId}
           player={player}
           isHost={player.userId === hostId}
+          phase={game ? playerPhase(game, player.userId) : undefined}
+          bubble={game?.bubbles.find((bubble) => bubble.userId === player.userId)}
           onSelect={
             onSelectPlayer && player.userId !== hostId
               ? () => onSelectPlayer(player.userId)

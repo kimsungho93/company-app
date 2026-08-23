@@ -1,0 +1,54 @@
+@use '@/shared/styles' as s;
+
+.bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 160px;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 12px 3px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  font-size: 12px;
+  animation: pop 0.12s ease-out;
+}
+
+.word {
+  color: var(--text-strong);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.note {
+  color: var(--text-muted);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.pending {
+  opacity: 0.7;
+}
+
+.pass {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.fail {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+
+@include s.reduced-motion {
+  .bubble {
+    animation: none;
+  }
+}

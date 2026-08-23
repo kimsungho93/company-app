@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import type { Player } from '../api/types'
+import type { GameState, Player } from '../api/types'
 import { Stage } from './Stage'
 
 const player = (userId: number, over: Partial<Player> = {}): Player => ({
@@ -92,5 +92,96 @@ describe('Stage', () => {
     render(<Stage players={[player(1), player(7)]} hostId={1} onSelectPlayer={vi.fn()} />)
 
     expect(screen.queryByRole('button', { name: /사람1/ })).not.toBeInTheDocument()
+  })
+
+  const game = (over: Partial<GameState> = {}): GameState => ({
+    currentWord: '사과',
+    turnUserId: 1,
+    turnEndsAt: 1000,
+    triesLeft: 3,
+    usedWords: ['사과'],
+    turnOrder: [1, 2],
+    eliminated: [],
+    bubbles: [],
+    winnerId: null,
+    ...over,
+  })
+
+  it('게임이 없으면 준비 표시를 그대로 그린다', () => {
+    render(<Stage players={[player(1, { ready: true }), player(2)]} hostId={9} />)
+
+    expect(within(screen.getByRole('listitem', { name: '사람1' })).getByText('준비')).toBeInTheDocument()
+  })
+
+  it('게임 중에는 준비 표시를 그리지 않는다', () => {
+    render(<Stage players={[player(1, { ready: true }), player(2)]} hostId={9} game={game()} />)
+
+    expect(within(screen.getByRole('listitem', { name: '사람1' })).queryByText('준비')).toBeNull()
+  })
+
+  it('탈락한 사람에게 탈락 표시가 붙는다', () => {
+    render(
+      <Stage players={[player(1), player(2)]} hostId={9} game={game({ eliminated: [2] })} />,
+    )
+
+    expect(within(screen.getByRole('listitem', { name: '사람2' })).getByText('탈락')).toBeInTheDocument()
+    expect(within(screen.getByRole('listitem', { name: '사람1' })).queryByText('탈락')).toBeNull()
+  })
+
+  it('turnOrder 에 없는 사람에게 관전 표시가 붙는다', () => {
+    render(
+      <Stage players={[player(1), player(9)]} hostId={1} game={game()} />,
+    )
+
+    expect(within(screen.getByRole('listitem', { name: '사람9' })).getByText('관전')).toBeInTheDocument()
+  })
+
+  it('승자에게 승리 표시가 붙는다', () => {
+    render(
+      <Stage
+        players={[player(1), player(2)]}
+        hostId={9}
+        game={game({ winnerId: 2, turnUserId: null, turnEndsAt: null })}
+      />,
+    )
+
+    expect(within(screen.getByRole('listitem', { name: '사람2' })).getByText('승리')).toBeInTheDocument()
+  })
+
+  it('말풍선은 낸 사람 자리에만 뜬다', () => {
+    render(
+      <Stage
+        players={[player(1), player(2)]}
+        hostId={9}
+        game={game({ bubbles: [{ userId: 2, word: '과일', state: 'PASS' }] })}
+      />,
+    )
+
+    expect(within(screen.getByRole('listitem', { name: '사람2' })).getByText('과일')).toBeInTheDocument()
+    expect(within(screen.getByRole('listitem', { name: '사람1' })).queryByText('과일')).toBeNull()
+  })
+
+  it('사전을 못 쓴 통과에는 미확인 표시가 붙는다', () => {
+    render(
+      <Stage
+        players={[player(1)]}
+        hostId={9}
+        game={game({ bubbles: [{ userId: 1, word: '과일', state: 'PASS', verified: false }] })}
+      />,
+    )
+
+    expect(screen.getByText('사전 확인 못 함')).toBeInTheDocument()
+  })
+
+  it('오답에는 틀린 이유가 붙는다', () => {
+    render(
+      <Stage
+        players={[player(1)]}
+        hostId={9}
+        game={game({ bubbles: [{ userId: 1, word: '바나나', state: 'FAIL', reason: 'NOT_CHAINED' }] })}
+      />,
+    )
+
+    expect(screen.getByText('앞 단어와 안 이어집니다')).toBeInTheDocument()
   })
 })

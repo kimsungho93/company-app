@@ -6,6 +6,11 @@
   align-items: center;
   min-width: 0;
   list-style: none;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
 }
 
 .hit {
@@ -78,3 +83,34 @@
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent);
 }
+
+.bubbleSlot {
+  display: flex;
+  align-items: flex-end;
+  min-height: 34px;
+  margin-bottom: 4px;
+}
+
+.phase {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.spotlight {
+  opacity: 1;
+}
+
+.dimmed {
+  opacity: 0.5;
+}
+
+.out {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
