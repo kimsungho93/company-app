@@ -20,7 +20,14 @@ export interface JoinRoomDraft {
   password?: string
 }
 
-export type Avatar = 'MALE' | 'FEMALE'
+export type Avatar =
+  | 'MALE'
+  | 'FEMALE'
+  | 'YELLOW_KNIT'
+  | 'HEADPHONES'
+  | 'CARDIGAN'
+  | 'HOODIE'
+  | 'GLASSES'
 
 export interface Player {
   userId: number
