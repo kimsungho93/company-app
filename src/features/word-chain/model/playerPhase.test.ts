@@ -9,7 +9,6 @@ const game = (over: Partial<GameState> = {}): GameState => ({
   triesLeft: 3,
   usedWords: ['사과'],
   turnOrder: [1, 2, 3],
-  eliminated: [],
   bubbles: [],
   loserId: null,
   ...over,

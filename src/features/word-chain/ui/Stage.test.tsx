@@ -101,7 +101,6 @@ describe('Stage', () => {
     triesLeft: 3,
     usedWords: ['사과'],
     turnOrder: [1, 2],
-    eliminated: [],
     bubbles: [],
     loserId: null,
     ...over,

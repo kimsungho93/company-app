@@ -72,7 +72,6 @@ export interface GameState {
   triesLeft: number
   usedWords: string[]
   turnOrder: number[]
-  eliminated: number[]
   bubbles: Bubble[]
   loserId: number | null
 }
