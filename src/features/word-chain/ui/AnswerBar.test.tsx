@@ -32,13 +32,6 @@ describe('AnswerBar', () => {
     expect(screen.getByText('이영희 님 차례')).toBeInTheDocument()
   })
 
-  it('탈락하면 알린다', () => {
-    setup({ phase: 'ELIMINATED' })
-
-    expect(screen.getByText('탈락했습니다')).toBeInTheDocument()
-    expect(screen.getByRole('textbox')).toBeDisabled()
-  })
-
   it('관전이면 알린다', () => {
     setup({ phase: 'SPECTATOR' })
 

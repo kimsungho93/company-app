@@ -79,15 +79,13 @@ export const AnswerBar = ({
   }
 
   const status =
-    phase === 'ELIMINATED'
-      ? '탈락했습니다'
-      : phase === 'SPECTATOR'
-        ? '다음 판부터 참가합니다'
-        : awaitingJudgement && myTurn
-          ? '확인 중…'
-          : myTurn
-            ? `${triesLeft}번 남음`
-            : `${turnPlayerName} 님 차례`
+    phase === 'SPECTATOR'
+      ? '다음 판부터 참가합니다'
+      : awaitingJudgement && myTurn
+        ? '확인 중…'
+        : myTurn
+          ? `${triesLeft}번 남음`
+          : `${turnPlayerName} 님 차례`
 
   return (
     <div className={styles.bar}>

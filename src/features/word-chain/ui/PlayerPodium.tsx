@@ -6,17 +6,13 @@ import { SpeechBubble } from './SpeechBubble'
 import styles from './PlayerPodium.module.scss'
 
 const PHASE_LABEL: Partial<Record<PlayerPhase, string>> = {
-  ELIMINATED: '탈락',
   SPECTATOR: '관전',
-  WINNER: '승리',
 }
 
-const PHASE_CLASS: Partial<Record<PlayerPhase, string>> = {
+const PHASE_CLASS: Record<PlayerPhase, string> = {
   TURN: styles.spotlight,
   ALIVE: styles.dimmed,
-  ELIMINATED: styles.out,
   SPECTATOR: styles.out,
-  WINNER: styles.spotlight,
 }
 
 export interface PlayerPodiumProps {

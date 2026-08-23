@@ -74,7 +74,7 @@ export interface GameState {
   turnOrder: number[]
   eliminated: number[]
   bubbles: Bubble[]
-  winnerId: number | null
+  loserId: number | null
 }
 
 export interface GameOptionsValue {

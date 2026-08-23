@@ -6,7 +6,7 @@ import { AnswerBar } from './AnswerBar'
 import { GameOptions } from './GameOptions'
 import { ReadyBar } from './ReadyBar'
 import { Stage } from './Stage'
-import { WinnerBanner } from './WinnerBanner'
+import { ResultBanner } from './ResultBanner'
 import styles from './RoomView.module.scss'
 
 export interface RoomViewProps {
@@ -40,13 +40,13 @@ export const RoomView = ({
   const isHost = room.hostId === myUserId
   const game = room.game
   const playing = room.status === 'PLAYING' && game !== null
-  const finished = room.status === 'WAITING' && game !== null && game.winnerId !== null
+  const finished = room.status === 'WAITING' && game !== null && game.loserId !== null
   const allReady =
     room.players.length >= 2 &&
     room.players.every((player) => player.userId === room.hostId || player.ready)
 
-  const winner = finished
-    ? room.players.find((player) => player.userId === game.winnerId)
+  const loser = finished
+    ? room.players.find((player) => player.userId === game.loserId)
     : undefined
   const turnPlayer = playing
     ? room.players.find((player) => player.userId === game.turnUserId)
@@ -89,7 +89,7 @@ export const RoomView = ({
         </p>
       )}
 
-      {finished && winner && <WinnerBanner name={winner.name} />}
+      {finished && loser && <ResultBanner name={loser.name} />}
 
       {game && playing && game.turnEndsAt !== null && (
         <AnswerBar
@@ -129,7 +129,7 @@ export const RoomView = ({
       <ConfirmDialog
         open={handingTo !== null}
         title={handingTo ? `${handingTo.name} 님에게 방장을 넘기시겠습니까?` : ''}
-        description="넘기면 되돌릴 수 없습니다."
+        description="넘기면 탈락해 이번 판이 끝납니다."
         confirmLabel="넘기기"
         onConfirm={() => {
           if (handingTo) onTransfer(handingTo.userId)

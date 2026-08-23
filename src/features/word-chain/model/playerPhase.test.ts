@@ -11,7 +11,7 @@ const game = (over: Partial<GameState> = {}): GameState => ({
   turnOrder: [1, 2, 3],
   eliminated: [],
   bubbles: [],
-  winnerId: null,
+  loserId: null,
   ...over,
 })
 
@@ -24,27 +24,7 @@ describe('playerPhase', () => {
     expect(playerPhase(game(), 2)).toBe('ALIVE')
   })
 
-  it('탈락한 사람은 ELIMINATED 다', () => {
-    expect(playerPhase(game({ eliminated: [2] }), 2)).toBe('ELIMINATED')
-  })
-
   it('turnOrder 에 없으면 SPECTATOR 다', () => {
     expect(playerPhase(game(), 9)).toBe('SPECTATOR')
-  })
-
-  it('판이 끝나면 승자는 WINNER 다', () => {
-    expect(playerPhase(game({ winnerId: 1, turnUserId: null }), 1)).toBe('WINNER')
-  })
-
-  it('판이 끝나면 승자가 아닌 참가자는 ELIMINATED 다', () => {
-    expect(playerPhase(game({ winnerId: 1 }), 2)).toBe('ELIMINATED')
-  })
-
-  it('판이 끝나도 관전자는 SPECTATOR 로 남는다', () => {
-    expect(playerPhase(game({ winnerId: 1 }), 9)).toBe('SPECTATOR')
-  })
-
-  it('탈락자가 차례로 잡히지 않는다', () => {
-    expect(playerPhase(game({ turnUserId: 2, eliminated: [2] }), 2)).toBe('ELIMINATED')
   })
 })

@@ -103,7 +103,7 @@ describe('Stage', () => {
     turnOrder: [1, 2],
     eliminated: [],
     bubbles: [],
-    winnerId: null,
+    loserId: null,
     ...over,
   })
 
@@ -119,15 +119,6 @@ describe('Stage', () => {
     expect(within(screen.getByRole('listitem', { name: '사람1' })).queryByText('준비')).toBeNull()
   })
 
-  it('탈락한 사람에게 탈락 표시가 붙는다', () => {
-    render(
-      <Stage players={[player(1), player(2)]} hostId={9} game={game({ eliminated: [2] })} />,
-    )
-
-    expect(within(screen.getByRole('listitem', { name: '사람2' })).getByText('탈락')).toBeInTheDocument()
-    expect(within(screen.getByRole('listitem', { name: '사람1' })).queryByText('탈락')).toBeNull()
-  })
-
   it('turnOrder 에 없는 사람에게 관전 표시가 붙는다', () => {
     render(
       <Stage players={[player(1), player(9)]} hostId={1} game={game()} />,
@@ -136,17 +127,6 @@ describe('Stage', () => {
     expect(within(screen.getByRole('listitem', { name: '사람9' })).getByText('관전')).toBeInTheDocument()
   })
 
-  it('승자에게 승리 표시가 붙는다', () => {
-    render(
-      <Stage
-        players={[player(1), player(2)]}
-        hostId={9}
-        game={game({ winnerId: 2, turnUserId: null, turnEndsAt: null })}
-      />,
-    )
-
-    expect(within(screen.getByRole('listitem', { name: '사람2' })).getByText('승리')).toBeInTheDocument()
-  })
 
   it('말풍선은 낸 사람 자리에만 뜬다', () => {
     render(

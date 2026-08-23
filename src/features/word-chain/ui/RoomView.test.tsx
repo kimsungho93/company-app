@@ -131,7 +131,7 @@ describe('RoomView', () => {
         turnOrder: [1, 2],
         eliminated: [],
         bubbles: [],
-        winnerId: null,
+        loserId: null,
         ...over,
       },
     })
@@ -207,28 +207,28 @@ describe('RoomView', () => {
       room: room({
         status: 'WAITING',
         players: [player(1, { ready: false }), player(2, { ready: true })],
-        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+        game: { ...playing().game!, loserId: 1, turnUserId: null, turnEndsAt: null },
       }),
     })
 
-    const winner = screen.getByRole('listitem', { name: '사람1' })
+    const loser = screen.getByRole('listitem', { name: '사람1' })
     const other = screen.getByRole('listitem', { name: '사람2' })
 
-    expect(within(winner).queryByText('탈락')).toBeNull()
+    expect(within(loser).queryByText('탈락')).toBeNull()
     expect(within(other).queryByText('탈락')).toBeNull()
     expect(within(other).getByText('준비')).toBeInTheDocument()
   })
 
-  it('판이 끝나면 승자를 알리고 게임 화면을 걷는다', () => {
+  it('판이 끝나면 탈락자를 알리고 게임 화면을 걷는다', () => {
     setup({
       myUserId: 2,
       room: room({
         status: 'WAITING',
-        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+        game: { ...playing().game!, loserId: 1, turnUserId: null, turnEndsAt: null },
       }),
     })
 
-    expect(screen.getByText('사람1 님 승리')).toBeInTheDocument()
+    expect(screen.getByText('사람1 님 탈락')).toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: '답' })).not.toBeInTheDocument()
     expect(screen.queryByTestId('current-word')).not.toBeInTheDocument()
     expect(screen.queryByTestId('used-words')).not.toBeInTheDocument()
@@ -239,7 +239,7 @@ describe('RoomView', () => {
       myUserId: 2,
       room: room({
         status: 'WAITING',
-        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+        game: { ...playing().game!, loserId: 1, turnUserId: null, turnEndsAt: null },
       }),
     })
 
@@ -253,7 +253,7 @@ describe('RoomView', () => {
       room: room({
         status: 'WAITING',
         players: [player(1, { ready: false }), player(2, { ready: false })],
-        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+        game: { ...playing().game!, loserId: 1, turnUserId: null, turnEndsAt: null },
       }),
     })
 
