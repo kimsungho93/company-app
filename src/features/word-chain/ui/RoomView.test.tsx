@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { GameState, Player, RoomState } from '../api/types'
@@ -164,6 +164,24 @@ describe('RoomView', () => {
     expect(props.onAnswer).toHaveBeenCalledWith('과일')
   })
 
+  it('내 답을 판정하는 동안 입력칸이 잠긴다', () => {
+    setup({
+      myUserId: 1,
+      room: playing({ bubbles: [{ userId: 1, word: '과일', state: 'PENDING' }] }),
+    })
+
+    expect(screen.getByRole('textbox', { name: '답' })).toBeDisabled()
+  })
+
+  it('남의 답을 판정하는 동안에는 내 입력칸이 안 잠긴다', () => {
+    setup({
+      myUserId: 1,
+      room: playing({ bubbles: [{ userId: 2, word: '과일', state: 'PENDING' }] }),
+    })
+
+    expect(screen.getByRole('textbox', { name: '답' })).toBeEnabled()
+  })
+
   it('재사용 금지가 켜졌으면 나온 단어를 보여준다', () => {
     setup({
       myUserId: 1,
@@ -180,6 +198,24 @@ describe('RoomView', () => {
     })
 
     expect(screen.queryByTestId('used-words')).not.toBeInTheDocument()
+  })
+
+  it('결과 화면에서는 무대가 대기실로 돌아간다', () => {
+    setup({
+      myUserId: 2,
+      room: room({
+        status: 'WAITING',
+        players: [player(1, { ready: false }), player(2, { ready: true })],
+        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+      }),
+    })
+
+    const winner = screen.getByRole('listitem', { name: '사람1' })
+    const other = screen.getByRole('listitem', { name: '사람2' })
+
+    expect(within(winner).queryByText('탈락')).toBeNull()
+    expect(within(other).queryByText('탈락')).toBeNull()
+    expect(within(other).getByText('준비')).toBeInTheDocument()
   })
 
   it('판이 끝나면 승자를 알리고 게임 화면을 걷는다', () => {

@@ -9,6 +9,7 @@ const setup = (over: Partial<Parameters<typeof AnswerBar>[0]> = {}) => {
     currentWord: '사과',
     turnPlayerName: '김성호',
     triesLeft: 3,
+    awaitingJudgement: false,
     turnEndsAt: 4000,
     serverNow: 1000,
     onSubmit: vi.fn(),
@@ -54,6 +55,18 @@ describe('AnswerBar', () => {
     setup({ currentWord: '사과' })
 
     expect(screen.getByPlaceholderText('과로 시작하는 세 글자')).toBeInTheDocument()
+  })
+
+  it('받침이 있으면 조사가 으로가 된다', () => {
+    setup({ currentWord: '미역국' })
+
+    expect(screen.getByPlaceholderText('국으로 시작하는 세 글자')).toBeInTheDocument()
+  })
+
+  it('받침이 ㄹ 이면 조사가 로다', () => {
+    setup({ currentWord: '개나리풀' })
+
+    expect(screen.getByPlaceholderText('풀로 시작하는 세 글자')).toBeInTheDocument()
   })
 
   it('버튼을 누르면 제출하고 칸을 비운다', async () => {
@@ -129,6 +142,14 @@ describe('AnswerBar', () => {
     fireEvent.compositionEnd(input)
 
     expect(props.onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('판정을 기다리는 동안은 못 낸다', () => {
+    setup({ awaitingJudgement: true })
+
+    expect(screen.getByRole('textbox')).toBeDisabled()
+    expect(screen.getByRole('button', { name: '내기' })).toBeDisabled()
+    expect(screen.getByText('확인 중…')).toBeInTheDocument()
   })
 
   it('빈 칸은 제출하지 않는다', () => {

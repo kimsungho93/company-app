@@ -71,7 +71,7 @@ export const RoomView = ({
       <Stage
         players={room.players}
         hostId={room.hostId}
-        game={game ?? undefined}
+        game={playing ? game : undefined}
         onSelectPlayer={
           isHost && !playing
             ? (userId) =>
@@ -94,6 +94,9 @@ export const RoomView = ({
           currentWord={game.currentWord}
           turnPlayerName={turnPlayer?.name ?? ''}
           triesLeft={game.triesLeft}
+          awaitingJudgement={
+            game.bubbles.find((bubble) => bubble.userId === myUserId)?.state === 'PENDING'
+          }
           turnEndsAt={game.turnEndsAt}
           serverNow={room.serverNow}
           onSubmit={onAnswer}
