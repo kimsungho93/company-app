@@ -9,7 +9,9 @@ export interface RoomListProps {
 }
 
 export const RoomList = ({ onJoin }: RoomListProps) => {
-  const { data: rooms = [], isLoading, error } = useRoomsQuery()
+  const { data: rooms = [], isLoading, error } = useRoomsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  })
 
   if (isLoading) {
     return <p className={styles.empty}>불러오는 중…</p>
