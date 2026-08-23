@@ -126,4 +126,28 @@ describe('connectStomp', () => {
 
     expect(onError).toHaveBeenCalledWith()
   })
+
+  it('서버가 소켓을 닫으면 onError 를 부른다', () => {
+    const onError = vi.fn()
+    connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
+    ;(captured.onWebSocketClose as () => void)()
+
+    expect(onError).toHaveBeenCalledWith()
+  })
+
+  it('내가 닫은 것은 끊김이 아니다', () => {
+    const onError = vi.fn()
+    const connection = connectStomp({
+      url: 'ws://x/api/ws',
+      token: 'abc',
+      onConnect: vi.fn(),
+      onError,
+    })
+
+    connection.close()
+    ;(captured.onWebSocketClose as () => void)()
+
+    expect(deactivate).toHaveBeenCalled()
+    expect(onError).not.toHaveBeenCalled()
+  })
 })

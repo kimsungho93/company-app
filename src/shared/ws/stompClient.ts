@@ -35,6 +35,8 @@ export const connectStomp = ({
   onConnect,
   onError,
 }: ConnectStompOptions): StompConnection => {
+  let leaving = false
+
   const client = new Client({
     brokerURL: url,
     connectHeaders: { Authorization: `Bearer ${token}` },
@@ -42,6 +44,9 @@ export const connectStomp = ({
     onConnect: () => onConnect(connection),
     onStompError: (frame) => onError(toReason(frame.body)),
     onWebSocketError: () => onError(),
+    onWebSocketClose: () => {
+      if (!leaving) onError()
+    },
   })
 
   const connection: StompConnection = {
@@ -61,7 +66,10 @@ export const connectStomp = ({
               headers: { 'content-type': 'application/json' },
             },
       ),
-    close: () => void client.deactivate(),
+    close: () => {
+      leaving = true
+      void client.deactivate()
+    },
   }
 
   client.activate()
