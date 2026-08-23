@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { CreateRoomDialog, JoinRoomDialog, RoomList } from '@/features/word-chain'
+import { toErrorInfo } from '@/shared/api'
+import {
+  CreateRoomDialog,
+  JoinRoomDialog,
+  RoomList,
+  useJoinRoomMutation,
+} from '@/features/word-chain'
 import type { RoomSummary } from '@/features/word-chain'
 import styles from './WordChainRoomsPage.module.scss'
 
@@ -10,8 +16,18 @@ export const WordChainRoomsPage = () => {
   const notice = (state as { notice?: string } | null)?.notice ?? null
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState<RoomSummary | null>(null)
+  const [joinRoom, { isLoading, error }] = useJoinRoomMutation()
 
   const enter = (roomId: number) => void navigate(`/games/word-chain/${roomId}`)
+
+  const join = async (room: RoomSummary) => {
+    if (isLoading) return
+
+    const result = await joinRoom({ id: room.id })
+    if ('error' in result) return
+
+    enter(room.id)
+  }
 
   return (
     <>
@@ -29,7 +45,13 @@ export const WordChainRoomsPage = () => {
         </p>
       )}
 
-      <RoomList onJoin={(room) => (room.locked ? setJoining(room) : enter(room.id))} />
+      {error && (
+        <p className={styles.error} role="alert">
+          {toErrorInfo(error).message}
+        </p>
+      )}
+
+      <RoomList onJoin={(room) => (room.locked ? setJoining(room) : void join(room))} />
 
       <CreateRoomDialog
         open={creating}

@@ -25,6 +25,16 @@
   text-align: center;
 }
 
+.error {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  text-align: center;
+}
+
 .create {
   padding: 9px 16px;
   border: 0;
