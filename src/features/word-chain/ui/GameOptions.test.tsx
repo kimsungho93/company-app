@@ -5,7 +5,7 @@ import { GameOptions } from './GameOptions'
 
 const setup = (over: Partial<Parameters<typeof GameOptions>[0]> = {}) => {
   const props = {
-    turnSeconds: 3,
+    turnSeconds: 5,
     noReuse: false,
     disabled: false,
     onChange: vi.fn(),
@@ -15,12 +15,12 @@ const setup = (over: Partial<Parameters<typeof GameOptions>[0]> = {}) => {
 }
 
 describe('GameOptions', () => {
-  it('3 · 5 · 7초만 고를 수 있다', () => {
+  it('5 · 7 · 10초만 고를 수 있다', () => {
     setup()
 
-    expect(screen.getByRole('radio', { name: '3초' })).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: '5초' })).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: '7초' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: '10초' })).toBeInTheDocument()
     expect(screen.getAllByRole('radio')).toHaveLength(3)
   })
 
@@ -33,9 +33,9 @@ describe('GameOptions', () => {
   it('턴 시간을 바꾸면 재사용 금지를 그대로 실어 알린다', async () => {
     const { user, props } = setup({ noReuse: true })
 
-    await user.click(screen.getByRole('radio', { name: '7초' }))
+    await user.click(screen.getByRole('radio', { name: '10초' }))
 
-    expect(props.onChange).toHaveBeenCalledWith({ turnSeconds: 7, noReuse: true })
+    expect(props.onChange).toHaveBeenCalledWith({ turnSeconds: 10, noReuse: true })
   })
 
   it('재사용 금지를 켜면 턴 시간을 그대로 실어 알린다', async () => {
@@ -49,7 +49,7 @@ describe('GameOptions', () => {
   it('방장이 아니면 못 바꾼다', () => {
     setup({ disabled: true })
 
-    expect(screen.getByRole('radio', { name: '3초' })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: '5초' })).toBeDisabled()
     expect(screen.getByRole('checkbox', { name: '한 번 나온 단어 금지' })).toBeDisabled()
   })
 })

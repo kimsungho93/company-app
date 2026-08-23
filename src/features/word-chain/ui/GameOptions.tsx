@@ -1,7 +1,7 @@
 import type { GameOptionsValue } from '../api/types'
 import styles from './GameOptions.module.scss'
 
-const TURN_SECONDS_CHOICES = [3, 5, 7] as const
+const TURN_SECONDS_CHOICES = [5, 7, 10] as const
 
 export interface GameOptionsProps extends GameOptionsValue {
   disabled: boolean

@@ -36,7 +36,7 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 | [2026-08-17-app-shell-design.md](docs/superpowers/specs/2026-08-17-app-shell-design.md) | 헤더, 테마, 승인 관리 |
 | [2026-08-22-word-chain-design.md](docs/superpowers/specs/2026-08-22-word-chain-design.md) | 끝말잇기 전체 그림, 방 목록 |
 | [2026-08-23-word-chain-room-design.md](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) | 대기실, 소켓 계약, 배포 경로 |
-| [2026-08-23-word-chain-game-design.md](docs/superpowers/specs/2026-08-23-word-chain-game-design.md) | 턴·판정·탈락, 3초가 만드는 제약 |
+| [2026-08-23-word-chain-game-design.md](docs/superpowers/specs/2026-08-23-word-chain-game-design.md) | 턴·판정·탈락, 짧은 턴이 만드는 제약 |
 | [2026-08-23-word-chain-dictionary-design.md](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md) | 표준국어대사전 실연동, 캐시, 검증의 함정 |
 
 ## 구조 — feature 기반 3레이어
@@ -373,9 +373,13 @@ HTTP 단에서 인증을 요구하면 CONNECT 프레임까지 가지도 못하�
 한동안 후자가 빠져 있었는데 서버가 구독 권한을 검사하기 전까지는 드러나지 않았다 — 참가자
 목록에 없는 사람이 게임을 하고 있었다.
 
-### 게임 진행 — 3초 턴이 드러내는 것들
+### 게임 진행 — 짧은 턴이 드러내는 것들
 
-기본 턴이 **3초**다(3 · 5 · 7 중 방장이 고른다). 그 길이 때문에 평소 안 보이던 것들이 보인다.
+기본 턴이 **5초**다(5 · 7 · 10 중 방장이 고른다). 그 길이 때문에 평소 안 보이던 것들이 보인다.
+
+**아래 제약들은 기본이 3초였을 때 드러난 것이고, 5초가 되어도 그대로 옳다.** 숫자만 완화됐다.
+3을 버린 이유는 한 턴에 3번을 쓸 수 있는데 `endsAt` 이 재시도해도 안 늘어나서다 — 오답 하나에
+사전 왕복(p50 358ms)이 붙으면 두 번째 시도가 사실상 불가능했다.
 
 **카운트다운은 `turnEndsAt - serverNow` 다.** 둘 다 같은 메시지에 실려 오는 서버 값이라
 **클라이언트 시계가 식에 들어오지 않는다.** 브라우저 시계는 몇 초씩 틀어져 있고, 3초 턴에서

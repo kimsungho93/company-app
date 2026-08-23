@@ -43,7 +43,7 @@ const ROOM: RoomState = {
   capacity: 10,
   players: [{ userId: 1, name: '김성호', avatar: null, ready: true }],
   serverNow: 0,
-  turnSeconds: 3,
+  turnSeconds: 5,
   noReuse: false,
   game: null,
 }

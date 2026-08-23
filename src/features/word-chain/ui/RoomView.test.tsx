@@ -20,7 +20,7 @@ const room = (over: Partial<RoomState> = {}): RoomState => ({
   capacity: 10,
   players: [player(1), player(2)],
   serverNow: 0,
-  turnSeconds: 3,
+  turnSeconds: 5,
   noReuse: false,
   game: null,
   ...over,
@@ -262,7 +262,7 @@ describe('RoomView', () => {
   it('방이 들고 있는 턴 시간이 보인다', () => {
     setup({ myUserId: 1 })
 
-    expect(screen.getByRole('radio', { name: '3초' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: '5초' })).toBeChecked()
   })
 
   it('방장이 턴 시간을 바꾸면 그 값을 알린다', async () => {
@@ -276,6 +276,6 @@ describe('RoomView', () => {
   it('방장이 아니면 옵션을 못 바꾼다', () => {
     setup({ myUserId: 2 })
 
-    expect(screen.getByRole('radio', { name: '3초' })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: '5초' })).toBeDisabled()
   })
 })
