@@ -96,6 +96,12 @@
     -webkit-text-fill-color: var(--text-strong);
     transition: background-color 100000s ease-in-out 0s;
   }
+
+  // Edge 는 값이 들어가는 순간 자기 눈 아이콘을 붙인다. 우리 것과 겹쳐 둘이 된다.
+  &::-ms-reveal,
+  &::-ms-clear {
+    display: none;
+  }
 }
 
 .reveal {
