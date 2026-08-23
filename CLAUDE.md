@@ -38,6 +38,7 @@ yarn preview      # dist/ 를 로컬 서버로 서빙
 | [2026-08-23-word-chain-room-design.md](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) | 대기실, 소켓 계약, 배포 경로 |
 | [2026-08-23-word-chain-game-design.md](docs/superpowers/specs/2026-08-23-word-chain-game-design.md) | 턴·판정·탈락, 짧은 턴이 만드는 제약 |
 | [2026-08-23-word-chain-dictionary-design.md](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md) | 표준국어대사전 실연동, 캐시, 검증의 함정 |
+| [2026-08-23-word-chain-seat-order-design.md](docs/superpowers/specs/2026-08-23-word-chain-seat-order-design.md) | 좌석 순서 = 턴 순서, 드래그 재배치 |
 
 ## 구조 — feature 기반 3레이어
 
@@ -301,7 +302,8 @@ access token 은 메모리라 새로고침하면 사라지지만 refresh 쿠키�
 [방 목록·생성·입장](docs/superpowers/specs/2026-08-22-word-chain-design.md),
 [대기실 소켓](docs/superpowers/specs/2026-08-23-word-chain-room-design.md) 5장,
 [턴·판정](docs/superpowers/specs/2026-08-23-word-chain-game-design.md),
-[사전 실연동](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md).
+[사전 실연동](docs/superpowers/specs/2026-08-23-word-chain-dictionary-design.md),
+[좌석 순서](docs/superpowers/specs/2026-08-23-word-chain-seat-order-design.md).
 
 ### 소켓만 Netlify 프록시를 우회한다 (실측)
 
