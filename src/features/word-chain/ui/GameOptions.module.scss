@@ -2,41 +2,147 @@
 
 .options {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
 }
 
-.group {
+.row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
   margin: 0;
-  padding: 0;
-  border: 0;
 }
 
-.label {
+label.row {
+  cursor: pointer;
+}
+
+.rowLabel {
+  flex: 1;
+  min-width: 0;
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
 }
 
-.choice,
-.reuse {
+.segment {
   display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--text);
-  font-size: 12.5px;
+  gap: 2px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-sunken);
+
+  &:disabled {
+    opacity: 0.55;
+  }
+}
+
+.segmentItem {
   cursor: pointer;
 
-  input:disabled ~ span {
-    opacity: 0.5;
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  span {
+    display: block;
+    padding: 6px 16px;
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+
+  &:hover input:not(:disabled) + span {
+    color: var(--text-strong);
+  }
+
+  input:checked + span {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  input:disabled + span {
     cursor: not-allowed;
   }
 
+  input:focus-visible + span {
+    outline: 2px solid var(--accent-ring);
+    outline-offset: 2px;
+  }
+
+  @include s.reduced-motion {
+    span {
+      transition: none;
+    }
+  }
+}
+
+.switch {
+  display: inline-flex;
+  flex-shrink: 0;
+
   input {
-    @include s.focus-ring;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  input:checked + .track {
+    background: var(--accent);
+  }
+
+  input:checked + .track .knob {
+    translate: 18px 0;
+  }
+
+  input:disabled + .track {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  input:focus-visible + .track {
+    outline: 2px solid var(--accent-ring);
+    outline-offset: 2px;
+  }
+}
+
+.track {
+  display: block;
+  width: 40px;
+  height: 22px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--border-input);
+  transition: background 0.18s ease;
+
+  @include s.reduced-motion {
+    transition: none;
+  }
+}
+
+.knob {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--surface);
+  transition: translate 0.18s ease;
+
+  @include s.reduced-motion {
+    transition: none;
   }
 }
