@@ -1,10 +1,15 @@
 @use '@/shared/styles' as s;
 
 .bubble {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  translate: -50%;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  max-width: 160px;
+  width: max-content;
+  max-width: 190px;
   padding: 6px 11px;
   border: 1px solid var(--border);
   border-radius: 12px 12px 12px 3px;
@@ -23,7 +28,7 @@
 .note {
   color: var(--text-muted);
   font-size: 10.5px;
-  white-space: nowrap;
+  line-height: 1.35;
 }
 
 .pending {

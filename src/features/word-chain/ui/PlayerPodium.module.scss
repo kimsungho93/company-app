@@ -85,8 +85,11 @@
 }
 
 .bubbleSlot {
+  position: relative;
   display: flex;
   align-items: flex-end;
+  justify-content: center;
+  width: 100%;
   min-height: 34px;
   margin-bottom: 4px;
 }
