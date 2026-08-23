@@ -92,9 +92,38 @@ describe('connectStomp', () => {
   it('STOMP 오류와 소켓 오류 모두 onError 를 부른다', () => {
     const onError = vi.fn()
     connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
-    ;(captured.onStompError as () => void)()
+    ;(captured.onStompError as (frame: { body: string }) => void)({ body: '' })
     ;(captured.onWebSocketError as () => void)()
 
     expect(onError).toHaveBeenCalledTimes(2)
+  })
+
+  it('ERROR 프레임 본문의 사유를 넘긴다', () => {
+    const onError = vi.fn()
+    connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
+    ;(captured.onStompError as (frame: { body: string }) => void)({
+      body: '{"code":"NOT_IN_ROOM","message":"이 방의 참가자가 아닙니다."}',
+    })
+
+    expect(onError).toHaveBeenCalledWith({
+      code: 'NOT_IN_ROOM',
+      message: '이 방의 참가자가 아닙니다.',
+    })
+  })
+
+  it('본문이 JSON 이 아니면 사유 없이 부른다', () => {
+    const onError = vi.fn()
+    connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
+    ;(captured.onStompError as (frame: { body: string }) => void)({ body: 'Failed to send' })
+
+    expect(onError).toHaveBeenCalledWith(undefined)
+  })
+
+  it('소켓 오류에는 실을 사유가 없다', () => {
+    const onError = vi.fn()
+    connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
+    ;(captured.onWebSocketError as () => void)()
+
+    expect(onError).toHaveBeenCalledWith()
   })
 })

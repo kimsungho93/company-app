@@ -19,7 +19,7 @@ export const WordChainRoomPage = () => {
     if (!disconnected) return
     void navigate('/games/word-chain', {
       replace: true,
-      state: { notice: '연결이 끊어져 방에서 나왔습니다.' },
+      state: { notice: disconnected.message ?? '연결이 끊어져 방에서 나왔습니다.' },
     })
   }, [disconnected, navigate])
 

@@ -6,11 +6,27 @@ export interface StompConnection {
   close: () => void
 }
 
+export interface ErrorReason {
+  code: string
+  message: string
+}
+
 export interface ConnectStompOptions {
   url: string
   token: string
   onConnect: (connection: StompConnection) => void
-  onError: () => void
+  onError: (reason?: ErrorReason) => void
+}
+
+const toReason = (body: string): ErrorReason | undefined => {
+  try {
+    const parsed = JSON.parse(body) as Partial<ErrorReason>
+    return parsed.code && parsed.message
+      ? { code: parsed.code, message: parsed.message }
+      : undefined
+  } catch {
+    return undefined
+  }
 }
 
 export const connectStomp = ({
@@ -24,8 +40,8 @@ export const connectStomp = ({
     connectHeaders: { Authorization: `Bearer ${token}` },
     reconnectDelay: 0,
     onConnect: () => onConnect(connection),
-    onStompError: onError,
-    onWebSocketError: onError,
+    onStompError: (frame) => onError(toReason(frame.body)),
+    onWebSocketError: () => onError(),
   })
 
   const connection: StompConnection = {

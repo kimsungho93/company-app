@@ -17,14 +17,14 @@ export interface RoomActions {
 export interface RoomSocket {
   room: RoomState | null
   error: string | null
-  disconnected: boolean
+  disconnected: { message: string | null } | null
   send: RoomActions
 }
 
 export const useRoomSocket = (roomId: number): RoomSocket => {
   const [room, setRoom] = useState<RoomState | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [disconnected, setDisconnected] = useState(false)
+  const [disconnected, setDisconnected] = useState<{ message: string | null } | null>(null)
   const connectionRef = useRef<StompConnection | null>(null)
 
   useEffect(() => {
@@ -44,7 +44,8 @@ export const useRoomSocket = (roomId: number): RoomSocket => {
           )
           ready.publish(`/app/rooms/${roomId}/enter`)
         },
-        onError: () => setDisconnected(true),
+        onError: (reason) =>
+          setDisconnected((prev) => prev ?? { message: reason?.message ?? null }),
       })
 
       connectionRef.current = connection

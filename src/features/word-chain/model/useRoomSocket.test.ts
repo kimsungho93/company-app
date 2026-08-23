@@ -77,7 +77,34 @@ describe('useRoomSocket', () => {
     })
     const { result } = renderHook(() => useRoomSocket(7))
 
-    await waitFor(() => expect(result.current.disconnected).toBe(true))
+    await waitFor(() => expect(result.current.disconnected).toEqual({ message: null }))
+  })
+
+  it('거절 사유가 오면 그것을 들고 있는다', async () => {
+    connectStomp.mockImplementationOnce(
+      (options: { onError: (reason?: { code: string; message: string }) => void }) => {
+        options.onError({ code: 'NOT_IN_ROOM', message: '이 방의 참가자가 아닙니다.' })
+        return connection
+      },
+    )
+    const { result } = renderHook(() => useRoomSocket(7))
+
+    await waitFor(() =>
+      expect(result.current.disconnected).toEqual({ message: '이 방의 참가자가 아닙니다.' }),
+    )
+  })
+
+  it('사유가 여러 번 와도 첫 것만 남는다', async () => {
+    connectStomp.mockImplementationOnce(
+      (options: { onError: (reason?: { code: string; message: string }) => void }) => {
+        options.onError({ code: 'NOT_IN_ROOM', message: '첫 번째' })
+        options.onError({ code: 'NOT_IN_ROOM', message: '두 번째' })
+        return connection
+      },
+    )
+    const { result } = renderHook(() => useRoomSocket(7))
+
+    await waitFor(() => expect(result.current.disconnected).toEqual({ message: '첫 번째' }))
   })
 
   it('오류는 메시지로 꺼낸다', async () => {
