@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import type { Player, RoomState } from '../api/types'
+import type { GameState, Player, RoomState } from '../api/types'
 import { RoomView } from './RoomView'
 
 const player = (userId: number, over: Partial<Player> = {}): Player => ({
@@ -19,6 +19,10 @@ const room = (over: Partial<RoomState> = {}): RoomState => ({
   hostId: 1,
   capacity: 10,
   players: [player(1), player(2)],
+  serverNow: 0,
+  turnSeconds: 3,
+  noReuse: false,
+  game: null,
   ...over,
 })
 
@@ -31,6 +35,8 @@ const setup = (over: Partial<Parameters<typeof RoomView>[0]> = {}) => {
     onTransfer: vi.fn(),
     onStart: vi.fn(),
     onLeave: vi.fn(),
+    onAnswer: vi.fn(),
+    onOptionsChange: vi.fn(),
     ...over,
   }
   return { user: userEvent.setup(), props, ...render(<RoomView {...props} />) }
@@ -110,5 +116,130 @@ describe('RoomView', () => {
 
     expect(props.onTransfer).not.toHaveBeenCalled()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  const playing = (over: Partial<GameState> = {}): RoomState =>
+    room({
+      status: 'PLAYING',
+      game: {
+        currentWord: '사과',
+        turnUserId: 1,
+        turnEndsAt: 4000,
+        triesLeft: 3,
+        usedWords: ['사과'],
+        turnOrder: [1, 2],
+        eliminated: [],
+        bubbles: [],
+        winnerId: null,
+        ...over,
+      },
+    })
+
+  it('대기 중이면 준비 바를 그린다', () => {
+    setup()
+
+    expect(screen.getByRole('button', { name: '준비' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: '답' })).not.toBeInTheDocument()
+  })
+
+  it('게임 중이면 답 입력칸을 그린다', () => {
+    setup({ myUserId: 1, room: playing() })
+
+    expect(screen.getByRole('textbox', { name: '답' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '준비' })).not.toBeInTheDocument()
+  })
+
+  it('이어갈 단어를 보여준다', () => {
+    setup({ myUserId: 1, room: playing({ currentWord: '기차' }) })
+
+    expect(screen.getByTestId('current-word')).toHaveTextContent('기차')
+  })
+
+  it('답을 내면 알린다', async () => {
+    const { user, props } = setup({ myUserId: 1, room: playing() })
+
+    await user.type(screen.getByRole('textbox', { name: '답' }), '과일')
+    await user.click(screen.getByRole('button', { name: '내기' }))
+
+    expect(props.onAnswer).toHaveBeenCalledWith('과일')
+  })
+
+  it('재사용 금지가 켜졌으면 나온 단어를 보여준다', () => {
+    setup({
+      myUserId: 1,
+      room: { ...playing({ usedWords: ['사과', '과일'] }), noReuse: true },
+    })
+
+    expect(screen.getByTestId('used-words')).toHaveTextContent('과일')
+  })
+
+  it('재사용 금지가 꺼졌으면 나온 단어를 보여주지 않는다', () => {
+    setup({
+      myUserId: 1,
+      room: { ...playing({ usedWords: ['사과'] }), noReuse: false },
+    })
+
+    expect(screen.queryByTestId('used-words')).not.toBeInTheDocument()
+  })
+
+  it('판이 끝나면 승자를 알리고 게임 화면을 걷는다', () => {
+    setup({
+      myUserId: 2,
+      room: room({
+        status: 'WAITING',
+        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+      }),
+    })
+
+    expect(screen.getByText('사람1 님 승리')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: '답' })).not.toBeInTheDocument()
+    expect(screen.queryByTestId('current-word')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('used-words')).not.toBeInTheDocument()
+  })
+
+  it('결과 화면에도 준비 바가 그대로 있다', () => {
+    setup({
+      myUserId: 2,
+      room: room({
+        status: 'WAITING',
+        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+      }),
+    })
+
+    expect(screen.getByRole('button', { name: '준비' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '다시 시작' })).not.toBeInTheDocument()
+  })
+
+  it('결과 화면에서 준비가 풀려 있으면 시작이 막힌다', () => {
+    setup({
+      myUserId: 1,
+      room: room({
+        status: 'WAITING',
+        players: [player(1, { ready: false }), player(2, { ready: false })],
+        game: { ...playing().game!, winnerId: 1, turnUserId: null, turnEndsAt: null },
+      }),
+    })
+
+    expect(screen.getByRole('button', { name: '시작' })).toBeDisabled()
+  })
+
+  it('방이 들고 있는 턴 시간이 보인다', () => {
+    setup({ myUserId: 1 })
+
+    expect(screen.getByRole('radio', { name: '3초' })).toBeChecked()
+  })
+
+  it('방장이 턴 시간을 바꾸면 그 값을 알린다', async () => {
+    const { user, props } = setup({ myUserId: 1 })
+
+    await user.click(screen.getByRole('radio', { name: '7초' }))
+
+    expect(props.onOptionsChange).toHaveBeenCalledWith({ turnSeconds: 7, noReuse: false })
+  })
+
+  it('방장이 아니면 옵션을 못 바꾼다', () => {
+    setup({ myUserId: 2 })
+
+    expect(screen.getByRole('radio', { name: '3초' })).toBeDisabled()
   })
 })

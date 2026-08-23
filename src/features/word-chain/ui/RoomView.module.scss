@@ -44,3 +44,20 @@
     transition: none;
   }
 }
+
+.currentWord {
+  margin: 18px 0 6px;
+  color: var(--text-strong);
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  text-align: center;
+}
+
+.usedWords {
+  margin: 10px 2px 0;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.7;
+  word-break: keep-all;
+}

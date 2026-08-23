@@ -42,6 +42,8 @@ export const WordChainRoomPage = () => {
           onTransfer={send.transfer}
           onStart={send.start}
           onLeave={leave}
+          onAnswer={send.answer}
+          onOptionsChange={send.options}
         />
       ) : (
         <p className={styles.loading}>방에 들어가는 중…</p>

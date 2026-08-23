@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { reissueOnce, tokenStore } from '@/shared/api'
 import { WS_URL, connectStomp } from '@/shared/ws'
 import type { StompConnection } from '@/shared/ws'
-import type { Avatar, RoomState } from '../api/types'
+import type { Avatar, GameOptionsValue, RoomState } from '../api/types'
 
 export interface RoomActions {
   avatar: (avatar: Avatar) => void
@@ -10,6 +10,8 @@ export interface RoomActions {
   transfer: (userId: number) => void
   start: () => void
   leave: () => void
+  answer: (word: string) => void
+  options: (value: GameOptionsValue) => void
 }
 
 export interface RoomSocket {
@@ -71,6 +73,8 @@ export const useRoomSocket = (roomId: number): RoomSocket => {
       transfer: (userId) => publish('transfer', { userId }),
       start: () => publish('start'),
       leave: () => publish('leave'),
+      answer: (word) => publish('answer', { word }),
+      options: (value) => publish('options', value),
     },
   }
 }

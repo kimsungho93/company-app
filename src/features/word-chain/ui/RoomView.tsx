@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
-import type { Avatar, Player, RoomState } from '../api/types'
+import type { Avatar, GameOptionsValue, Player, RoomState } from '../api/types'
+import { playerPhase } from '../model/playerPhase'
+import { AnswerBar } from './AnswerBar'
+import { GameOptions } from './GameOptions'
 import { ReadyBar } from './ReadyBar'
 import { Stage } from './Stage'
+import { WinnerBanner } from './WinnerBanner'
 import styles from './RoomView.module.scss'
 
 export interface RoomViewProps {
@@ -13,6 +17,8 @@ export interface RoomViewProps {
   onTransfer: (userId: number) => void
   onStart: () => void
   onLeave: () => void
+  onAnswer: (word: string) => void
+  onOptionsChange: (options: GameOptionsValue) => void
 }
 
 export const RoomView = ({
@@ -23,14 +29,26 @@ export const RoomView = ({
   onTransfer,
   onStart,
   onLeave,
+  onAnswer,
+  onOptionsChange,
 }: RoomViewProps) => {
   const [handingTo, setHandingTo] = useState<Player | null>(null)
 
   const me = room.players.find((player) => player.userId === myUserId)
   const isHost = room.hostId === myUserId
+  const game = room.game
+  const playing = room.status === 'PLAYING' && game !== null
+  const finished = room.status === 'WAITING' && game !== null && game.winnerId !== null
   const allReady =
     room.players.length >= 2 &&
     room.players.every((player) => player.userId === room.hostId || player.ready)
+
+  const winner = finished
+    ? room.players.find((player) => player.userId === game.winnerId)
+    : undefined
+  const turnPlayer = playing
+    ? room.players.find((player) => player.userId === game.turnUserId)
+    : undefined
 
   return (
     <>
@@ -44,26 +62,63 @@ export const RoomView = ({
         </button>
       </header>
 
+      {game && playing && (
+        <p className={styles.currentWord} data-testid="current-word" role="status">
+          {game.currentWord}
+        </p>
+      )}
+
       <Stage
         players={room.players}
         hostId={room.hostId}
+        game={game ?? undefined}
         onSelectPlayer={
-          isHost
+          isHost && !playing
             ? (userId) =>
                 setHandingTo(room.players.find((player) => player.userId === userId) ?? null)
             : undefined
         }
       />
 
-      <ReadyBar
-        avatar={me?.avatar ?? null}
-        onAvatarChange={onAvatarChange}
-        isHost={isHost}
-        ready={me?.ready ?? false}
-        allReady={allReady}
-        onReadyChange={onReadyChange}
-        onStart={onStart}
-      />
+      {game && playing && room.noReuse && (
+        <p className={styles.usedWords} data-testid="used-words">
+          {game.usedWords.join(' · ')}
+        </p>
+      )}
+
+      {finished && winner && <WinnerBanner name={winner.name} />}
+
+      {game && playing && game.turnEndsAt !== null && (
+        <AnswerBar
+          phase={playerPhase(game, myUserId)}
+          currentWord={game.currentWord}
+          turnPlayerName={turnPlayer?.name ?? ''}
+          triesLeft={game.triesLeft}
+          turnEndsAt={game.turnEndsAt}
+          serverNow={room.serverNow}
+          onSubmit={onAnswer}
+        />
+      )}
+
+      {!playing && (
+        <>
+          <GameOptions
+            turnSeconds={room.turnSeconds}
+            noReuse={room.noReuse}
+            disabled={!isHost}
+            onChange={onOptionsChange}
+          />
+          <ReadyBar
+            avatar={me?.avatar ?? null}
+            onAvatarChange={onAvatarChange}
+            isHost={isHost}
+            ready={me?.ready ?? false}
+            allReady={allReady}
+            onReadyChange={onReadyChange}
+            onStart={onStart}
+          />
+        </>
+      )}
 
       <ConfirmDialog
         open={handingTo !== null}

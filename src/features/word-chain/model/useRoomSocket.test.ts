@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Mock } from 'vitest'
 import type { StompConnection } from '@/shared/ws'
+import type { RoomState } from '../api/types'
 
 const publish = vi.fn()
 const close = vi.fn()
@@ -34,13 +35,17 @@ vi.mock('@/shared/api', async (importOriginal) => ({
 
 const { useRoomSocket } = await import('./useRoomSocket')
 
-const ROOM = {
+const ROOM: RoomState = {
   id: 7,
   name: '점심내기 한판',
   status: 'WAITING',
   hostId: 1,
   capacity: 10,
   players: [{ userId: 1, name: '김성호', avatar: null, ready: true }],
+  serverNow: 0,
+  turnSeconds: 3,
+  noReuse: false,
+  game: null,
 }
 
 describe('useRoomSocket', () => {
@@ -123,5 +128,26 @@ describe('useRoomSocket', () => {
     unmount()
 
     expect(close).toHaveBeenCalled()
+  })
+
+  it('답을 목적지로 보낸다', async () => {
+    const { result } = renderHook(() => useRoomSocket(7))
+    await waitFor(() => expect(handlers.has('/topic/rooms/7')).toBe(true))
+
+    act(() => result.current.send.answer('과일'))
+
+    expect(publish).toHaveBeenCalledWith('/app/rooms/7/answer', { word: '과일' })
+  })
+
+  it('옵션을 두 값 함께 보낸다', async () => {
+    const { result } = renderHook(() => useRoomSocket(7))
+    await waitFor(() => expect(handlers.has('/topic/rooms/7')).toBe(true))
+
+    act(() => result.current.send.options({ turnSeconds: 7, noReuse: true }))
+
+    expect(publish).toHaveBeenCalledWith('/app/rooms/7/options', {
+      turnSeconds: 7,
+      noReuse: true,
+    })
   })
 })
