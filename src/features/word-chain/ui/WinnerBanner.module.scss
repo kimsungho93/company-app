@@ -1,0 +1,16 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+
+.text {
+  color: var(--text-strong);
+  font-size: 15px;
+  font-weight: 700;
+}
