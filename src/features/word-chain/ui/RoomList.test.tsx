@@ -66,8 +66,8 @@ describe('RoomList', () => {
     const locked = await screen.findByRole('listitem', { name: /점심내기 한판/ })
     const open = screen.getByRole('listitem', { name: /개발팀 모여라/ })
 
-    expect(within(locked).getByText('비밀번호')).toBeInTheDocument()
-    expect(within(open).queryByText('비밀번호')).not.toBeInTheDocument()
+    expect(within(locked).getByText('비밀번호 필요')).toBeInTheDocument()
+    expect(within(open).queryByText('비밀번호 필요')).not.toBeInTheDocument()
   })
 
   it('게임 중인 방을 표시한다', async () => {
