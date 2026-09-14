@@ -3,6 +3,7 @@ import { AuthLayout, RedirectIfAuthenticated, RequireAdmin, RequireAuth } from '
 import { AdminUsersPage } from '@/pages/AdminUsersPage'
 import { HomePage } from '@/pages/HomePage'
 import { LeavePage } from '@/pages/LeavePage'
+import { LotteryLobbyPage, LotteryRoomPage } from '@/pages/LotteryPages'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { WordChainRoomPage } from '@/pages/WordChainRoomPage'
@@ -21,6 +22,8 @@ export const router = createBrowserRouter([
           { path: 'leave', element: <LeavePage /> },
           { path: 'games/word-chain', element: <WordChainRoomsPage /> },
           { path: 'games/word-chain/:roomId', element: <WordChainRoomPage /> },
+          { path: 'games/lottery', element: <LotteryLobbyPage /> },
+          { path: 'games/lottery/:roomId', element: <LotteryRoomPage /> },
           {
             element: <RequireAdmin />,
             children: [{ path: 'admin/users', element: <AdminUsersPage /> }],

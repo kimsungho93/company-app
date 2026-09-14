@@ -19,7 +19,10 @@ const MENUS = [
     groups: [
       {
         caption: '잠깐 쉬어가며',
-        items: [{ to: '/games/word-chain', label: '끝말잇기' }],
+        items: [
+          { to: '/games/word-chain', label: '끝말잇기' },
+          { to: '/games/lottery', label: '사람 뽑기' },
+        ],
       },
     ],
   },
