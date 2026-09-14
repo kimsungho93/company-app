@@ -1,7 +1,5 @@
 @use '@/shared/styles' as s;
 
-// 목록 전체를 카드 하나로 감싼다. 가로를 묶는 것이 핵심이다 -
-// 페이지 폭을 다 쓰면 내용이 적은데 흰 판만 넓게 남고, 버튼도 화면 끝까지 밀린다.
 .card {
   max-width: 720px;
   border: 1px solid var(--border);
@@ -126,7 +124,6 @@
   }
 }
 
-// 남는 폭을 가져가되 카드가 720px 로 묶여 있어 버튼이 멀어지지 않는다
 .info {
   flex: 1;
   min-width: 0;

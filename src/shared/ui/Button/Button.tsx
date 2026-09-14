@@ -9,7 +9,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = ({ children, loading = false, disabled, ...rest }: ButtonProps) => {
   return (
     <button
-      // 폼 안에서 기본값은 submit 이지만, 명시하지 않으면 브라우저마다 다르게 동작한 전례가 있다
+
       type="submit"
       className={styles.button}
       disabled={disabled || loading}

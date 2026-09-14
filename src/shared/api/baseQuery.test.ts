@@ -9,7 +9,6 @@ const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
-// 보호된 엔드포인트 하나를 만들어 401 재시도 경로를 확인한다.
 const testApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     protectedThing: build.query<{ ok: boolean }, void>({
@@ -50,7 +49,7 @@ describe('baseQuery 401 처리', () => {
 
     expect(result.data).toEqual({ ok: true })
     expect(tokenStore.get()).toBe('fresh')
-    // 원 요청 → 재발급 → 재시도
+
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 
@@ -71,7 +70,6 @@ describe('baseQuery 401 처리', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
-  // 로그인 401 을 재발급으로 받아치면 자격 증명 오류가 조용히 삼켜진다.
   it('로그인 401 은 재발급을 시도하지 않는다', async () => {
     const fetchMock = vi.fn().mockResolvedValue(json({ code: 'INVALID_CREDENTIALS' }, 401))
     vi.stubGlobal('fetch', fetchMock)

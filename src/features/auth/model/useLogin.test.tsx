@@ -50,12 +50,10 @@ describe('useLogin', () => {
     })
 
     expect(ok).toBe(false)
-    // 서버가 보낸 구체적인 문구를 그대로 노출하지 않는다
+
     expect(result.current.formError).toBe('이메일 또는 비밀번호가 올바르지 않습니다.')
   })
 
-  // 로그인 401 은 자격 증명이 틀린 것이지 세션이 만료된 게 아니다.
-  // 다른 계정으로 로그인하려다 실패했다고 기존 세션을 끊지 않는다.
   it('로그인 실패가 기존 세션을 건드리지 않는다', async () => {
     tokenStore.set('existing')
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}, 401))
@@ -68,7 +66,7 @@ describe('useLogin', () => {
     })
 
     expect(tokenStore.get()).toBe('existing')
-    // 재발급을 시도하지 않는다
+
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
@@ -84,8 +82,6 @@ describe('useLogin', () => {
     expect(result.current.formError).toBe('네트워크에 연결할 수 없습니다.')
   })
 
-  // 403 은 자격 증명이 아니라 승인 상태의 문제다. 401 문구로 덮으면
-  // 사용자가 맞는 비밀번호를 계속 다시 친다.
   it('승인 대기 중이면 그 사실을 알린다', async () => {
     vi.stubGlobal(
       'fetch',

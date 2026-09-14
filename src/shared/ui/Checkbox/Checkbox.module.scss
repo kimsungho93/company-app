@@ -5,7 +5,6 @@
   align-items: center;
 }
 
-// 시각적으로만 감춘다. display:none 이면 포커스도 못 받고 스크린리더에서도 사라진다.
 .input {
   position: absolute;
   width: 1px;
@@ -27,7 +26,6 @@
   cursor: pointer;
   user-select: none;
 
-  // 터치 타깃 확보
   @media (pointer: coarse) {
     padding: 6px 0;
     font-size: 14px;
@@ -69,7 +67,6 @@
   }
 }
 
-// 일부만 선택된 상태. 체크 표시로 두면 '전부 선택됨' 으로 읽힌다.
 .dash {
   position: absolute;
   width: 9px;
@@ -94,7 +91,6 @@
   scale: 1;
 }
 
-// indeterminate 는 checked 보다 우선한다. 브라우저도 그렇게 그린다.
 .input:indeterminate + .label .check {
   opacity: 0;
 }

@@ -17,8 +17,7 @@ import styles from './UserApprovalList.module.scss'
 const TABS: { status: UserStatus; label: string; empty: string }[] = [
   { status: 'PENDING', label: '승인 대기', empty: '승인 대기 중인 사람이 없습니다' },
   { status: 'APPROVED', label: '승인됨', empty: '승인된 사람이 없습니다' },
-  // 실수로 거절했을 때 되돌릴 유일한 통로다. 거절해도 users 행이 남아
-  // 당사자는 같은 주소로 재가입할 수 없다.
+
   { status: 'REJECTED', label: '거절됨', empty: '거절된 사람이 없습니다' },
 ]
 
@@ -26,7 +25,7 @@ type ActionKind = 'approve' | 'reject'
 
 interface PendingAction {
   kind: ActionKind
-  /** 단건도 배열로 통일한다. 확인창과 실행 경로가 갈라지지 않는다 */
+
   targets: AdminUser[]
 }
 
@@ -75,7 +74,6 @@ export const UserApprovalList = () => {
   const canApprove = status !== 'APPROVED'
   const canReject = status !== 'REJECTED'
 
-  // 탭을 옮기면 선택을 비운다. 남겨두면 다른 탭에서 고른 사람이 그대로 처리된다.
   const changeTab = (next: UserStatus) => {
     setStatus(next)
     setSelected(new Set())
@@ -95,9 +93,6 @@ export const UserApprovalList = () => {
     const mutate = pending.kind === 'approve' ? approve : reject
     const verb = pending.kind === 'approve' ? '승인' : '거절'
 
-    // 백엔드에 일괄 엔드포인트가 없어 건별로 보낸다.
-    // allSettled 라야 일부가 실패해도 나머지 결과를 알 수 있고, 순서가 보존되어
-    // 어느 사람이 실패했는지 짝지을 수 있다.
     const results = await Promise.allSettled(pending.targets.map((u) => mutate(u.id).unwrap()))
 
     setNotice(summarizeResults(pending.targets, results, verb))
@@ -225,7 +220,7 @@ export const UserApprovalList = () => {
                 <button
                   type="button"
                   className={styles.reject}
-                  // 백엔드가 CANNOT_REJECT_SELF 로 400 을 준다. 미리 막는다.
+
                   disabled={busy || me?.id === user.id}
                   onClick={() => setPending({ kind: 'reject', targets: [user] })}
                 >

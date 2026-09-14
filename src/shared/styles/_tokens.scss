@@ -1,15 +1,9 @@
-// 런타임에 바뀌는 값과 테마 값은 CSS 커스텀 프로퍼티로 둔다.
-// 컴파일 타임 상수(브레이크포인트 등)는 _mixins.scss 의 SCSS 변수로.
-//
-// 이름은 톤이 아니라 역할로 짓는다. '--bg-deep'(깊은 어둠) 같은 이름은
-// 라이트 모드에서 뜻이 없어서 테마를 두 벌로 만드는 순간 걸림돌이 된다.
+
 
 @mixin dark-tokens {
   --bg-sunken: #070c13;
   --bg: #0a1119;
 
-  // 반투명을 유지한다. AuthCard 가 이걸 통해 뒤쪽 웨이퍼 글로우를 비친다.
-  // 불투명하게 바꾸면 로그인 카드가 납작해진다.
   --surface: rgba(12, 22, 34, 0.74);
   --surface-input: rgba(255, 255, 255, 0.035);
 
@@ -23,7 +17,6 @@
   --text-subtle: #4e6376;
   --text-placeholder: #5c7085;
 
-  // 버튼 위에는 반드시 --accent-ink 를 얹는다 (대비 10.4:1)
   --accent: #22d3ee;
   --accent-hi: #67e8f9;
   --accent-lo: #0ea5e9;
@@ -44,7 +37,7 @@
 }
 
 :root {
-  // 라이트가 기본값이다.
+
   --bg-sunken: #eef1f5;
   --bg: #f4f6f9;
 
@@ -58,12 +51,10 @@
   --text-strong: #0f1c2b;
   --text: #334155;
   --text-muted: #64748b;
-  // 대비 2.9:1 — 장식성 라벨 전용이다. 본문에 쓰지 말 것.
+
   --text-subtle: #94a3b8;
   --text-placeholder: #94a3b8;
 
-  // 시안(#22d3ee)은 흰 배경에서 대비 1.6:1 이라 쓸 수 없다.
-  // 라이트에서는 관계가 뒤집힌다 — 어두운 청록 바탕에 흰 글자(6.4:1).
   --accent: #0e7490;
   --accent-hi: #0891b2;
   --accent-lo: #155e75;
@@ -81,11 +72,8 @@
 
   color-scheme: light;
 
-  // 웨이퍼 배경 전용. 어두운 배경이 전제라 테마를 따르지 않는다.
-  // 로그인 화면은 항상 다크이므로 짝이 필요 없다.
   --wafer-glow: #12253a;
 
-  // 형태 — 장비 UI 답게 각지게
   --radius-xs: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -94,19 +82,12 @@
   --font-mono: ui-monospace, Consolas, 'D2Coding', monospace;
 }
 
-// 아무것도 고르지 않았으면 OS 설정을 따른다.
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     @include dark-tokens;
   }
 }
 
-// <html> 에 붙으면 사용자가 명시적으로 고른 것이라 OS 설정을 이긴다.
-// 하위 요소에 붙이면 그 서브트리만 다크가 된다 - AuthLayout 이 후자를 써서
-// 로그인 화면을 테마와 무관하게 고정한다.
-//
-// :root 를 앞에 붙이지 않는 이유가 이것이다. 그리고 모듈 파일에서 이 믹스인을
-// @use 로 가져오면 이 파일의 최상위 CSS 가 그 모듈에 통째로 복제된다.
 [data-theme='dark'] {
   @include dark-tokens;
 }

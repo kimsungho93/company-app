@@ -26,12 +26,11 @@ describe('adminUsersApi', () => {
     const { result } = renderHook(() => useAdminUsersQuery('PENDING'), { wrapper })
 
     await waitFor(() => expect(result.current.data).toEqual(PENDING))
-    // fetchBaseQuery 는 Request 객체를 넘기지만, 문자열로 넘어와도 깨지지 않게 둔다
+
     const [sent] = fetchMock.mock.calls[0]
     expect(String(sent?.url ?? sent)).toContain('/admin/users?status=PENDING')
   })
 
-  // 승인하면 목록에서 사라져야 한다. 태그를 안 걸면 화면이 그대로 남는다.
   it('승인하면 목록을 다시 가져온다', async () => {
     const fetchMock = vi
       .fn()

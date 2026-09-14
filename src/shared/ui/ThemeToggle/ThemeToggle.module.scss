@@ -8,7 +8,7 @@
   height: 38px;
   padding: 0;
   border: 1px solid transparent;
-  // 헤더 안에 있어 AppHeader 의 곡률과 맞춘다
+
   border-radius: 10px;
   background: transparent;
   line-height: 1;
@@ -26,7 +26,6 @@
   }
 }
 
-// 아이콘이 고정 색 이미지라 hover 를 색으로 표현할 수 없다. 크기로 대신한다.
 .icon {
   display: block;
   transition: scale 0.15s ease;

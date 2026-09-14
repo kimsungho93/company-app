@@ -34,7 +34,6 @@ describe('MainNav', () => {
     expect(screen.queryByRole('link', { name: '휴가' })).not.toBeInTheDocument()
   })
 
-  // 토스처럼 누르지 않고 올리기만 해도 열린다
   it('마우스를 올리면 열리고 하위 항목이 보인다', async () => {
     const { user } = setup()
 
@@ -54,7 +53,6 @@ describe('MainNav', () => {
     await waitFor(() => expect(trigger()).toHaveAttribute('aria-expanded', 'false'))
   })
 
-  // 호버가 없는 키보드 사용자도 열 수 있어야 한다
   it('키보드로도 열 수 있다', async () => {
     const { user } = setup()
     trigger().focus()
@@ -64,7 +62,6 @@ describe('MainNav', () => {
     expect(trigger()).toHaveAttribute('aria-expanded', 'true')
   })
 
-  // 닫기만 하고 포커스를 두면 키보드 사용자가 어디 있는지 잃는다
   it('Escape 로 닫히고 포커스가 버튼으로 돌아온다', async () => {
     const { user } = setup()
     trigger().focus()
@@ -76,7 +73,6 @@ describe('MainNav', () => {
     expect(trigger()).toHaveFocus()
   })
 
-  // 터치에는 호버가 없다. 스치는 것으로 열면 첫 탭이 열기로 먹혀 링크가 한 번에 안 눌린다.
   it('터치로 스치는 것만으로는 열리지 않는다', () => {
     setup()
 
@@ -85,7 +81,6 @@ describe('MainNav', () => {
     expect(trigger()).toHaveAttribute('aria-expanded', 'false')
   })
 
-  // 열린 채로 옆 메뉴로 옮기면 패널은 그대로 두고 내용만 바뀌어야 한다
   it('옆 메뉴로 옮기면 그 메뉴 내용으로 바뀐다', async () => {
     const { user } = setup()
     await user.hover(trigger())
@@ -102,7 +97,6 @@ describe('MainNav', () => {
     expect(screen.queryByRole('link', { name: '휴가' })).not.toBeInTheDocument()
   })
 
-  // 열린 채로 남으면 이동한 화면을 패널이 가린다
   it('항목을 고르면 닫힌다', async () => {
     const { user } = setup()
     await user.hover(trigger())
@@ -112,7 +106,6 @@ describe('MainNav', () => {
     await waitFor(() => expect(trigger()).toHaveAttribute('aria-expanded', 'false'))
   })
 
-  // 헤더 오른쪽에 있던 승인 관리를 주 메뉴 안으로 옮겼다
   describe('관리 메뉴', () => {
     it('관리자에게만 보인다', async () => {
       setup('ADMIN')

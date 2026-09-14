@@ -1,8 +1,5 @@
 @use '@/shared/styles' as s;
 
-// 헤더만 넉넉한 곡률을 쓴다. 전역 --radius-* 는 "장비 UI 답게 각지게" 라는
-// 다른 의도로 3~6px 에 잡혀 있고, 그걸 올리면 카드·다이얼로그·입력칸까지
-// 전부 따라 바뀐다. 그래서 여기서만 쓰는 컴파일 타임 상수로 둔다.
 $pill: 999px;
 $nav-radius: 10px;
 $panel-radius: 14px;
@@ -30,16 +27,13 @@ $panel-radius: 14px;
   color: var(--text-strong);
   font-weight: 700;
   font-size: 17px;
-  // 라틴 대문자용으로 벌려뒀던 0.14em 을 뺐다. 한글에 그대로 쓰면
-  // 자간이 어색하게 벌어지고 폰트도 폴백으로 떨어진다.
+
   letter-spacing: -0.4px;
   text-decoration: none;
 
   @include s.focus-ring;
 }
 
-// 배경이 투명한 PNG 라 라이트·다크 어느 쪽에도 그대로 얹힌다.
-// 96px 원본을 32px 로 내려 그리므로 고해상도 화면에서도 선명하다.
 .logoMark {
   display: block;
 }
@@ -134,12 +128,11 @@ $panel-radius: 14px;
 }
 
 .mainNav {
-  // 헤더 높이를 가득 채워야 트리거에서 패널로 내려가는 길이 끊기지 않는다.
-  // 가운데 정렬된 버튼만 감싸면 그 사이 여백에서 pointerleave 가 떠 깜빡인다.
+
   display: flex;
   align-self: stretch;
   align-items: center;
-  // 메뉴가 늘면 가운데를 기준으로 양옆으로 자란다
+
   justify-content: center;
   gap: 4px;
 }
@@ -156,8 +149,7 @@ $panel-radius: 14px;
   left: 0;
   z-index: 10;
   background: var(--surface);
-  // 아래로 갈수록 배경이 사라져 화면과 이어진다. 선으로 끊으면 얹어놓은 판처럼 보인다.
-  // 색을 transparent 로 보간하면 브라우저에 따라 회색이 끼므로 마스크로 지운다.
+
   -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
   animation: panel-drop 0.2s ease-out;
@@ -167,7 +159,6 @@ $panel-radius: 14px;
   }
 }
 
-// 패널은 배경만 짧게 펼쳐진다. 흐르는 느낌은 안쪽 항목들이 만든다.
 @keyframes panel-drop {
   from {
     opacity: 0;
@@ -180,8 +171,6 @@ $panel-radius: 14px;
   }
 }
 
-// 열과 행이 어긋나며 차례로 들어온다.
-// 항목이 많아져도 끝이 늘어지지 않도록 지연을 620ms 에서 끊는다.
 @keyframes flow-in {
   from {
     opacity: 0;
@@ -196,7 +185,7 @@ $panel-radius: 14px;
 
 .megaInner {
   display: flex;
-  // 메뉴가 가운데 있으므로 열도 가운데에서 양옆으로 펼쳐진다
+
   justify-content: center;
   gap: 56px;
   padding: 34px 28px 76px;

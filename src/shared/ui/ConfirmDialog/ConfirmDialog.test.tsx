@@ -36,7 +36,6 @@ describe('ConfirmDialog', () => {
     expect(screen.getByRole('dialog', { hidden: true })).not.toHaveAttribute('open')
   })
 
-  // 제목과 설명이 연결되지 않으면 스크린리더가 버튼 이름만 읽고 만다
   it('제목과 설명이 dialog 에 연결된다', () => {
     setup()
     const dialog = screen.getByRole('dialog')
@@ -65,7 +64,6 @@ describe('ConfirmDialog', () => {
     expect(onConfirm).not.toHaveBeenCalled()
   })
 
-  // 요청이 나가는 중에 한 번 더 누르면 같은 동작이 두 번 나간다
   it('busy 면 두 버튼 모두 잠긴다', () => {
     setup({ busy: true })
 

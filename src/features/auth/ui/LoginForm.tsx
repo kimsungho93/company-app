@@ -29,7 +29,6 @@ export const LoginForm = () => {
   const navigate = useNavigate()
   const signedUpEmail = (useLocation().state as LocationState | null)?.signedUpEmail ?? null
 
-  // 방금 가입한 주소가 저장된 주소보다 우선한다 — 그 계정으로 들어가려는 의도가 명확하다.
   const [initialEmail] = useState(() => signedUpEmail ?? loadRememberedEmail())
   const [email, setEmail] = useState(initialEmail ?? '')
   const [remember, setRemember] = useState(loadRememberedEmail() !== null)
@@ -60,15 +59,12 @@ export const LoginForm = () => {
 
     if (!ok) return
 
-    // 성공했을 때만 저장한다. 오타로 실패한 주소를 기억해두면
-    // 다음 로그인에서 그 오타가 그대로 채워진다.
     if (remember) saveRememberedEmail(trimmed)
     else clearRememberedEmail()
 
     navigate('/', { replace: true })
   }
 
-  // state 를 거치면 pointermove 마다 리렌더된다.
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const el = cardRef.current
     if (!el) return
@@ -85,8 +81,7 @@ export const LoginForm = () => {
       <i className={`${styles.align} ${styles.br}`} aria-hidden="true" />
 
       <h1 className={styles.title}>
-        {/* 웨이퍼 캔버스가 aria-hidden 이라 브랜드를 전달할 곳이 여기뿐이다.
-            화면에는 안 보이고 스크린리더에만 읽힌다. */}
+
         <span className={styles.srOnly}>IBS</span>
         다시 만나서 반가워요
       </h1>
@@ -109,7 +104,7 @@ export const LoginForm = () => {
           label="이메일"
           type="email"
           name="email"
-          // 이게 없으면 비밀번호 관리자가 동작하지 않는다
+
           autoComplete="email"
           autoFocus={initialEmail === null}
           placeholder="name@ibslab.com"

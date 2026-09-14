@@ -1,7 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-// 'unknown' 이 없으면 보호 화면에서 새로고침할 때 세션 복구가 끝나기 전에
-// 미인증으로 판단해 로그인 화면이 한 번 번쩍인다.
 export type AuthStatus = 'unknown' | 'authenticated' | 'anonymous'
 
 interface AuthState {

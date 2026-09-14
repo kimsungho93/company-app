@@ -10,7 +10,6 @@ describe('useSignup', () => {
     vi.unstubAllGlobals()
   })
 
-  // 백엔드는 201 에 본문을 주지 않는다. 본문을 기대하고 파싱하면 여기서 깨진다.
   it('본문 없는 201 을 성공으로 처리한다', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(emptyResponse(201)))
     const { wrapper } = createTestWrapper()
@@ -50,7 +49,6 @@ describe('useSignup', () => {
     expect(result.current.formError).toBeNull()
   })
 
-  // 백엔드가 모든 검증 실패를 이 코드 하나로 뭉쳐 보내므로 필드를 특정할 수 없다.
   it('INVALID_INPUT 은 폼 상단에 띄운다', async () => {
     vi.stubGlobal(
       'fetch',

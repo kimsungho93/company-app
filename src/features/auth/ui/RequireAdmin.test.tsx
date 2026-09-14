@@ -30,8 +30,6 @@ describe('RequireAdmin', () => {
     vi.unstubAllGlobals()
   })
 
-  // role 을 모르는 상태에서 판단하면 관리자인데도 홈으로 튕긴다.
-  // RequireAuth 가 status === 'unknown' 일 때 아무것도 안 그리는 것과 같은 이유다.
   it('me 로딩 중에는 아무것도 렌더하지 않는다', () => {
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
     renderAt('/admin/users')

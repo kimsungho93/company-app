@@ -11,8 +11,6 @@
   margin-bottom: 7px;
 }
 
-// 한글 라벨 기준. 모노스페이스와 넓은 자간은 영문 대문자용 설정이라
-// 한글에 그대로 쓰면 자간이 벌어지고 폰트도 폴백으로 떨어진다.
 .label {
   font-size: 12px;
   font-weight: 600;
@@ -57,7 +55,6 @@
     transition: none;
   }
 
-  // 터치 타깃 최소 44px
   @media (pointer: coarse) {
     height: 50px;
   }
@@ -72,12 +69,10 @@
   font-size: 14px;
   color: var(--text-strong);
 
-  // iOS 는 입력 폰트가 16px 미만이면 포커스할 때 화면을 확대한다.
   @media (pointer: coarse) {
     font-size: 16px;
   }
 
-  // 상자가 focus-within 으로 이미 표시하므로 이중 링을 없앤다
   &:focus {
     outline: none;
   }
@@ -91,13 +86,11 @@
     opacity: 0.6;
   }
 
-  // 브라우저 자동완성이 흰 배경을 강제로 칠하는 것을 막는다
   &:-webkit-autofill {
     -webkit-text-fill-color: var(--text-strong);
     transition: background-color 100000s ease-in-out 0s;
   }
 
-  // Edge 는 값이 들어가는 순간 자기 눈 아이콘을 붙인다. 우리 것과 겹쳐 둘이 된다.
   &::-ms-reveal,
   &::-ms-clear {
     display: none;
@@ -109,7 +102,7 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  // 아이콘은 18px 이지만 클릭 영역은 넉넉히 잡는다
+
   width: 30px;
   height: 30px;
   margin-right: -6px;

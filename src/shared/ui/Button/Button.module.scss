@@ -16,8 +16,6 @@
   letter-spacing: -0.2px;
   cursor: pointer;
 
-  // 밝은 시안 위에 어두운 글자 — 대비 10.4:1.
-  // 반대로 흰 글자를 얹으면 3:1 대로 떨어지므로 뒤집지 말 것.
   color: var(--accent-ink);
   background: linear-gradient(100deg, var(--accent-hi), var(--accent) 45%, var(--accent-lo));
   box-shadow: 0 6px 22px rgba(34, 211, 238, 0.3);

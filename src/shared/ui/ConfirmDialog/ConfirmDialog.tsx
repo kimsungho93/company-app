@@ -8,16 +8,13 @@ export interface ConfirmDialogProps {
   description?: ReactNode
   confirmLabel: string
   cancelLabel?: string
-  /** danger 면 확인 버튼이 위험한 동작으로 보인다 */
+
   tone?: 'default' | 'danger'
   busy?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
 
-// 네이티브 <dialog> 를 쓴다. showModal() 하나로 포커스 트랩 · Escape ·
-// ::backdrop · top layer 가 전부 따라온다. 직접 만들면 그걸 다 흉내 내야 하고,
-// z-index 싸움도 시작된다.
 export const ConfirmDialog = ({
   open,
   title,
@@ -46,13 +43,12 @@ export const ConfirmDialog = ({
       className={styles.dialog}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
-      // Escape 를 누르면 dialog 가 스스로 닫힌다. 그대로 두면 open prop 과
-      // 어긋나 다음 열기가 먹지 않는다. 기본 동작을 막고 상태로만 닫는다.
+
       onCancel={(event) => {
         event.preventDefault()
         if (!busy) onCancel()
       }}
-      // 배경 클릭. dialog 자신이 target 이면 backdrop 을 누른 것이다.
+
       onClick={(event) => {
         if (event.target === ref.current && !busy) onCancel()
       }}

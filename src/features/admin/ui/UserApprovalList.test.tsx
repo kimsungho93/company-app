@@ -11,11 +11,10 @@ const row = (id: number, name: string) => ({
   name,
   email: `user${id}@ibslab.com`,
   status: 'PENDING',
-  // 백엔드는 Instant 를 UTC 로 내려준다. KST 로는 다음 날 07:11:11 이다.
+
   createdAt: '2026-08-17T22:11:11Z',
 })
 
-// me · 목록 · 승인/거절이 한 mock 으로 섞여 들어오므로 URL 로 갈라준다
 const stubFetch = (list: unknown) => {
   const fetchMock = vi.fn((input: Request | string) => {
     const url = typeof input === 'string' ? input : input.url
@@ -58,7 +57,6 @@ describe('UserApprovalList', () => {
     )
   })
 
-  // 백엔드가 CANNOT_REJECT_SELF 로 400 을 준다. 눌러서 에러를 보는 것보다 낫다.
   it('자기 자신의 거절 버튼은 비활성이다', async () => {
     stubFetch([row(1, '김성호'), row(2, '이영희')])
     const { wrapper } = createTestWrapper()
@@ -91,7 +89,7 @@ describe('UserApprovalList', () => {
 
     expect(screen.getByRole('tab', { name: /승인 대기/ })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '승인됨' })).toBeInTheDocument()
-    // 실수로 거절했을 때 되돌릴 유일한 통로다
+
     expect(screen.getByRole('tab', { name: '거절됨' })).toBeInTheDocument()
   })
 
@@ -118,7 +116,7 @@ describe('UserApprovalList', () => {
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: '승인' }))
-    // 목록의 '승인' 과 다이얼로그의 '승인' 이 둘 다 있으므로 다이얼로그 안에서 찾는다
+
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
 
     await waitFor(() =>
@@ -181,7 +179,6 @@ describe('UserApprovalList', () => {
     )
   })
 
-  // 백엔드가 CANNOT_REJECT_SELF 로 400 을 준다. 일괄에서도 같은 규칙이다.
   it('본인이 선택에 들어 있으면 일괄 거절을 막고 이유를 알린다', async () => {
     const user = userEvent.setup()
     stubFetch([row(1, '김성호'), row(2, '이영희')])
@@ -197,7 +194,6 @@ describe('UserApprovalList', () => {
     expect(screen.getByText('본인은 거절할 수 없습니다')).toBeInTheDocument()
   })
 
-  // 남겨두면 다른 탭에서 고른 사람이 그대로 처리된다
   it('탭을 옮기면 선택이 비워진다', async () => {
     const user = userEvent.setup()
     stubFetch([row(2, '이영희')])
@@ -214,7 +210,6 @@ describe('UserApprovalList', () => {
     expect(screen.queryByText('1명 선택')).not.toBeInTheDocument()
   })
 
-  // 개수만 세면 '2명 중 1명 실패' 로 끝나서, 관리자가 누구를 다시 봐야 할지 모른다
   it('일부가 실패하면 실패한 사람과 사유를 짚어준다', async () => {
     const user = userEvent.setup()
     vi.stubGlobal(
@@ -245,7 +240,6 @@ describe('UserApprovalList', () => {
     expect(alert).toHaveTextContent('사용자를 찾을 수 없습니다. — 박철수')
   })
 
-  // 거절은 사실상 그 주소를 영구 차단한다. 누르기 전에 알아야 한다.
   it('거절 확인창이 재가입 불가를 알린다', async () => {
     const user = userEvent.setup()
     stubFetch([row(2, '이영희')])

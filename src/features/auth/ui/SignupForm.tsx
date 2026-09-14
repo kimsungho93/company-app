@@ -68,7 +68,6 @@ export const SignupForm = () => {
     }
   }
 
-  // state 를 거치면 pointermove 마다 리렌더된다.
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const el = cardRef.current
     if (!el) return
@@ -107,7 +106,7 @@ export const SignupForm = () => {
           name="email"
           autoComplete="email"
           autoFocus
-          // iOS 는 type="email" 에서도 첫 글자를 대문자로 올리는 경우가 있다
+
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
@@ -116,7 +115,7 @@ export const SignupForm = () => {
           disabled={busy}
           error={errorFor('email')}
           onChange={(e) => {
-            // 백엔드가 대문자 이메일을 거부한다 (docs/api/auth.md)
+
             const next = e.target.value.toLowerCase()
             setEmail(next)
             if (submitted) revalidate({ ...current, email: next })
@@ -147,7 +146,7 @@ export const SignupForm = () => {
           label="비밀번호"
           type="password"
           name="password"
-          // current-password 를 쓰면 비밀번호 관리자가 기존 암호를 채운다
+
           autoComplete="new-password"
           placeholder="••••••••••"
           value={password}

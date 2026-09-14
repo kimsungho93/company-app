@@ -17,7 +17,6 @@ describe('summarizeResults', () => {
     expect(notice).toEqual({ ok: true, text: '2명을 승인했습니다.', detail: [] })
   })
 
-  // '1명 중 1명 실패' 는 아무것도 알려주지 않는다
   it('단건 실패는 서버가 준 사유를 그대로 보여준다', () => {
     const notice = summarizeResults(people('이영희'), [fail('사용자를 찾을 수 없습니다.')], '승인')
 
@@ -62,7 +61,6 @@ describe('summarizeResults', () => {
     ])
   })
 
-  // 전체 선택으로 수십 명이 실패하면 이름이 화면을 덮는다
   it('이름이 다섯을 넘으면 접는다', () => {
     const names = ['가', '나', '다', '라', '마', '바', '사']
     const notice = summarizeResults(

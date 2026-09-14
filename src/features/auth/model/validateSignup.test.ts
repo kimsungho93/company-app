@@ -24,7 +24,7 @@ describe('validateSignupEmail', () => {
   })
 
   it('형식 오류를 도메인 오류보다 먼저 알린다', () => {
-    // 순서가 반대면 'abc' 에 "회사 이메일로만" 이 떠서 무엇이 틀렸는지 알 수 없다
+
     expect(validateSignupEmail('abc')).toBe('이메일 형식이 올바르지 않습니다.')
   })
 
@@ -35,10 +35,10 @@ describe('validateSignupEmail', () => {
 
 describe('validateName', () => {
   it('경계값을 정확히 판정한다', () => {
-    expect(validateName('가')).not.toBeNull() // 1자
-    expect(validateName('가나')).toBeNull() // 2자 = NAME_MIN
-    expect(validateName('가'.repeat(NAME_MAX))).toBeNull() // 10자 = NAME_MAX
-    expect(validateName('가'.repeat(NAME_MAX + 1))).not.toBeNull() // 11자
+    expect(validateName('가')).not.toBeNull()
+    expect(validateName('가나')).toBeNull()
+    expect(validateName('가'.repeat(NAME_MAX))).toBeNull()
+    expect(validateName('가'.repeat(NAME_MAX + 1))).not.toBeNull()
   })
 
   it('앞뒤 공백을 제거하고 센다', () => {
@@ -47,7 +47,7 @@ describe('validateName', () => {
   })
 
   it('이모지를 한 글자로 센다', () => {
-    // String.length 로 세면 서로게이트 페어가 2로 잡혀 10자 제한에 일찍 걸린다
+
     expect(validateName('😀'.repeat(NAME_MAX))).toBeNull()
     expect(validateName('😀'.repeat(NAME_MAX + 1))).not.toBeNull()
   })
@@ -59,10 +59,10 @@ describe('validateName', () => {
 
 describe('validateNewPassword', () => {
   it('경계값을 정확히 판정한다', () => {
-    expect(validateNewPassword('a'.repeat(PASSWORD_MIN - 1))).not.toBeNull() // 7자
-    expect(validateNewPassword('a'.repeat(PASSWORD_MIN))).toBeNull() // 8자
-    expect(validateNewPassword('a'.repeat(PASSWORD_MAX))).toBeNull() // 20자
-    expect(validateNewPassword('a'.repeat(PASSWORD_MAX + 1))).not.toBeNull() // 21자
+    expect(validateNewPassword('a'.repeat(PASSWORD_MIN - 1))).not.toBeNull()
+    expect(validateNewPassword('a'.repeat(PASSWORD_MIN))).toBeNull()
+    expect(validateNewPassword('a'.repeat(PASSWORD_MAX))).toBeNull()
+    expect(validateNewPassword('a'.repeat(PASSWORD_MAX + 1))).not.toBeNull()
   })
 
   it('공백도 유효한 문자로 세어 trim 하지 않는다', () => {

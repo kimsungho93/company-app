@@ -9,8 +9,6 @@
   color: var(--text);
   box-shadow: var(--shadow-card);
 
-  // ::backdrop 은 페이지의 커스텀 프로퍼티를 물려받지 못하는 브라우저가 있다.
-  // 스크림은 어느 테마에서도 같은 역할이라 고정값으로 둔다.
   &::backdrop {
     background: rgb(4 10 16 / 62%);
     backdrop-filter: blur(2px);
@@ -78,7 +76,6 @@
   font-weight: 600;
 }
 
-// 되돌리기 어려운 동작. 버튼 자체가 그렇게 보여야 한다.
 .danger {
   background: var(--danger);
   color: var(--bg);

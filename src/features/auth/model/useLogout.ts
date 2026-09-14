@@ -12,7 +12,7 @@ export const useLogout = (): UseLogoutResult => {
   const navigate = useNavigate()
 
   const logout = useCallback(async () => {
-    // 서버 요청 실패와 무관하게 로컬 상태는 정리된다(authApi 의 onQueryStarted).
+
     await logoutMutation().unwrap().catch(() => undefined)
     navigate('/login', { replace: true })
   }, [logoutMutation, navigate])

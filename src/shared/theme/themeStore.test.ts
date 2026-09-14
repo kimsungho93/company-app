@@ -38,7 +38,6 @@ describe('themeStore', () => {
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
   })
 
-  // 속성만 지우고 localStorage 를 안 지우면 다음 방문에 되살아난다
   it('system 으로 되돌리면 속성과 저장값이 모두 사라진다', () => {
     themeStore.set('dark')
     themeStore.set('system')

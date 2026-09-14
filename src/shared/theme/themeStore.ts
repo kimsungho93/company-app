@@ -7,8 +7,6 @@ const DARK_QUERY = '(prefers-color-scheme: dark)'
 
 const listeners = new Set<() => void>()
 
-// 시크릿 모드나 저장소 차단 환경에서 localStorage 접근은 throw 한다.
-// 테마 때문에 앱이 죽으면 안 되므로 전부 감싼다.
 const readStored = (): ThemePreference => {
   try {
     const value = localStorage.getItem(THEME_STORAGE_KEY)
@@ -23,7 +21,7 @@ const writeStored = (next: ThemePreference): void => {
     if (next === 'system') localStorage.removeItem(THEME_STORAGE_KEY)
     else localStorage.setItem(THEME_STORAGE_KEY, next)
   } catch {
-    // 저장에 실패해도 이번 세션에서는 동작한다
+
   }
 }
 
@@ -64,12 +62,10 @@ export const themeStore = {
   },
 }
 
-// system 을 고른 상태에서 OS 테마가 바뀌면 CSS 는 미디어 쿼리로 알아서 따라가지만
-// 토글 아이콘은 그대로 남는다. 그 아이콘을 갱신하려고 구독한다.
 try {
   window.matchMedia(DARK_QUERY).addEventListener('change', () => {
     if (preference === 'system') listeners.forEach((listener) => listener())
   })
 } catch {
-  // matchMedia 가 없는 환경에서는 건너뛴다
+
 }

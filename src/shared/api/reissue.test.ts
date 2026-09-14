@@ -24,11 +24,6 @@ describe('reissueOnce', () => {
     expect(tokenStore.get()).toBe('fresh')
   })
 
-  /**
-   * 백엔드는 재발급마다 refresh 토큰을 회전시키고, 폐기된 토큰이 제시되면
-   * 재사용으로 보아 그 사용자의 토큰을 전부 무효화한다.
-   * 동시에 두 번 나가면 두 번째가 구 토큰을 들고 가 사용자가 강제 로그아웃된다.
-   */
   it('동시에 여러 번 불러도 요청은 한 번만 나간다', async () => {
     const fetchMock = vi
       .fn()

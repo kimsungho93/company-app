@@ -15,8 +15,6 @@ export interface UseSignupResult {
   clearError: () => void
 }
 
-// 백엔드 GlobalExceptionHandler 는 모든 Bean Validation 실패를 INVALID_INPUT 하나로
-// 뭉쳐 첫 번째 필드 메시지만 내려준다. 어느 필드인지 알 수 없어 그건 폼 상단에 띄운다.
 const FIELD_BY_CODE: Record<string, SignupErrorField> = {
   EMAIL_ALREADY_EXISTS: 'email',
 }

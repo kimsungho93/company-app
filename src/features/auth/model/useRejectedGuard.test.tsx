@@ -36,7 +36,6 @@ describe('useRejectedGuard', () => {
     tokenStore.clear()
   })
 
-  // 거절해도 access token 은 무효화되지 않는다. 이 브라우저에서만이라도 끊는다.
   it('세션 중 거절당하면 로그아웃시킨다', async () => {
     const fetchMock = stubFetch('REJECTED')
     const { wrapper } = createTestWrapper({ withRouter: true })
@@ -47,8 +46,6 @@ describe('useRejectedGuard', () => {
     await waitFor(() => expect(tokenStore.get()).toBeNull())
   })
 
-  // logout 이 resetApiState 로 캐시를 비우면 me 를 다시 조회한다.
-  // 상태가 그대로 REJECTED 라, 막지 않으면 이펙트가 계속 돈다.
   it('상태가 그대로여도 로그아웃을 한 번만 쏜다', async () => {
     const fetchMock = stubFetch('REJECTED')
     const { wrapper } = createTestWrapper({ withRouter: true })
@@ -56,7 +53,7 @@ describe('useRejectedGuard', () => {
     renderHook(() => useRejectedGuard(), { wrapper })
 
     await waitFor(() => expect(countOf(fetchMock, '/auth/logout')).toBe(1))
-    // 캐시가 비워져 me 를 다시 가져오는 것을 기다린다
+
     await waitFor(() => expect(countOf(fetchMock, '/users/me')).toBeGreaterThan(1))
 
     expect(countOf(fetchMock, '/auth/logout')).toBe(1)

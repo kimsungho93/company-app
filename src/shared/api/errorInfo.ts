@@ -16,10 +16,6 @@ interface ServerErrorBody {
 const NETWORK_MESSAGE = '네트워크에 연결할 수 없습니다.'
 const SERVER_MESSAGE = '서버에 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'
 
-/**
- * RTK Query 의 오류를 화면이 쓸 형태로 좁힌다.
- * status 는 숫자가 아니라 'FETCH_ERROR' 같은 문자열일 수 있다.
- */
 export const toErrorInfo = (error: unknown): ApiErrorInfo => {
   const e = error as FetchBaseQueryError | undefined
   if (!e || !('status' in e)) {

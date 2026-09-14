@@ -14,8 +14,6 @@ const raw = fetchBaseQuery({
   },
 })
 
-// 이 경로들의 401 은 토큰 만료가 아니라 그 자체의 결과다.
-// 재발급으로 받아치면 로그인 실패가 조용히 재시도되거나 무한 재귀에 빠진다.
 const NO_REISSUE = ['/auth/login', '/auth/signup', '/auth/reissue', '/auth/logout']
 
 const urlOf = (args: string | FetchArgs) => (typeof args === 'string' ? args : args.url)
@@ -31,7 +29,6 @@ export const baseQuery: BaseQueryFn<
     return result
   }
 
-  // 재시도는 한 번뿐이다. 재발급 후에도 401 이면 그대로 돌려준다.
   if (await reissueOnce()) {
     result = await raw(args, api, extraOptions)
   }

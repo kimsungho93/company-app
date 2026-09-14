@@ -8,9 +8,8 @@
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 
-    /* Bundler mode */
     "moduleResolution": "bundler",
-    // TS 6부터 baseUrl 은 폐기됐다. paths 는 이 파일 위치 기준으로 해석된다.
+
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -20,7 +19,6 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,

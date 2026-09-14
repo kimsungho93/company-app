@@ -29,8 +29,6 @@ describe('rememberedEmail', () => {
     expect(loadRememberedEmail()).toBeNull()
   })
 
-  // 사파리 프라이빗 모드나 스토리지 차단 환경에서는 접근 자체가 던진다.
-  // 아이디를 기억하지 못하는 것은 로그인을 막을 이유가 되지 않는다.
   it('스토리지가 막혀 있어도 던지지 않는다', () => {
     const boom = () => {
       throw new Error('SecurityError')

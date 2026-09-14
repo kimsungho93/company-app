@@ -22,7 +22,6 @@ describe('ThemeToggle', () => {
     vi.unstubAllGlobals()
   })
 
-  // 아이콘만으로는 무엇인지 알 수 없다
   it('현재 테마가 아니라 바뀔 테마를 라벨로 알린다', () => {
     render(<ThemeToggle />)
     expect(screen.getByRole('button', { name: '다크 모드로 전환' })).toBeInTheDocument()

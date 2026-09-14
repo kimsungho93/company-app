@@ -36,7 +36,6 @@ describe('AppHeader', () => {
     await waitFor(() => expect(screen.getByText('김성호')).toBeInTheDocument())
   })
 
-  // 이름이 툭 나타나면 옆 요소들이 밀린다
   it('me 가 오기 전에도 이름 자리를 차지한다', () => {
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
     const { wrapper } = createTestWrapper({ withRouter: true })
