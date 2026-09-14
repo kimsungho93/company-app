@@ -8,6 +8,10 @@
   min-width: 7.5em;
   margin: 0;
   text-align: center;
+
+  @include s.below(s.$bp-mobile) {
+    min-width: 0;
+  }
 }
 
 .trigger {

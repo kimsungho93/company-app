@@ -1,7 +1,7 @@
-$annual: #e8737f;
-$half-am: #f2a33c;
-$half-pm: #e07526;
-$official: #5cbf88;
+$annual: light-dark(#7657c9, #a99ae8);
+$half-am: light-dark(#996200, #efc36f);
+$half-pm: light-dark(#c05a17, #eeab7b);
+$official: light-dark(#148057, #7bcca5);
 
 @mixin kind-classes {
   .kindAnnual {

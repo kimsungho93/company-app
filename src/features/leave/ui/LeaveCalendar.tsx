@@ -65,12 +65,6 @@ export const LeaveCalendar = ({ userName, userId, isAdmin = false }: LeaveCalend
 
   return (
     <section className={styles.calendar} aria-label="휴가 캘린더" aria-busy={isFetching}>
-      <div className={styles.rings} aria-hidden="true">
-        {Array.from({ length: 9 }, (_, i) => (
-          <span key={i} className={styles.ring} />
-        ))}
-      </div>
-
       <header className={styles.bar}>
         <button type="button" className={styles.nav} aria-label="이전 달" onClick={() => shift(-1)}>
           ‹

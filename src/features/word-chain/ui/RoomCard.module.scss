@@ -23,7 +23,7 @@
   &:hover:not(:disabled) {
     border-color: var(--accent);
     translate: 0 -1px;
-    box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+    box-shadow: var(--shadow-card);
   }
 
   &:active:not(:disabled) {

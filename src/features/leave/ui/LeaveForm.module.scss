@@ -78,12 +78,12 @@
   input:checked + span {
     background: var(--accent);
     color: var(--accent-ink);
-    box-shadow: 0 4px 12px -5px color-mix(in srgb, var(--accent) 60%, transparent);
+    box-shadow: none;
   }
 
   &:hover input:checked + span {
     translate: 0 -1px;
-    box-shadow: 0 7px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+    box-shadow: none;
   }
 
   &:active span {
@@ -161,7 +161,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 3px 10px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: none;
   transition:
     background 0.15s ease,
     box-shadow 0.15s ease,
@@ -170,14 +170,14 @@
 
   &:hover:not(:disabled) {
     background: var(--accent-hi);
-    box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--accent) 75%, transparent);
+    box-shadow: none;
     translate: 0 -1px;
   }
 
   &:active:not(:disabled) {
     translate: 0 0;
     scale: 0.985;
-    box-shadow: 0 2px 6px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+    box-shadow: none;
   }
 
   &:disabled {

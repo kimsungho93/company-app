@@ -5,29 +5,10 @@
   position: relative;
   margin-top: 12px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--surface);
-  box-shadow:
-    0 1px 1px rgb(15 28 43 / 5%),
-    0 12px 24px -16px rgb(15 28 43 / 55%);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
-}
-
-.rings {
-  display: flex;
-  justify-content: center;
-  gap: 22px;
-  padding: 7px 0 0;
-  background: var(--bg-sunken);
-}
-
-.ring {
-  width: 9px;
-  height: 15px;
-  border: 2px solid var(--border);
-  border-top-color: var(--text-subtle);
-  border-radius: 5px;
-  background: transparent;
 }
 
 .bar {
@@ -35,8 +16,8 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 12px 16px 16px;
-  background: linear-gradient(to bottom, var(--bg-sunken), transparent);
+  padding: 20px 16px;
+  background: var(--surface);
 }
 
 .nav {
@@ -77,6 +58,7 @@
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
+  white-space: nowrap;
   box-shadow: inset 0 0 0 1px var(--border);
   transition: color 0.15s ease, background 0.15s ease;
 
@@ -117,10 +99,12 @@
 
   &.sun {
     color: var(--day-sunday);
+    font-weight: 700;
   }
 
   &.sat {
     color: var(--day-saturday);
+    font-weight: 700;
   }
 }
 
@@ -142,11 +126,11 @@
 
   .dayNumber,
   .holiday {
-    opacity: 0.35;
+    opacity: var(--calendar-outside-date-opacity);
   }
 
   .entry {
-    opacity: 0.45;
+    opacity: var(--calendar-outside-entry-opacity);
   }
 }
 
@@ -212,8 +196,8 @@
 
 .holiday {
   color: var(--day-sunday);
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: -0.2px;
   white-space: nowrap;
   overflow: hidden;
@@ -278,8 +262,17 @@
 @include k.kind-classes;
 
 @include s.below(s.$bp-mobile) {
-  .rings {
-    gap: 14px;
+  .bar {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+    gap: 8px;
+    padding: 16px 8px;
+  }
+
+  .todayButton {
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin-left: 0;
   }
 
   .cell {

@@ -1,41 +1,15 @@
 @use '@/shared/styles' as s;
 
 .card {
-  --cx: 50%;
-  --cy: 0%;
-
   position: relative;
   width: 100%;
   max-width: 400px;
   padding: 44px 40px 34px;
   box-sizing: border-box;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--surface);
-  backdrop-filter: blur(20px);
   box-shadow: var(--shadow-card);
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    padding: 1px;
-    border-radius: calc(var(--radius-sm) + 1px);
-    background: radial-gradient(
-      170px circle at var(--cx) var(--cy),
-      rgba(34, 211, 238, 0.8),
-      rgba(34, 211, 238, 0) 65%
-    );
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    pointer-events: none;
-  }
 
   @include s.below(s.$bp-tablet) {
     max-width: none;
@@ -45,37 +19,6 @@
   @include s.below(s.$bp-mobile) {
     padding: 26px 20px 22px;
   }
-}
-
-.align {
-  position: absolute;
-  width: 13px;
-  height: 13px;
-  border: 1px solid rgba(34, 211, 238, 0.5);
-}
-.tl {
-  top: 7px;
-  left: 7px;
-  border-right: 0;
-  border-bottom: 0;
-}
-.tr {
-  top: 7px;
-  right: 7px;
-  border-left: 0;
-  border-bottom: 0;
-}
-.bl {
-  bottom: 7px;
-  left: 7px;
-  border-right: 0;
-  border-top: 0;
-}
-.br {
-  bottom: 7px;
-  right: 7px;
-  border-left: 0;
-  border-top: 0;
 }
 
 .srOnly {
@@ -121,7 +64,7 @@
 .formError {
   margin: 0 0 18px;
   padding: 11px 13px;
-  border: 1px solid rgba(251, 113, 133, 0.32);
+  border: 1px solid color-mix(in srgb, var(--danger) 32%, transparent);
   border-radius: var(--radius-xs);
   background: var(--danger-soft);
   font-size: 12.5px;
@@ -132,7 +75,7 @@
 .formNotice {
   margin: 0 0 18px;
   padding: 11px 13px;
-  border: 1px solid rgba(34, 211, 238, 0.28);
+  border: 1px solid var(--accent-ring);
   border-radius: var(--radius-xs);
   background: var(--accent-soft);
   font-size: 12.5px;

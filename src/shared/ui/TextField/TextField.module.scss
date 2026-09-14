@@ -29,7 +29,7 @@
   height: 50px;
   padding: 0 15px;
   border: 1px solid var(--border-input);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   background: var(--surface-input);
   transition:
     border-color 0.2s ease,
@@ -47,7 +47,7 @@
     background: var(--danger-soft);
 
     &:focus-within {
-      box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.16);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 16%, transparent);
     }
   }
 
