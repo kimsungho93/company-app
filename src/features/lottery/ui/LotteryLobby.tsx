@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router'
 import { toErrorInfo } from '@/shared/api'
 import { Button } from '@/shared/ui/Button'
 import { TextField } from '@/shared/ui/TextField'
-import { useCreateLotteryRoomMutation, useLotteryRoomsQuery } from '../api/lotteryApi'
+import { useCreateLotteryRoomMutation } from '../api/lotteryApi'
 import { DEFAULT_PARTICIPANTS, validateLotteryTitle } from '../model/participants'
+import { useLotteryLobby } from '../model/useLotteryLobby'
 import { ballColor } from './machine/ballColors'
 import styles from './Lottery.module.scss'
 
@@ -16,10 +17,8 @@ export const LotteryLobby = () => {
   const [title, setTitle] = useState('오늘의 추첨')
   const [validation, setValidation] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'active' | 'finished'>('all')
-  const { data: rooms, isLoading, isFetching, isError, refetch } = useLotteryRoomsQuery(undefined, {
-    pollingInterval: 5000,
-    skipPollingIfUnfocused: true,
-  })
+  const [refreshing, setRefreshing] = useState(false)
+  const { data: rooms, isLoading, isError, refetch, connectionStatus } = useLotteryLobby()
   const [create, { isLoading: creating, error }] = useCreateLotteryRoomMutation()
   const counts = {
     all: rooms?.length ?? 0,
@@ -28,6 +27,16 @@ export const LotteryLobby = () => {
   }
   const visibleRooms = rooms?.filter((room) => filter === 'all' || (filter === 'finished' ? room.status === 'FINISHED' : room.status !== 'FINISHED'))
     .sort((a, b) => Number(a.status === 'FINISHED') - Number(b.status === 'FINISHED'))
+
+  const refresh = async () => {
+    if (refreshing) return
+    setRefreshing(true)
+    try {
+      await refetch()
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   const submit = async () => {
     if (creating) return
@@ -53,7 +62,8 @@ export const LotteryLobby = () => {
         {error && <p className={styles.error} role="alert">{toErrorInfo(error).message}</p>}
       </section>
       <section aria-labelledby="lottery-rooms-title">
-        <div className={styles.sectionHeading}><h2 id="lottery-rooms-title">추첨방 목록</h2><Button variant="secondary" loading={isFetching && !isLoading} onClick={() => void refetch()} aria-label="추첨방 목록 새로고침">새로고침</Button></div>
+        <div className={styles.sectionHeading}><h2 id="lottery-rooms-title">추첨방 목록</h2><Button variant="secondary" loading={refreshing} onClick={() => void refresh()} aria-label="추첨방 목록 새로고침">새로고침</Button></div>
+        {(connectionStatus === 'reconnecting' || connectionStatus === 'authError') && <p className={styles.muted} role="status">{connectionStatus === 'authError' ? '실시간 연결을 확인하지 못했습니다. 새로고침을 눌러 다시 연결해 주세요.' : '실시간 업데이트에 다시 연결 중이에요. 새로고침으로 목록을 확인할 수 있어요.'}</p>}
         <div className={styles.filters} role="group" aria-label="추첨방 필터">{FILTERS.map((item) => <button key={item.value} type="button" aria-label={`${item.label} ${counts[item.value]}`} aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label}<span>{counts[item.value]}</span></button>)}</div>
         {isLoading ? <p className={styles.empty} role="status">추첨방을 불러오는 중…</p> : isError ? <div className={styles.empty}><p role="alert">추첨방을 불러오지 못했습니다.</p><Button variant="secondary" onClick={() => void refetch()}>다시 불러오기</Button></div> : visibleRooms?.length ? (
           <div className={styles.roomGrid}>{visibleRooms.map((room) => (

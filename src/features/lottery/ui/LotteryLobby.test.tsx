@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -7,9 +7,9 @@ import { LotteryLobby } from './LotteryLobby'
 
 const mocks = vi.hoisted(() => ({ list: vi.fn(), create: vi.fn(), refetch: vi.fn(), navigate: vi.fn() }))
 vi.mock('../api/lotteryApi', () => ({
-  useLotteryRoomsQuery: () => mocks.list(),
   useCreateLotteryRoomMutation: () => [mocks.create, { isLoading: false }],
 }))
+vi.mock('../model/useLotteryLobby', () => ({ useLotteryLobby: () => ({ connectionStatus: 'connected', ...mocks.list() }) }))
 vi.mock('react-router', async (importOriginal) => ({ ...await importOriginal<typeof import('react-router')>(), useNavigate: () => mocks.navigate }))
 
 const rooms: LotteryRoomSummary[] = [
@@ -25,6 +25,63 @@ describe('LotteryLobby', () => {
     vi.clearAllMocks()
     mocks.list.mockReturnValue({ data: rooms, isLoading: false, isFetching: false, isError: false, refetch: mocks.refetch })
     mocks.create.mockResolvedValue({ data: { id: 'new-room' } })
+    mocks.refetch.mockResolvedValue({ data: rooms })
+  })
+
+  it('keeps the refresh button idle while the room list updates in the background', () => {
+    const { rerender } = setup()
+    const refreshButton = screen.getByRole('button', { name: '추첨방 목록 새로고침' })
+
+    for (const isFetching of [true, false, true, false]) {
+      mocks.list.mockReturnValue({ data: rooms, isLoading: false, isFetching, isError: false, refetch: mocks.refetch })
+      rerender(<MemoryRouter><LotteryLobby /></MemoryRouter>)
+
+      expect(refreshButton).toBeEnabled()
+      expect(refreshButton).not.toHaveAttribute('aria-busy', 'true')
+      expect(refreshButton).toHaveTextContent('새로고침')
+      expect(screen.getAllByRole('link')).toHaveLength(3)
+    }
+
+    expect(mocks.refetch).not.toHaveBeenCalled()
+  })
+
+  it('shows the refresh button as busy only until a manual refresh finishes', async () => {
+    let resolve!: (value: { data: LotteryRoomSummary[] }) => void
+    const request = new Promise<{ data: LotteryRoomSummary[] }>((done) => { resolve = done })
+    mocks.refetch.mockReturnValueOnce(request)
+    const { user } = setup()
+    const refreshButton = screen.getByRole('button', { name: '추첨방 목록 새로고침' })
+
+    await user.click(refreshButton)
+
+    expect(refreshButton).toBeDisabled()
+    expect(refreshButton).toHaveAttribute('aria-busy', 'true')
+    await user.click(refreshButton)
+    expect(mocks.refetch).toHaveBeenCalledOnce()
+
+    await act(async () => { resolve({ data: rooms }); await request })
+
+    expect(refreshButton).toBeEnabled()
+    expect(refreshButton).not.toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('allows another manual refresh after an error response', async () => {
+    let resolve!: (value: { error: { status: number } }) => void
+    const request = new Promise<{ error: { status: number } }>((done) => { resolve = done })
+    mocks.refetch.mockReturnValueOnce(request)
+    const { user } = setup()
+    const refreshButton = screen.getByRole('button', { name: '추첨방 목록 새로고침' })
+
+    await user.click(refreshButton)
+    expect(refreshButton).toHaveAttribute('aria-busy', 'true')
+
+    await act(async () => { resolve({ error: { status: 503 } }); await request })
+
+    expect(refreshButton).toBeEnabled()
+    expect(refreshButton).not.toHaveAttribute('aria-busy', 'true')
+    await user.click(refreshButton)
+    expect(mocks.refetch).toHaveBeenCalledTimes(2)
+    expect(refreshButton).toBeEnabled()
   })
 
   it('shows active rooms before completed rooms and filters without changing the source list', async () => {
@@ -68,5 +125,17 @@ describe('LotteryLobby', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('추첨방을 불러오지 못했습니다.')
     await user.click(screen.getByRole('button', { name: '다시 불러오기' }))
     expect(mocks.refetch).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the list available and explains interrupted live updates', () => {
+    mocks.list.mockReturnValue({ data: rooms, isLoading: false, isError: false, refetch: mocks.refetch, connectionStatus: 'reconnecting' })
+    const { rerender } = setup()
+    expect(screen.getByRole('status')).toHaveTextContent('실시간 업데이트에 다시 연결 중이에요.')
+    expect(screen.getAllByRole('link')).toHaveLength(3)
+    expect(screen.getByRole('button', { name: '추첨방 목록 새로고침' })).toBeEnabled()
+
+    mocks.list.mockReturnValue({ data: rooms, isLoading: false, isError: false, refetch: mocks.refetch, connectionStatus: 'authError' })
+    rerender(<MemoryRouter><LotteryLobby /></MemoryRouter>)
+    expect(screen.getByRole('status')).toHaveTextContent('새로고침을 눌러 다시 연결해 주세요.')
   })
 })
