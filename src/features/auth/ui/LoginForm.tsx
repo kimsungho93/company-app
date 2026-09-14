@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import type { FormEvent, PointerEvent } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { Button } from '@/shared/ui/Button'
 import { Checkbox } from '@/shared/ui/Checkbox'
@@ -11,6 +11,7 @@ import {
 } from '../model/rememberedEmail'
 import { useLogin } from '../model/useLogin'
 import { validateEmail, validatePassword } from '../model/validate'
+import { AuthCard } from './AuthCard'
 import styles from './AuthCard.module.scss'
 
 interface LocationState {
@@ -25,7 +26,6 @@ interface FieldErrors {
 const NO_ERRORS: FieldErrors = { email: null, password: null }
 
 export const LoginForm = () => {
-  const cardRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const signedUpEmail = (useLocation().state as LocationState | null)?.signedUpEmail ?? null
 
@@ -65,28 +65,21 @@ export const LoginForm = () => {
     navigate('/', { replace: true })
   }
 
-  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    const el = cardRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    el.style.setProperty('--cx', `${e.clientX - rect.left}px`)
-    el.style.setProperty('--cy', `${e.clientY - rect.top}px`)
-  }
-
   return (
-    <div className={styles.card} ref={cardRef} onPointerMove={onPointerMove}>
-      <i className={`${styles.align} ${styles.tl}`} aria-hidden="true" />
-      <i className={`${styles.align} ${styles.tr}`} aria-hidden="true" />
-      <i className={`${styles.align} ${styles.bl}`} aria-hidden="true" />
-      <i className={`${styles.align} ${styles.br}`} aria-hidden="true" />
-
-      <h1 className={styles.title}>
-
-        <span className={styles.srOnly}>IBS</span>
-        다시 만나서 반가워요
-      </h1>
-      <p className={styles.subtitle}>계정으로 로그인하고 서비스를 이용해보세요</p>
-
+    <AuthCard
+      title="다시 만나서 반가워요"
+      subtitle="계정으로 로그인하고 서비스를 이용해보세요"
+      footer={
+        <>
+          <div className={styles.divider}>계정이 없으신가요?</div>
+          <p className={styles.foot}>
+            <Link className={styles.footLink} to="/signup">
+              회원가입하기
+            </Link>
+          </p>
+        </>
+      }
+    >
       <form onSubmit={onSubmit} noValidate>
         {signedUpEmail && !formError && (
           <p className={styles.formNotice} role="status">
@@ -150,12 +143,6 @@ export const LoginForm = () => {
         <Button type="submit" variant="accent" size="large" fullWidth loading={busy}>{status === 'success' ? '접속 중…' : '로그인'}</Button>
       </form>
 
-      <div className={styles.divider}>계정이 없으신가요?</div>
-      <p className={styles.foot}>
-        <Link className={styles.footLink} to="/signup">
-          회원가입하기
-        </Link>
-      </p>
-    </div>
+    </AuthCard>
   )
 }
