@@ -1,17 +1,11 @@
-import { useState } from 'react'
-import { useMeQuery } from '@/features/auth'
 import type { UserStatus } from '@/features/auth'
-import { Checkbox } from '@/shared/ui/Checkbox'
+import { toErrorInfo } from '@/shared/api'
+import { Button } from '@/shared/ui/Button'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
-import {
-  useAdminUsersQuery,
-  useApproveUserMutation,
-  useRejectUserMutation,
-} from '../api/adminUsersApi'
-import type { AdminUser } from '../api/types'
-import { formatJoinedAt } from '../model/formatJoinedAt'
-import { summarizeResults } from '../model/summarizeResults'
-import type { ActionNotice } from '../model/summarizeResults'
+import { useUserApproval } from '../model/useUserApproval'
+import type { PendingAction } from '../model/useUserApproval'
+import { ApprovalToolbar } from './ApprovalToolbar'
+import { UserApprovalRow } from './UserApprovalRow'
 import styles from './UserApprovalList.module.scss'
 
 const TABS: { status: UserStatus; label: string; empty: string }[] = [
@@ -20,14 +14,6 @@ const TABS: { status: UserStatus; label: string; empty: string }[] = [
 
   { status: 'REJECTED', label: '거절됨', empty: '거절된 사람이 없습니다' },
 ]
-
-type ActionKind = 'approve' | 'reject'
-
-interface PendingAction {
-  kind: ActionKind
-
-  targets: AdminUser[]
-}
 
 const describe = ({ kind, targets }: PendingAction) => {
   const who =
@@ -51,54 +37,17 @@ const describe = ({ kind, targets }: PendingAction) => {
   )
 }
 
-export const UserApprovalList = () => {
-  const [status, setStatus] = useState<UserStatus>('PENDING')
-  const [selected, setSelected] = useState<ReadonlySet<number>>(new Set())
-  const [pending, setPending] = useState<PendingAction | null>(null)
-  const [notice, setNotice] = useState<ActionNotice | null>(null)
+interface UserApprovalListProps {
+  currentUserId?: number
+}
 
-  const { data: me } = useMeQuery()
-  const { data: users, isFetching } = useAdminUsersQuery(status)
-  const [approve, approveState] = useApproveUserMutation()
-  const [reject, rejectState] = useRejectUserMutation()
-
-  const busy = approveState.isLoading || rejectState.isLoading
+export const UserApprovalList = ({ currentUserId }: UserApprovalListProps) => {
+  const {
+    status, selected, pending, notice, rows, isFetching, error, refetch, loading, busy,
+    allSelected, someSelected, selectedRows, selfSelected, canApprove, canReject,
+    changeTab, toggleOne, toggleAll, run, setPending,
+  } = useUserApproval(currentUserId)
   const tab = TABS.find((t) => t.status === status) ?? TABS[0]
-  const rows = users ?? []
-
-  const allSelected = rows.length > 0 && rows.every((u) => selected.has(u.id))
-  const someSelected = selected.size > 0 && !allSelected
-  const selectedRows = rows.filter((u) => selected.has(u.id))
-  const selfSelected = me !== undefined && selected.has(me.id)
-
-  const canApprove = status !== 'APPROVED'
-  const canReject = status !== 'REJECTED'
-
-  const changeTab = (next: UserStatus) => {
-    setStatus(next)
-    setSelected(new Set())
-    setNotice(null)
-  }
-
-  const toggleOne = (id: number) =>
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-
-  const run = async () => {
-    if (!pending) return
-    const mutate = pending.kind === 'approve' ? approve : reject
-    const verb = pending.kind === 'approve' ? '승인' : '거절'
-
-    const results = await Promise.allSettled(pending.targets.map((u) => mutate(u.id).unwrap()))
-
-    setNotice(summarizeResults(pending.targets, results, verb))
-    setSelected(new Set())
-    setPending(null)
-  }
 
   return (
     <div className={styles.card}>
@@ -110,6 +59,7 @@ export const UserApprovalList = () => {
             role="tab"
             aria-selected={t.status === status}
             className={t.status === status ? `${styles.tab} ${styles.tabActive}` : styles.tab}
+            disabled={busy}
             onClick={() => changeTab(t.status)}
           >
             {t.label}
@@ -121,47 +71,18 @@ export const UserApprovalList = () => {
       </div>
 
       {rows.length > 0 && (
-        <div className={styles.toolbar}>
-          <Checkbox
-            label="전체 선택"
-            checked={allSelected}
-            indeterminate={someSelected}
-            disabled={busy}
-            onChange={() => setSelected(allSelected ? new Set() : new Set(rows.map((u) => u.id)))}
-          />
-
-          {selected.size > 0 && (
-            <>
-              <span className={styles.selectedCount}>{selected.size}명 선택</span>
-              <span className={styles.toolbarSpacer} />
-
-              {selfSelected && canReject && (
-                <span className={styles.hint}>본인은 거절할 수 없습니다</span>
-              )}
-
-              {canApprove && (
-                <button
-                  type="button"
-                  className={styles.approve}
-                  disabled={busy}
-                  onClick={() => setPending({ kind: 'approve', targets: selectedRows })}
-                >
-                  일괄 승인
-                </button>
-              )}
-              {canReject && (
-                <button
-                  type="button"
-                  className={styles.reject}
-                  disabled={busy || selfSelected}
-                  onClick={() => setPending({ kind: 'reject', targets: selectedRows })}
-                >
-                  일괄 거절
-                </button>
-              )}
-            </>
-          )}
-        </div>
+        <ApprovalToolbar
+          allSelected={allSelected}
+          someSelected={someSelected}
+          selectedCount={selectedRows.length}
+          selfSelected={selfSelected}
+          busy={busy}
+          canApprove={canApprove}
+          canReject={canReject}
+          onToggleAll={toggleAll}
+          onApprove={() => setPending({ kind: 'approve', targets: selectedRows })}
+          onReject={() => setPending({ kind: 'reject', targets: selectedRows })}
+        />
       )}
 
       {notice &&
@@ -183,52 +104,30 @@ export const UserApprovalList = () => {
         ))}
 
       <div className={styles.panel} role="tabpanel" aria-busy={isFetching}>
-        {rows.length === 0 && <p className={styles.empty}>{tab.empty}</p>}
+        {loading && <p className={styles.empty} role="status">불러오는 중…</p>}
+        {error && (
+          <div className={styles.failure} role="alert">
+            <p>{toErrorInfo(error).message}</p>
+            <Button variant="secondary" disabled={isFetching} onClick={() => void refetch()}>
+              다시 시도
+            </Button>
+          </div>
+        )}
+        {!loading && !error && rows.length === 0 && <p className={styles.empty}>{tab.empty}</p>}
 
         {rows.map((user) => (
-          <div key={user.id} className={styles.row}>
-            <Checkbox
-              label={`${user.name} 선택`}
-              labelHidden
-              checked={selected.has(user.id)}
-              disabled={busy}
-              onChange={() => toggleOne(user.id)}
-            />
-
-            <div className={styles.info}>
-              <div className={styles.name}>
-                {user.name}
-                {me?.id === user.id && <span className={styles.selfTag}>나</span>}
-              </div>
-              <div className={styles.meta}>
-                {user.email} · {formatJoinedAt(user.createdAt)}
-              </div>
-            </div>
-
-            <div className={styles.actions}>
-              {canApprove && (
-                <button
-                  type="button"
-                  className={styles.approve}
-                  disabled={busy}
-                  onClick={() => setPending({ kind: 'approve', targets: [user] })}
-                >
-                  승인
-                </button>
-              )}
-              {canReject && (
-                <button
-                  type="button"
-                  className={styles.reject}
-
-                  disabled={busy || me?.id === user.id}
-                  onClick={() => setPending({ kind: 'reject', targets: [user] })}
-                >
-                  거절
-                </button>
-              )}
-            </div>
-          </div>
+          <UserApprovalRow
+            key={user.id}
+            user={user}
+            selected={selected.has(user.id)}
+            isSelf={currentUserId === user.id}
+            busy={busy}
+            canApprove={canApprove}
+            canReject={canReject}
+            onSelect={() => toggleOne(user.id)}
+            onApprove={() => setPending({ kind: 'approve', targets: [user] })}
+            onReject={() => setPending({ kind: 'reject', targets: [user] })}
+          />
         ))}
       </div>
 

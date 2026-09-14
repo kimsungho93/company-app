@@ -36,11 +36,69 @@ describe('UserApprovalList', () => {
     vi.unstubAllGlobals()
   })
 
+  it('조회 중에는 빈 목록이라고 안내하지 않는다', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})))
+    const { wrapper } = createTestWrapper()
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
+    expect(screen.getByRole('status')).toHaveTextContent('불러오는 중')
+    expect(screen.queryByText('승인 대기 중인 사람이 없습니다')).not.toBeInTheDocument()
+  })
+
+  it('조회 실패를 알리고 다시 시도하면 목록을 보여준다', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ code: 'INTERNAL_ERROR', message: '목록 조회 실패' }, 500))
+      .mockResolvedValue(jsonResponse([row(2, '이영희')])))
+    const { wrapper } = createTestWrapper()
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
+    expect(await screen.findByRole('alert')).toHaveTextContent('목록 조회 실패')
+    expect(screen.queryByText('승인 대기 중인 사람이 없습니다')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '다시 시도' }))
+    expect(await screen.findByText('이영희')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('새 탭을 조회하는 동안 이전 탭의 사용자를 표시하지 않는다', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', vi.fn((input: Request) => {
+      if (input.url.includes('APPROVED')) return new Promise<Response>(() => {})
+      return Promise.resolve(jsonResponse([row(2, '이영희')]))
+    }))
+    const { wrapper } = createTestWrapper()
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
+    await screen.findByText('이영희')
+    await user.click(screen.getByRole('tab', { name: '승인됨' }))
+    expect(screen.queryByText('이영희')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('불러오는 중')
+  })
+
+  it('일괄 작업의 마지막 요청까지 확인창과 탭을 잠근다', async () => {
+    const user = userEvent.setup()
+    let finishLast!: (response: Response) => void
+    vi.stubGlobal('fetch', vi.fn((input: Request) => {
+      if (input.url.includes('/2/approve')) return new Promise<Response>(resolve => { finishLast = resolve })
+      if (input.url.includes('/approve')) return Promise.resolve(emptyResponse(204))
+      return Promise.resolve(jsonResponse([row(2, '이영희'), row(3, '박철수')]))
+    }))
+    const { wrapper } = createTestWrapper()
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
+    await screen.findByText('이영희')
+    await user.click(screen.getByRole('checkbox', { name: '전체 선택' }))
+    await user.click(screen.getByRole('button', { name: '일괄 승인' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '승인' }))
+    await waitFor(() => expect(finishLast).toBeDefined())
+    expect(within(screen.getByRole('dialog')).getByRole('button', { name: '취소' })).toBeDisabled()
+    expect(screen.getByRole('tab', { name: '승인됨' })).toBeDisabled()
+    finishLast(emptyResponse(204))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByRole('tab', { name: '승인됨' })).toBeEnabled()
+  })
+
   it('승인 대기 목록을 보여준다', async () => {
     stubFetch([row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
 
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
     expect(screen.getByText(/user2@ibslab\.com/)).toBeInTheDocument()
@@ -50,7 +108,7 @@ describe('UserApprovalList', () => {
     stubFetch([row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
 
     await waitFor(() =>
       expect(screen.getByText(/2026-08-18 07:11:11/)).toBeInTheDocument(),
@@ -61,7 +119,7 @@ describe('UserApprovalList', () => {
     stubFetch([row(1, '김성호'), row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
 
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
@@ -74,7 +132,7 @@ describe('UserApprovalList', () => {
     stubFetch([])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
 
     await waitFor(() =>
       expect(screen.getByText('승인 대기 중인 사람이 없습니다')).toBeInTheDocument(),
@@ -85,7 +143,7 @@ describe('UserApprovalList', () => {
     stubFetch([])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
 
     expect(screen.getByRole('tab', { name: /승인 대기/ })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '승인됨' })).toBeInTheDocument()
@@ -98,7 +156,7 @@ describe('UserApprovalList', () => {
     const fetchMock = stubFetch([row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: '승인' }))
@@ -112,7 +170,7 @@ describe('UserApprovalList', () => {
     const fetchMock = stubFetch([row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: '승인' }))
@@ -129,7 +187,7 @@ describe('UserApprovalList', () => {
     const fetchMock = stubFetch([row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: '거절' }))
@@ -144,7 +202,7 @@ describe('UserApprovalList', () => {
     const fetchMock = stubFetch([row(2, '이영희'), row(3, '박철수')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('checkbox', { name: '이영희 선택' }))
@@ -162,7 +220,7 @@ describe('UserApprovalList', () => {
     const fetchMock = stubFetch([row(2, '이영희'), row(3, '박철수')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('checkbox', { name: '전체 선택' }))
@@ -184,7 +242,7 @@ describe('UserApprovalList', () => {
     stubFetch([row(1, '김성호'), row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('checkbox', { name: '전체 선택' }))
@@ -199,7 +257,7 @@ describe('UserApprovalList', () => {
     stubFetch([row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('checkbox', { name: '이영희 선택' }))
@@ -228,7 +286,7 @@ describe('UserApprovalList', () => {
     )
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('checkbox', { name: '전체 선택' }))
@@ -245,7 +303,7 @@ describe('UserApprovalList', () => {
     stubFetch([row(2, '이영희')])
     const { wrapper } = createTestWrapper()
 
-    render(<UserApprovalList />, { wrapper })
+    render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await waitFor(() => expect(screen.getByText('이영희')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: '거절' }))
