@@ -1,38 +1,12 @@
-import { useMemo, useRef, useState } from 'react'
-import { toErrorInfo } from '@/shared/api'
+import { useMemo, useState } from 'react'
 import { holidayNameOf } from '@/shared/lib/holidays'
 import { monthGrid, toIsoDate } from '@/shared/lib/monthGrid'
-import {
-  useCreateHolidayMutation,
-  useCreateLeaveMutation,
-  useDeleteHolidayMutation,
-  useDeleteLeaveMutation,
-  useHolidaysQuery,
-  useLeavesQuery,
-} from '../api/leaveApi'
-import { eachDate } from '../model/dateRange'
-import { LEAVE_KIND_LABEL } from '../model/types'
-import type { Holiday, HolidayDraft, LeaveDraft, LeaveEntry, LeaveKind } from '../model/types'
-import { leavesByDate } from '../model/leaves'
+import type { Holiday, HolidayDraft, LeaveDraft, LeaveEntry } from '../model/types'
+import { useLeaveCalendarData } from '../model/useLeaveCalendarData'
+import { LeaveCalendarGrid } from './LeaveCalendarGrid'
 import { LeaveDayDialog } from './LeaveDayDialog'
 import { MonthPicker } from './MonthPicker'
 import styles from './LeaveCalendar.module.scss'
-
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
-
-const VISIBLE_PER_DAY = 3
-
-const KIND_CLASS: Record<LeaveKind, string> = {
-  ANNUAL: styles.kindAnnual,
-  HALF_DAY_AM: styles.kindHalfAm,
-  HALF_DAY_PM: styles.kindHalfPm,
-  OFFICIAL: styles.kindOfficial,
-}
-
-const dayLabel = (iso: string): string => {
-  const date = new Date(`${iso}T00:00:00`)
-  return `${date.getMonth() + 1}월 ${date.getDate()}일 ${WEEKDAYS[date.getDay()]}요일`
-}
 
 export interface LeaveCalendarProps {
   userName?: string
@@ -47,7 +21,6 @@ export const LeaveCalendar = ({ userName, userId, isAdmin = false }: LeaveCalend
     month: today.getMonth() + 1,
   }))
   const [openIso, setOpenIso] = useState<string | null>(null)
-  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   const grid = useMemo(() => monthGrid(cursor.year, cursor.month), [cursor])
   const window = useMemo(
@@ -55,43 +28,15 @@ export const LeaveCalendar = ({ userName, userId, isAdmin = false }: LeaveCalend
     [grid],
   )
 
-  const { data: leaves = [], isFetching, error: listError } = useLeavesQuery(window)
-  const { data: holidays = [] } = useHolidaysQuery(window)
-
-  const [createLeave, createLeaveState] = useCreateLeaveMutation()
-  const [deleteLeave, deleteLeaveState] = useDeleteLeaveMutation()
-  const [createHoliday, createHolidayState] = useCreateHolidayMutation()
-  const [deleteHoliday, deleteHolidayState] = useDeleteHolidayMutation()
-
-  const byDate = useMemo(() => leavesByDate(leaves), [leaves])
-  const holidayByDate = useMemo(() => {
-    const map = new Map<string, Holiday>()
-    for (const holiday of holidays) {
-      for (const iso of eachDate(holiday.startDate, holiday.endDate)) map.set(iso, holiday)
-    }
-    return map
-  }, [holidays])
-
+  const {
+    byDate, holidayByDate, busy, isFetching, listError, leaveError, holidayError,
+    createLeave, deleteLeave, createHoliday, deleteHoliday, resetErrors,
+  } = useLeaveCalendarData(window)
   const todayIso = toIsoDate(today)
-  const holidayOf = (iso: string): string | null =>
-    holidayByDate.get(iso)?.name ?? holidayNameOf(iso)
-
-  const busy =
-    createLeaveState.isLoading ||
-    deleteLeaveState.isLoading ||
-    createHolidayState.isLoading ||
-    deleteHolidayState.isLoading
-
-  const errorOf = (error: unknown) => (error ? toErrorInfo(error).message : null)
 
   const close = () => {
     setOpenIso(null)
-    createLeaveState.reset()
-    deleteLeaveState.reset()
-    createHolidayState.reset()
-    deleteHolidayState.reset()
-    triggerRef.current?.focus()
-    triggerRef.current = null
+    resetErrors()
   }
 
   const add = async (draft: LeaveDraft) => {
@@ -149,89 +94,18 @@ export const LeaveCalendar = ({ userName, userId, isAdmin = false }: LeaveCalend
 
       {listError && (
         <p className={styles.listError} role="alert">
-          {toErrorInfo(listError).message}
+          {listError}
         </p>
       )}
 
-      <table className={styles.table}>
-        <caption className="visually-hidden">{heading} 휴가 현황</caption>
-        <thead>
-          <tr>
-            {WEEKDAYS.map((label, index) => (
-              <th
-                key={label}
-                scope="col"
-                className={index === 0 ? styles.sun : index === 6 ? styles.sat : undefined}
-              >
-                {label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {grid.map((week) => (
-            <tr key={week[0].iso}>
-              {week.map((day) => {
-                const dayEntries = byDate.get(day.iso) ?? []
-                const hiddenCount = dayEntries.length - VISIBLE_PER_DAY
-                const isToday = day.iso === todayIso
-                const holiday = holidayOf(day.iso)
-
-                return (
-                  <td
-                    key={day.iso}
-                    className={[
-                      styles.cell,
-                      day.inMonth ? '' : styles.outside,
-                      isToday ? styles.today : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                    aria-current={isToday ? 'date' : undefined}
-                  >
-                    <button
-                      type="button"
-                      className={styles.pick}
-                      aria-haspopup="dialog"
-                      aria-label={`${dayLabel(day.iso)} 휴가 ${dayEntries.length}명`}
-                      onClick={(event) => {
-                        triggerRef.current = event.currentTarget
-                        setOpenIso(day.iso)
-                      }}
-                    />
-
-                    <span className={styles.dayHead}>
-                      <span
-                        className={[
-                          styles.dayNumber,
-                          holiday || day.weekday === 0 ? styles.sun : '',
-                          !holiday && day.weekday === 6 ? styles.sat : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                      >
-                        {day.day}
-                      </span>
-                      {holiday && <span className={styles.holiday}>{holiday}</span>}
-                    </span>
-
-                    <ul className={styles.entries}>
-                      {dayEntries.slice(0, VISIBLE_PER_DAY).map((entry) => (
-                        <li key={entry.id} className={`${styles.entry} ${KIND_CLASS[entry.kind]}`}>
-                          <span className={styles.entryName}>{entry.name ?? '알 수 없음'}</span>
-                          <span className={styles.kind}>{LEAVE_KIND_LABEL[entry.kind]}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {hiddenCount > 0 && <span className={styles.more}>+{hiddenCount}명</span>}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <LeaveCalendarGrid
+        grid={grid}
+        heading={heading}
+        todayIso={todayIso}
+        byDate={byDate}
+        holidayByDate={holidayByDate}
+        onSelect={setOpenIso}
+      />
 
       <LeaveDayDialog
         date={openIso}
@@ -242,8 +116,8 @@ export const LeaveCalendar = ({ userName, userId, isAdmin = false }: LeaveCalend
         fixedHoliday={openIso ? holidayNameOf(openIso) : null}
         holiday={openIso ? (holidayByDate.get(openIso) ?? null) : null}
         busy={busy}
-        leaveError={errorOf(createLeaveState.error ?? deleteLeaveState.error)}
-        holidayError={errorOf(createHolidayState.error ?? deleteHolidayState.error)}
+        leaveError={leaveError}
+        holidayError={holidayError}
         onAdd={add}
         onRemove={remove}
         onSetHoliday={setHoliday}
