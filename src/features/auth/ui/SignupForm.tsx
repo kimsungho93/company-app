@@ -183,7 +183,7 @@ export const SignupForm = () => {
           }
         />
 
-        <Button loading={busy}>{status === 'success' ? '가입 완료' : '가입하기'}</Button>
+        <Button type="submit" variant="accent" size="large" fullWidth loading={busy}>{status === 'success' ? '가입 완료' : '가입하기'}</Button>
       </form>
 
       <div className={styles.divider}>이미 계정이 있으신가요?</div>

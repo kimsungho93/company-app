@@ -1,5 +1,7 @@
-import { useEffect, useId, useRef } from 'react'
+import { useId } from 'react'
 import type { ReactNode } from 'react'
+import { Button } from '@/shared/ui/Button'
+import { Dialog } from '@/shared/ui/Dialog'
 import styles from './ConfirmDialog.module.scss'
 
 export interface ConfirmDialogProps {
@@ -26,32 +28,17 @@ export const ConfirmDialog = ({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) => {
-  const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const descriptionId = useId()
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (open && !el.open) el.showModal()
-    else if (!open && el.open) el.close()
-  }, [open])
-
   return (
-    <dialog
-      ref={ref}
+    <Dialog
+      open={open}
+      labelledBy={titleId}
+      describedBy={description ? descriptionId : undefined}
       className={styles.dialog}
-      aria-labelledby={titleId}
-      aria-describedby={description ? descriptionId : undefined}
-
-      onCancel={(event) => {
-        event.preventDefault()
-        if (!busy) onCancel()
-      }}
-
-      onClick={(event) => {
-        if (event.target === ref.current && !busy) onCancel()
-      }}
+      dismissible={!busy}
+      onDismiss={onCancel}
     >
       <div className={styles.body}>
         <h2 id={titleId} className={styles.title}>
@@ -65,20 +52,20 @@ export const ConfirmDialog = ({
         )}
 
         <div className={styles.actions}>
-          <button type="button" className={styles.cancel} disabled={busy} onClick={onCancel}>
+          <Button variant="secondary" disabled={busy} onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={tone === 'danger' ? `${styles.confirm} ${styles.danger}` : styles.confirm}
+            variant={tone === 'danger' ? 'danger' : 'primary'}
             disabled={busy}
             aria-busy={busy}
             onClick={onConfirm}
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
-    </dialog>
+    </Dialog>
   )
 }

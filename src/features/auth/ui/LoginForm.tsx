@@ -147,7 +147,7 @@ export const LoginForm = () => {
           />
         </div>
 
-        <Button loading={busy}>{status === 'success' ? '접속 중…' : '로그인'}</Button>
+        <Button type="submit" variant="accent" size="large" fullWidth loading={busy}>{status === 'success' ? '접속 중…' : '로그인'}</Button>
       </form>
 
       <div className={styles.divider}>계정이 없으신가요?</div>

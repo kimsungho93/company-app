@@ -1,4 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useState } from 'react'
+import { Button } from '@/shared/ui/Button'
+import { Dialog } from '@/shared/ui/Dialog'
 import { toErrorInfo } from '@/shared/api'
 import { TextField } from '@/shared/ui/TextField'
 import { useCreateRoomMutation } from '../api/roomApi'
@@ -13,19 +15,11 @@ export interface CreateRoomDialogProps {
 }
 
 export const CreateRoomDialog = ({ open, onClose, onCreated }: CreateRoomDialogProps) => {
-  const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [nameError, setNameError] = useState<string | null>(null)
   const [createRoom, { isLoading, error, reset }] = useCreateRoomMutation()
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (open && !el.open) el.showModal()
-    else if (!open && el.open) el.close()
-  }, [open])
 
   const close = () => {
     setName('')
@@ -54,17 +48,12 @@ export const CreateRoomDialog = ({ open, onClose, onCreated }: CreateRoomDialogP
   }
 
   return (
-    <dialog
-      ref={ref}
+    <Dialog
+      open={open}
+      labelledBy={titleId}
       className={styles.dialog}
-      aria-labelledby={titleId}
-      onCancel={(event) => {
-        event.preventDefault()
-        if (!isLoading) close()
-      }}
-      onClick={(event) => {
-        if (event.target === ref.current && !isLoading) close()
-      }}
+      dismissible={!isLoading}
+      onDismiss={close}
     >
       <form
         className={styles.body}
@@ -104,19 +93,14 @@ export const CreateRoomDialog = ({ open, onClose, onCreated }: CreateRoomDialogP
         )}
 
         <div className={styles.actions}>
-          <button type="button" className={styles.cancel} disabled={isLoading} onClick={close}>
+          <Button variant="secondary" disabled={isLoading} onClick={close}>
             취소
-          </button>
-          <button
-              type="submit"
-              className={styles.submit}
-              disabled={isLoading}
-              aria-busy={isLoading}
-            >
-              만들기
-            </button>
+          </Button>
+          <Button type="submit" loading={isLoading}>
+            만들기
+          </Button>
         </div>
       </form>
-    </dialog>
+    </Dialog>
   )
 }

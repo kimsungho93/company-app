@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useState } from 'react'
+import { Dialog } from '@/shared/ui/Dialog'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { LEAVE_KIND_LABEL } from '../model/types'
 import type { Holiday, HolidayDraft, LeaveDraft, LeaveEntry, LeaveKind } from '../model/types'
@@ -65,29 +66,16 @@ export const LeaveDayDialog = ({
   onClearHoliday,
   onClose,
 }: LeaveDayDialogProps) => {
-  const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const [removing, setRemoving] = useState<LeaveEntry | null>(null)
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (date && !el.open) el.showModal()
-    else if (!date && el.open) el.close()
-  }, [date])
-
   return (
-    <dialog
-      ref={ref}
+    <Dialog
+      open={date !== null}
+      labelledBy={titleId}
       className={styles.dialog}
-      aria-labelledby={titleId}
-      onCancel={(event) => {
-        event.preventDefault()
-        onClose()
-      }}
-      onClick={(event) => {
-        if (event.target === ref.current) onClose()
-      }}
+      dismissible={!busy}
+      onDismiss={onClose}
     >
       {date && (
         <div className={styles.body}>
@@ -99,7 +87,7 @@ export const LeaveDayDialog = ({
               <span className={styles.holiday}>{holiday?.name ?? fixedHoliday}</span>
             )}
             <span className={styles.count}>{dayEntries.length}명</span>
-            <button type="button" className={styles.close} aria-label="닫기" onClick={onClose}>
+            <button type="button" className={styles.close} aria-label="닫기" disabled={busy} onClick={onClose}>
               ×
             </button>
           </header>
@@ -177,6 +165,6 @@ export const LeaveDayDialog = ({
         }}
         onCancel={() => setRemoving(null)}
       />
-    </dialog>
+    </Dialog>
   )
 }

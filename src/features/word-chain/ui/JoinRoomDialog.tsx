@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Button } from '@/shared/ui/Button'
+import { Dialog } from '@/shared/ui/Dialog'
 import { toErrorInfo } from '@/shared/api'
 import { TextField } from '@/shared/ui/TextField'
 import { useJoinRoomMutation } from '../api/roomApi'
@@ -12,18 +14,10 @@ export interface JoinRoomDialogProps {
 }
 
 export const JoinRoomDialog = ({ room, onClose, onJoined }: JoinRoomDialogProps) => {
-  const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const prevRoomId = useRef(room?.id)
   const [password, setPassword] = useState('')
   const [joinRoom, { isLoading, error, reset }] = useJoinRoomMutation()
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (room && !el.open) el.showModal()
-    else if (!room && el.open) el.close()
-  }, [room])
 
   useEffect(() => {
     if (prevRoomId.current === room?.id) return
@@ -47,17 +41,12 @@ export const JoinRoomDialog = ({ room, onClose, onJoined }: JoinRoomDialogProps)
   }
 
   return (
-    <dialog
-      ref={ref}
+    <Dialog
+      open={room !== null}
+      labelledBy={titleId}
       className={styles.dialog}
-      aria-labelledby={titleId}
-      onCancel={(event) => {
-        event.preventDefault()
-        close()
-      }}
-      onClick={(event) => {
-        if (event.target === ref.current) close()
-      }}
+      dismissible={!isLoading}
+      onDismiss={close}
     >
       {room && (
         <form
@@ -87,20 +76,15 @@ export const JoinRoomDialog = ({ room, onClose, onJoined }: JoinRoomDialogProps)
           )}
 
           <div className={styles.actions}>
-            <button type="button" className={styles.cancel} disabled={isLoading} onClick={close}>
+            <Button variant="secondary" disabled={isLoading} onClick={close}>
               취소
-            </button>
-            <button
-              type="submit"
-              className={styles.submit}
-              disabled={isLoading}
-              aria-busy={isLoading}
-            >
+            </Button>
+            <Button type="submit" loading={isLoading}>
               들어가기
-            </button>
+            </Button>
           </div>
         </form>
       )}
-    </dialog>
+    </Dialog>
   )
 }
