@@ -1,0 +1,40 @@
+@use '@/shared/styles' as s;
+
+.dialog {
+  width: min(420px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+
+  &::backdrop { background: rgb(0 0 0 / 48%); }
+  h2 { margin: 0 0 14px; color: var(--text-strong); font-size: 20px; }
+  p { margin: 0 0 24px; line-height: 1.65; font-size: 14px; }
+  .error { color: var(--danger); }
+
+  @include s.below(s.$bp-mobile) { padding: 22px; }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bootstrap {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+  text-align: center;
+  color: var(--text);
+  background: var(--bg);
+  p { margin: 0; line-height: 1.6; }
+}

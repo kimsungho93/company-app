@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
+import { sessionStore } from '@/shared/api'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { Button } from '@/shared/ui/Button'
@@ -27,6 +28,14 @@ const NO_ERRORS: FieldErrors = { email: null, password: null }
 
 export const LoginForm = () => {
   const navigate = useNavigate()
+  const { reason } = useSyncExternalStore(sessionStore.subscribe, sessionStore.get)
+  const sessionMessage = reason === 'SESSION_IDLE_EXPIRED'
+    ? '30분 동안 활동이 없어 로그아웃되었습니다. 다시 로그인해 주세요.'
+    : reason === 'SESSION_ABSOLUTE_EXPIRED'
+      ? '로그인 후 8시간이 지나 로그아웃되었습니다. 다시 로그인해 주세요.'
+      : reason === 'SESSION_REVOKED'
+        ? '로그인 세션이 종료되었습니다. 다시 로그인해 주세요.'
+        : null
   const signedUpEmail = (useLocation().state as LocationState | null)?.signedUpEmail ?? null
 
   const [initialEmail] = useState(() => signedUpEmail ?? loadRememberedEmail())
@@ -81,6 +90,7 @@ export const LoginForm = () => {
       }
     >
       <form onSubmit={onSubmit} noValidate>
+        {sessionMessage && <p className={styles.formNotice} role="status">{sessionMessage}</p>}
         {signedUpEmail && !formError && (
           <p className={styles.formNotice} role="status">
             가입 신청이 접수됐습니다. 관리자 승인 후 로그인할 수 있습니다.

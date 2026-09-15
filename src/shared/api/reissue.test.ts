@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reissueOnce } from './reissue'
 import { tokenStore } from './tokenStore'
+import { sessionStore } from './sessionStore'
 
 const okResponse = (accessToken: string) =>
   new Response(JSON.stringify({ accessToken, expiresIn: 1800 }), {
@@ -10,7 +11,8 @@ const okResponse = (accessToken: string) =>
 
 describe('reissueOnce', () => {
   beforeEach(() => {
-    tokenStore.clear()
+    localStorage.clear()
+    sessionStore.beginLogin()
   })
 
   afterEach(() => {
@@ -56,7 +58,7 @@ describe('reissueOnce', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
     await expect(reissueOnce()).resolves.toBe(false)
-    expect(tokenStore.get()).toBeNull()
+    expect(tokenStore.get()).toBe('stale')
   })
 
   it('실패한 뒤에도 다음 호출에서 다시 시도할 수 있다', async () => {
@@ -67,6 +69,7 @@ describe('reissueOnce', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(reissueOnce()).resolves.toBe(false)
+    sessionStore.beginLogin()
     await expect(reissueOnce()).resolves.toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })

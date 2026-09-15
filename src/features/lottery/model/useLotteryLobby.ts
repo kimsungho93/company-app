@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { reissueOnce, tokenStore } from '@/shared/api'
+import { reissueOnce, sessionStore, tokenStore } from '@/shared/api'
 import { connectStomp, WS_URL } from '@/shared/ws'
 import type { ErrorReason, StompConnection } from '@/shared/ws'
 import { useLotteryRoomsQuery } from '../api/lotteryApi'
@@ -83,6 +83,7 @@ export const useLotteryLobby = () => {
           const restored = await reissueOnce()
           if (!active()) return
           if (!restored || !tokenStore.get()) {
+            if (!sessionStore.get().ended) { fail(); return }
             clearTimeout(connectTimeout)
             opening = false
             authFailed = true

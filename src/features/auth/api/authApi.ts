@@ -1,4 +1,4 @@
-import { baseApi, tokenStore } from '@/shared/api'
+import { baseApi, sessionStore, tokenStore } from '@/shared/api'
 import { anonymous, authenticated } from '../model/authSlice'
 import type { LoginRequest, LoginResponse, Me } from './types'
 
@@ -14,33 +14,34 @@ export const authApi = baseApi.injectEndpoints({
       query: () => '/users/me',
       providesTags: ['Me'],
     }),
-
     login: build.mutation<LoginResponse, LoginRequest>({
-      query: (body) => ({ url: '/auth/login', method: 'POST', body }),
+      query: (body) => ({ url: '/auth/login', method: 'POST', body, timeout: 15_000 }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        const generation = sessionStore.beginLogin()
         try {
           const { data } = await queryFulfilled
+          if (generation !== tokenStore.generation()) return
           tokenStore.set(data.accessToken)
+          sessionStore.accept(data, true)
           dispatch(authenticated())
         } catch {
-
+          return
         }
       },
     }),
-
     signup: build.mutation<void, SignupRequest>({
       query: (body) => ({ url: '/auth/signup', method: 'POST', body }),
     }),
-
     logout: build.mutation<void, void>({
-      query: () => ({ url: '/auth/logout', method: 'POST' }),
-
+      query: () => ({ url: '/auth/logout', method: 'POST', timeout: 15_000 }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        sessionStore.end('LOGOUT')
+        dispatch(anonymous())
         try {
           await queryFulfilled
+        } catch {
+          return
         } finally {
-          tokenStore.clear()
-          dispatch(anonymous())
           dispatch(baseApi.util.resetApiState())
         }
       },

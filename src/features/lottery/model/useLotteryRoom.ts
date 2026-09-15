@@ -140,7 +140,7 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
           const restored = await reissueOnce()
           if (!active() || failed) return
           if (!restored || !tokenStore.get()) {
-            fail('로그인이 만료되었습니다. 다시 로그인해 주세요.')
+            fail('로그인 상태를 확인하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
             return
           }
         }

@@ -3,7 +3,9 @@ export interface LoginRequest {
   password: string
 }
 
-export interface LoginResponse {
+import type { SessionMetadata } from '@/shared/api'
+
+export interface LoginResponse extends Partial<SessionMetadata> {
   accessToken: string
 
   expiresIn: number

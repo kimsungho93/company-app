@@ -13,10 +13,15 @@ vi.mock('@stomp/stompjs', () => ({
   }),
 }))
 
+const { sessionStore } = await import('../api/sessionStore')
+
 const { connectStomp } = await import('./stompClient')
 
 describe('connectStomp', () => {
   beforeEach(() => {
+    localStorage.clear()
+    sessionStore.end('UNAUTHENTICATED', false)
+    sessionStore.beginLogin()
     vi.clearAllMocks()
   })
 
@@ -149,5 +154,45 @@ describe('connectStomp', () => {
 
     expect(deactivate).toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
+  })
+})
+
+describe('session-aware socket cleanup', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStore.end('UNAUTHENTICATED', false)
+    sessionStore.beginLogin()
+    vi.clearAllMocks()
+  })
+
+  it.each(['SESSION_IDLE_EXPIRED', 'SESSION_ABSOLUTE_EXPIRED', 'SESSION_REVOKED'])(
+    'stops publishing and reconnect callbacks after %s close',
+    (reason) => {
+      const onError = vi.fn()
+      const connection = connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
+      ;(captured.onWebSocketClose as (event: { code: number; reason: string }) => void)({ code: 4001, reason })
+      connection.publish('/app/rooms/1/ready')
+      expect(sessionStore.get().reason).toBe(reason)
+      expect(deactivate).toHaveBeenCalled()
+      expect(publish).not.toHaveBeenCalled()
+      expect(onError).not.toHaveBeenCalled()
+    },
+  )
+
+  it('keeps authentication after a transient server close', () => {
+    const onError = vi.fn()
+    connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
+    ;(captured.onWebSocketClose as (event: { code: number; reason: string }) => void)({
+      code: 1011, reason: 'authentication service unavailable',
+    })
+    expect(sessionStore.get().ended).toBe(false)
+    expect(onError).toHaveBeenCalledOnce()
+  })
+
+  it('closes all connections when logout is signalled', () => {
+    connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError: vi.fn() })
+    connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError: vi.fn() })
+    sessionStore.end('LOGOUT', false)
+    expect(deactivate).toHaveBeenCalledTimes(2)
   })
 })

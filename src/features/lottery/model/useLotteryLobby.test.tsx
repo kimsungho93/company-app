@@ -222,7 +222,7 @@ describe('useLotteryLobby', () => {
   it.each(['manual', 'online', 'visibility'] as const)('recovers a failed token restore through %s refresh', async (trigger) => {
     tokenStore.clear()
     const { result } = setup()
-    await waitFor(() => expect(result.current.connectionStatus).toBe('authError'))
+    await waitFor(() => expect(result.current.connectionStatus).toBe('reconnecting'))
     expect(mocks.connect).not.toHaveBeenCalled()
     expect(mocks.reissue).toHaveBeenCalledOnce()
     tokenStore.set('restored-token')

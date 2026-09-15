@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { baseApi } from './baseApi'
 import { tokenStore } from './tokenStore'
+import { sessionStore, withAuthLock } from './sessionStore'
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -26,6 +27,7 @@ const createStore = () =>
 const urlOf = (call: unknown[]) => String(call[0])
 
 describe('baseQuery 401 처리', () => {
+  beforeEach(() => { localStorage.clear(); sessionStore.beginLogin() })
   afterEach(() => {
     vi.unstubAllGlobals()
     tokenStore.clear()
@@ -68,6 +70,33 @@ describe('baseQuery 401 처리', () => {
     expect(result.error).toBeDefined()
     expect(tokenStore.get()).toBeNull()
     expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('cancels a queued login when another tab has already changed the session', async () => {
+    let release!: () => void
+    let acquired = false
+    const block = withAuthLock(async () => {
+      acquired = true
+      await new Promise<void>((resolve) => { release = resolve })
+    })
+    await vi.waitFor(() => expect(acquired).toBe(true))
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    const loginApi = baseApi.injectEndpoints({
+      endpoints: (build) => ({
+        queuedLogin: build.mutation<unknown, void>({ query: () => ({ url: '/auth/login', method: 'POST', body: {} }) }),
+      }),
+    })
+    const store = createStore()
+    const login = store.dispatch(loginApi.endpoints.queuedLogin.initiate())
+    sessionStore.beginLogin()
+    tokenStore.set('other-tab-login')
+    release()
+    await block
+    const result = await login
+    expect(result.error).toBeDefined()
+    expect(fetch).not.toHaveBeenCalled()
+    expect(tokenStore.get()).toBe('other-tab-login')
   })
 
   it('로그인 401 은 재발급을 시도하지 않는다', async () => {
