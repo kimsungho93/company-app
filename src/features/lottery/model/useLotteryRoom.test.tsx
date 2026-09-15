@@ -45,6 +45,7 @@ interface SocketSession {
 }
 
 let sessions: SocketSession[]
+let automaticReady: boolean
 
 const deferred = <T,>() => {
   let resolve!: (value: T) => void
@@ -57,6 +58,7 @@ describe('useLotteryRoom', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     sessions = []
+    automaticReady = true
     mocks.token.mockReturnValue('access-token')
     mocks.reissue.mockResolvedValue(false)
     mocks.join.mockImplementation(() => ({ unwrap: () => Promise.resolve(snapshot()) }))
@@ -72,7 +74,11 @@ describe('useLotteryRoom', () => {
           handlers.set(destination, callback as (body: unknown) => void)
           return () => handlers.delete(destination)
         },
-        publish: vi.fn(), close: vi.fn(),
+        publish: vi.fn((destination: string) => {
+          if (automaticReady && destination.endsWith('/enter')) {
+            handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'room-one' })
+          }
+        }), close: vi.fn(),
       }
       sessions.push({ options, handlers, connection })
       options.onConnect(connection)
@@ -415,4 +421,60 @@ describe('useLotteryRoom', () => {
     expect(result.current.disconnected).toBe(true)
     expect(result.current.error).toBe('다시 입장해 주세요.')
   })
-})
+
+  it('shares the room socket with chat without changing the room version, busy state or game errors', async () => {
+    let renders = 0
+    const { result } = renderHook(() => {
+      renders += 1
+      return useLotteryRoom('room-one')
+    })
+    await waitFor(() => expect(result.current.connecting).toBe(false))
+    const receive = vi.fn()
+    const transport = result.current.chatTransport
+    transport.subscribe(receive)
+    expect(transport.isConnected()).toBe(true)
+    const renderCount = renders
+    act(() => sessions[0].handlers.get('/topic/lottery/rooms/room-one/chat')?.({ type: 'TYPING', roomId: 'room-one', people: [] }))
+    act(() => sessions[0].handlers.get('/user/queue/lottery-chat')?.({ type: 'ERROR', roomId: 'room-one', code: 'CHAT_RATE_LIMIT', message: '잠시 기다려 주세요.' }))
+    expect(receive).toHaveBeenCalledTimes(2)
+    expect(renders).toBe(renderCount)
+    expect(mocks.connect).toHaveBeenCalledOnce()
+    expect(result.current.room?.version).toBe(1)
+    expect(result.current.busy).toBe(false)
+    expect(result.current.error).toBeNull()
+    act(() => sessions[0].options.onError())
+    expect(transport.isConnected()).toBe(false)
+  })
+  it('waits for chat readiness before exposing the room connection or verifying its state', async () => {
+    vi.useFakeTimers()
+    automaticReady = false
+    const { result } = renderHook(() => useLotteryRoom('room-one'))
+    await act(async () => {})
+    expect(sessions[0].handlers.has('/topic/lottery/rooms/room-one/chat')).toBe(true)
+    expect(sessions[0].handlers.has('/user/queue/lottery-chat')).toBe(true)
+    expect(sessions[0].connection.publish).toHaveBeenCalledWith('/app/lottery/rooms/room-one/enter')
+    expect(result.current.connecting).toBe(true)
+    expect(result.current.chatTransport.isConnected()).toBe(false)
+    await act(async () => vi.advanceTimersByTimeAsync(5000))
+    expect(mocks.get).not.toHaveBeenCalled()
+    act(() => sessions[0].handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'room-one' }))
+    expect(result.current.connecting).toBe(false)
+    expect(result.current.chatTransport.isConnected()).toBe(true)
+    await act(async () => vi.advanceTimersByTimeAsync(5000))
+    expect(mocks.get).toHaveBeenCalledOnce()
+  })
+
+  it('times out missing READY and ignores late handshake replies', async () => {
+    vi.useFakeTimers()
+    automaticReady = false
+    const { result } = renderHook(() => useLotteryRoom('room-one'))
+    await act(async () => {})
+    const late = sessions[0].handlers.get('/user/queue/lottery-chat')
+    await act(async () => vi.advanceTimersByTimeAsync(15_000))
+    expect(result.current.disconnected).toBe(true)
+    expect(result.current.error).toContain('연결이 지연')
+    expect(sessions[0].connection.close).toHaveBeenCalledOnce()
+    act(() => late?.({ type: 'READY', roomId: 'room-one' }))
+    expect(result.current.chatTransport.isConnected()).toBe(false)
+    expect(result.current.disconnected).toBe(true)
+  })})

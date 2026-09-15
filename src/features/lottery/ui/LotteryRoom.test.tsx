@@ -4,12 +4,14 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LotteryRoomState } from '../model/useLotteryRoom'
 import { WINNER_EXIT_MS } from '../model/drawTiming'
+import { createLotteryChatTransport } from '../model/lotteryChatTransport'
 import { LotteryRoom } from './LotteryRoom'
 
 const state = vi.hoisted(() => ({ useRoom: vi.fn(), saveImage: vi.fn() }))
 
 vi.mock('../model/useLotteryRoom', () => ({ useLotteryRoom: () => state.useRoom() }))
 vi.mock('./LotteryMachine', () => ({ LotteryMachine: () => <div data-testid="lottery-machine" /> }))
+vi.mock('./chat/LotteryChatPanel', () => ({ LotteryChatPanel: () => <section data-lottery-chat="true"><input aria-label="채팅 초안" /></section> }))
 vi.mock('@/shared/lib/usePrefersReducedMotion', () => ({ usePrefersReducedMotion: () => false }))
 vi.mock('../model/useResultImageDownload', () => ({ useResultImageDownload: () => ({ saveImage: state.saveImage, status: 'idle' }) }))
 
@@ -31,7 +33,7 @@ describe('LotteryRoom permissions and lifecycle', () => {
         winnerCount: 1, status: 'READY', winners: [], members: [{ userId: 1, name: '선도우' }, { userId: 2, name: '육이슬' }], version: 1,
         serverTime: '2026-09-14T00:00:00Z', nextDrawAt: null, drawId: 1,
       },
-      connecting: false, disconnected: false, busy: false, error: null, serverOffsetMs: 0,
+      connecting: false, disconnected: false, busy: false, error: null, serverOffsetMs: 0, chatTransport: createLotteryChatTransport('room'),
       saveSettings: vi.fn().mockResolvedValue(true), start: vi.fn().mockResolvedValue(true),
       reset: vi.fn().mockResolvedValue(true), leave: vi.fn().mockResolvedValue(true), reconnect: vi.fn(),
     }
@@ -152,5 +154,28 @@ describe('LotteryRoom permissions and lifecycle', () => {
     await user.click(screen.getByRole('button', { name: '결과 이미지 저장' }))
     expect(state.saveImage).toHaveBeenCalledWith({ title: '점심 추첨', participants: ['선도우', '육이슬'], winners: [presented], winnerCount: 2, finished: false })
     expect(screen.getByRole('button', { name: '결과 복사' })).toBeInTheDocument()
+  })
+
+  it('keeps the chat draft focused when the host starts a draw', async () => {
+    const { user, rerender } = setup()
+    const draft = screen.getByRole('textbox', { name: '채팅 초안' })
+    const stage = screen.getByRole('region', { name: '2명 중 1명을 뽑아요' })
+    stage.scrollIntoView = vi.fn()
+    await user.click(draft)
+    game = { ...game, room: { ...game.room!, status: 'DRAWING' } }
+    rerender(<MemoryRouter><LotteryRoom roomId="room" myUserId={1} /></MemoryRouter>)
+    expect(draft).toHaveFocus()
+    expect(stage.scrollIntoView).not.toHaveBeenCalled()
+  })
+
+  it('still focuses the stage for host controls outside the chat', async () => {
+    const { user, rerender } = setup()
+    const stage = screen.getByRole('region', { name: '2명 중 1명을 뽑아요' })
+    stage.scrollIntoView = vi.fn()
+    await user.click(screen.getByRole('button', { name: '1명 추첨 시작' }))
+    game = { ...game, room: { ...game.room!, status: 'DRAWING' } }
+    rerender(<MemoryRouter><LotteryRoom roomId="room" myUserId={1} /></MemoryRouter>)
+    expect(stage).toHaveFocus()
+    expect(stage.scrollIntoView).toHaveBeenCalledOnce()
   })
 })

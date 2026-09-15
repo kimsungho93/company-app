@@ -8,6 +8,7 @@ import { usePresentedWinners } from '../model/usePresentedWinners'
 import { useResultImageDownload } from '../model/useResultImageDownload'
 import { LotterySettingsPanel } from './LotterySettingsPanel'
 import { WinnerTray } from './WinnerTray'
+import { LotteryChatPanel } from './chat/LotteryChatPanel'
 import styles from './Lottery.module.scss'
 
 const LotteryMachine = lazy(() => import('./LotteryMachine').then((module) => ({ default: module.LotteryMachine })))
@@ -35,7 +36,7 @@ export const LotteryRoom = ({ roomId, myUserId }: { roomId: string; myUserId?: n
   }, [copied])
 
   useEffect(() => {
-    if (room && room.hostId === myUserId && previousStatus.current && previousStatus.current !== room.status) {
+    if (room && room.hostId === myUserId && previousStatus.current && previousStatus.current !== room.status && !document.activeElement?.closest('[data-lottery-chat]')) {
       const target = room.status === 'DRAWING' ? stage.current : room.status === 'READY' ? settings.current : null
       target?.scrollIntoView?.({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })
       target?.focus({ preventScroll: true })
@@ -62,6 +63,7 @@ export const LotteryRoom = ({ roomId, myUserId }: { roomId: string; myUserId?: n
     <p><Link to="/games/lottery">추첨방 목록으로</Link></p>
   </div>
 
+  const currentMember = room.members.find(member => member.userId === myUserId)
   const isHost = myUserId === room.hostId
   const connected = !game.connecting && !game.disconnected
   const preparing = room.status === 'READY' && isHost
@@ -87,8 +89,11 @@ export const LotteryRoom = ({ roomId, myUserId }: { roomId: string; myUserId?: n
             {finished && isHost && <Button variant="secondary" disabled={!connected || game.busy} onClick={() => setResetting(true)}>새 추첨 준비</Button>}
           </WinnerTray>
         </div>
-        <aside ref={settings} tabIndex={-1} className={styles.sidebar} aria-label="추첨 설정과 참여자">
+        <aside className={styles.sidebar} aria-label="채팅과 추첨 설정">
+          {currentMember && game.chatTransport && <LotteryChatPanel key={roomId} transport={game.chatTransport} currentUser={currentMember} members={room.members} />}
+          <section ref={settings} tabIndex={-1} className={styles.settingsSection} aria-label="추첨 설정">
           <LotterySettingsPanel key={`${room.id}:${room.drawId}:${JSON.stringify(room.participants)}:${room.winnerCount}`} room={room} isHost={isHost} busy={game.busy} connected={connected} onSave={game.saveSettings} onStart={game.start} />
+          </section>
           <details className={`${styles.panel} ${styles.members}`}><summary><span>함께 보는 사람</span><span className={styles.muted}>{room.members.length}명</span></summary><ul>{room.members.map((member) => <li key={member.userId}><span>{member.name}</span>{member.userId === room.hostId && <span className={styles.badge}>진행자</span>}</li>)}</ul></details>
         </aside>
       </div>

@@ -38,9 +38,9 @@
 .roomTop, .topActions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .roomTop { justify-content: space-between; }
 .back { color: var(--text-muted); text-decoration: none; font-size: 13px; @include s.focus-ring; &:hover { color: var(--accent); } }
-.gameLayout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 22px; }
+.gameLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 390px); align-items: start; gap: 22px; }
 .mainColumn, .sidebar { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-.stage, .sidebar { scroll-margin-top: 24px; &:focus { outline: none; } }
+.stage, .settingsSection { scroll-margin-top: 24px; &:focus { outline: none; } }
 .stage { overflow: hidden; }
 .stageHeading { padding: 25px 20px 0; text-align: center; h2 { margin-top: 9px; font-size: 21px; } p { margin: 9px 0 0; } }
 .drawProgress { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 13px; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums;
@@ -78,7 +78,7 @@
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @keyframes arrive { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @include s.reduced-motion { .winner { animation: none; } }
-@include s.below(s.$bp-tablet) { .gameLayout { grid-template-columns: minmax(0, 1fr); } .sidebar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } .preparing .sidebar { order: -1; } }
+@include s.below(s.$bp-tablet) { .gameLayout { grid-template-columns: minmax(0, 1fr); } .sidebar { display: flex; } .preparing .sidebar { order: -1; } }
 @include s.below(s.$bp-mobile) {
   .page { gap: 20px; }
   .sampleBalls { display: none; }

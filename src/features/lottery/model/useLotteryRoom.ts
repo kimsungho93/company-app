@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { reissueOnce, toErrorInfo, tokenStore } from '@/shared/api'
 import { connectStomp, WS_URL } from '@/shared/ws'
 import type { StompConnection } from '@/shared/ws'
@@ -11,8 +11,11 @@ import {
   useStartLotteryMutation,
 } from '../api/lotteryApi'
 import type { LotteryRoomSnapshot, LotterySettings } from '../api/types'
+import { createLotteryChatTransport } from './lotteryChatTransport'
+import type { LotteryChatTransport } from './lotteryChatTransport'
 
 export interface LotteryRoomState {
+  chatTransport: LotteryChatTransport
   room: LotteryRoomSnapshot | null
   connecting: boolean
   disconnected: boolean
@@ -27,6 +30,7 @@ export interface LotteryRoomState {
 }
 
 export const useLotteryRoom = (roomId: string): LotteryRoomState => {
+  const chatTransport = useMemo(() => createLotteryChatTransport(roomId), [roomId])
   const [room, setRoom] = useState<LotteryRoomSnapshot | null>(null)
   const [connecting, setConnecting] = useState(true)
   const [disconnected, setDisconnected] = useState(false)
@@ -66,6 +70,7 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
     let verificationRequest: ReturnType<typeof getRoom> | null = null
     let verificationFailures = 0
     let socketReady = false
+    let unsubscribeChatReady: (() => void) | undefined
     const active = () => !closed && generation.current === current
 
     if (latest.current?.id !== roomId) {
@@ -83,6 +88,7 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
     const fail = (message: string) => {
       if (!active() || failed) return
       failed = true
+      chatTransport.disconnect()
       connectedRef.current = false
       clearTimeout(timeout)
       clearInterval(verificationInterval)
@@ -161,12 +167,16 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
                 if (reason.code === 'NOT_IN_LOTTERY_ROOM' || reason.code === 'LOTTERY_ROOM_NOT_FOUND') fail(reason.message)
                 else setError(reason.message)
               })
+              unsubscribeChatReady = chatTransport.subscribeConnection(() => {
+                if (!active() || failed || !chatTransport.isConnected() || socketReady) return
+                clearTimeout(timeout)
+                connectedRef.current = true
+                setConnecting(false)
+                socketReady = true
+                verificationInterval = setInterval(() => { void verify() }, 5000)
+              })
+              chatTransport.connect(ready)
               ready.publish(`/app/lottery/rooms/${roomId}/enter`)
-              clearTimeout(timeout)
-              connectedRef.current = true
-              setConnecting(false)
-              socketReady = true
-              verificationInterval = setInterval(() => { void verify() }, 5000)
             } catch (cause) {
               ready.close()
               fail(toErrorInfo(cause).message)
@@ -185,6 +195,8 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
 
     return () => {
       closed = true
+      unsubscribeChatReady?.()
+      chatTransport.disconnect()
       connectedRef.current = false
       clearTimeout(timeout)
       clearInterval(verificationInterval)
@@ -196,7 +208,7 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
       connection?.close()
       if (connectionRef.current === connection) connectionRef.current = null
     }
-  }, [roomId, attempt, joinRoom, getRoom, accept])
+  }, [roomId, attempt, joinRoom, getRoom, accept, chatTransport])
 
   const perform = async (operation: () => Promise<LotteryRoomSnapshot | void | false>, leaving = false): Promise<boolean> => {
     if (busyRef.current || (!connectedRef.current && !leaving)) return false
@@ -209,6 +221,7 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
       if (generation.current !== current || snapshot === false) return false
       if (snapshot) accept(snapshot)
       if (leaving) {
+        chatTransport.disconnect()
         connectedRef.current = false
         generation.current += 1
         connectionRef.current?.close()
@@ -229,6 +242,7 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
   }
 
   return {
+    chatTransport,
     room: room?.id === roomId ? room : null,
     connecting,
     disconnected,
