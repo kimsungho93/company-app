@@ -32,6 +32,7 @@
 
 - 서버 데이터는 기존 RTK Query `baseApi`에 연결한다. 화면별로 인증·오류 처리를 중복 구현하지 않는다.
 - access token은 `shared/api/tokenStore`, 재발급은 `reissueOnce`를 사용한다. 토큰을 Redux나 영구 저장소에 복제하지 않는다.
+- 세션 기한과 종료는 `sessionStore`에서 공유한다. 자동 조회·소켓 heartbeat·재발급으로 활동 시간을 연장하지 않고, 네트워크 장애를 인증 만료로 처리하지 않는다.
 - 테마는 기존 `shared/theme`, 게임 방 상태는 서버 스냅샷을 받는 기존 소켓 흐름을 따른다.
 - API·소켓 연결 변경 시 `vite.config.ts`, `netlify.toml`, `shared/ws/wsUrl.ts`의 개발·운영 경로를 함께 확인한다.
 - 기존 공통 UI와 SCSS Modules·디자인 토큰을 재사용한다. 새 스타일은 `shared/styles/_tokens.scss`의 역할별 토큰을 우선 사용한다.
