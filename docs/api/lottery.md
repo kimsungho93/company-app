@@ -73,10 +73,11 @@ type LotterySnapshot = {
 기존 `/api/ws` WebSocket을 사용하고 CONNECT 헤더에 Bearer 토큰을 넣는다. 개발·운영 소켓 URL은 기존 `shared/ws/wsUrl.ts` 설정을 따른다.
 
 1. REST로 방을 생성하거나 `/{id}/join`한다.
-2. `/topic/lottery/rooms/{id}`와 `/user/queue/errors`를 구독한다.
+2. `/topic/lottery/rooms/{id}`, `/user/queue/errors`, `/topic/lottery/rooms/{id}/chat`, `/user/queue/lottery-chat`를 구독한다.
 3. `/app/lottery/rooms/{id}/enter`에 빈 메시지를 보낸다.
 4. enter가 해당 세션을 멤버에게 연결하고 현재 스냅샷을 방송한다.
-5. 이후 설정·멤버·추첨 변화가 같은 topic의 전체 스냅샷으로 도착한다.
+5. 채팅의 두 구독이 브로커에 등록되고 enter가 완료되면 요청 소켓의 `/user/queue/lottery-chat`로 `{type:"READY", roomId}`가 도착한다. 프런트는 이 응답 뒤 연결 완료로 전환하고 최초 기록을 조회한다.
+6. 이후 설정·멤버·추첨 변화가 방 topic의 전체 스냅샷으로 도착한다.
 
 연결 복구 때 다시 구독하고 enter를 보낸다. 재입장 REST는 멱등적이며, 새로고침한 멤버는 GET으로도 같은 결과를 조회할 수 있다.
 
@@ -101,6 +102,49 @@ type LotterySnapshot = {
 개별 방 topic은 방에 입장한 계정만 구독할 수 있다. topic 와일드카드 구독과 `/app/` 밖의 클라이언트 SEND는 거절한다. `/enter`로 연결하지 않은 세션과 명시적으로 나간 멤버의 이전 구독에는 추첨 스냅샷을 전달하지 않는다. 따라서 개별 방 클라이언트는 구독 후 enter 과정을 생략하면 안 된다.
 
 인터셉터의 인증·구독 거절은 STOMP ERROR 프레임으로 전달되고 소켓이 닫힌다. enter의 업무 오류는 `/user/queue/errors`로 `{code, message}`를 보낸다.
+
+### 방 채팅
+
+추첨방과 같은 WebSocket 연결에서 아래 경로를 사용한다. 채팅은 추첨 스냅샷의 `version`·`drawId`를 바꾸지 않으며 추첨 상태와 별도로 동기화한다.
+
+| 용도 | 경로 |
+| --- | --- |
+| 방 채팅 이벤트 구독 | `/topic/lottery/rooms/{id}/chat` |
+| 요청한 소켓만 받는 응답 구독 | `/user/queue/lottery-chat` |
+| 기록·검색 요청 | `/app/lottery/rooms/{id}/chat/history` |
+| 메시지 전송 | `/app/lottery/rooms/{id}/chat/send` |
+| 읽음 반영 | `/app/lottery/rooms/{id}/chat/read` |
+| 입력 상태 반영 | `/app/lottery/rooms/{id}/chat/typing` |
+
+기존 방 topic과 채팅 topic·사용자 응답 queue를 구독하고 enter를 보낸다. 서버의 READY는 두 채팅 구독이 실제로 등록되고 해당 소켓의 입장이 완료된 뒤에만 도착한다. 이 응답을 받은 뒤 기록 조회와 채팅 명령을 보낸다. 연결 복구도 구독 → enter → READY → 최신 기록 조회 순서다. 준비가 15초 안에 끝나지 않으면 재연결 안내를 표시한다. 명령은 인증된 계정의 해당 소켓이 그 방에 연결되어 있어야 한다. 발신자의 ID와 이름은 서버가 계정에서 결정하며, 추첨 대상 이름과 무관하다.
+
+```ts
+type ChatPerson = { userId: number; name: string }
+type ChatMessage = {
+  id: string
+  seq: number
+  clientMessageId: string
+  senderId: number
+  senderName: string
+  text: string
+  sentAt: string
+  readers: ChatPerson[]
+}
+```
+
+`seq`는 방 안에서 증가한다. `sentAt`은 UTC ISO 8601이다. 클라이언트는 수신 순서 대신 `seq`로 정렬하며 중복 응답을 합친다.
+
+- **기록·검색:** `{requestId, beforeSeq?, query?, senderId?}`를 보낸다. 서버가 보관 중인 전체 대화에서 검색어·발신자를 적용하고, `beforeSeq` 미만의 최근 100개를 오름차순으로 돌려준다. 처음에는 가장 최근 100개다. 응답은 `{type:"PAGE", roomId, requestId, messages, hasMore, oldestSeq, latestSeq, typing}`이다. `hasMore`는 필터 조건에 맞는 이전 기록의 존재 여부이고, `oldestSeq`·`latestSeq`는 전체 보관 범위다(빈 방은 0). `typing`은 현재 입력 중인 계정 배열이다. 검색·페이지를 바꾼 뒤 늦게 온 응답은 `requestId`로 구분한다.
+- **전송:** `{clientMessageId, text}`를 보낸다. 서버는 `{type:"MESSAGE", roomId, message}`를 방에 방송하고 요청 소켓에는 `{type:"ACK", roomId, clientMessageId, message}`를 보낸다. 발신 계정과 `clientMessageId`가 같은 재시도는 보관 중인 기존 메시지를 돌려준다. 브로커 수신만으로 전송 성공을 판단하지 않고 ACK 또는 자신의 MESSAGE 수신으로 확정한다. 메시지는 공백 제거 후 1~300 유니코드 코드 포인트이며, 계정당 모든 탭·방을 합쳐 10초 동안 새 메시지 5개까지 허용한다.
+- **읽음:** `{seqs:[...]}`에 실제 읽은 메시지 번호를 최대 100개 보낸다. 반영된 결과는 `{type:"READ", roomId, seqs, reader}`로 방송한다. 메시지 전송 당시 소켓이 연결된 다른 계정만 읽음 대상이며, 뒤늦게 입장한 계정과 발신자는 제외한다. 같은 계정의 여러 탭은 한 명으로 계산하고 이미 읽은 계정이 나가도 기록은 남는다. 미래 번호는 거절하고 이미 보관 범위에서 사라진 번호는 무시한다. 화면에서는 열린 채팅·활성 탭에서 실제 보이는 메시지만 처리하므로 검색으로 건너뛴 대화가 함께 읽음 처리되지 않는다.
+- **입력 중:** `{typing:true|false}`를 보낸다. `{type:"TYPING", roomId, people}`는 현재 입력 중인 계정 전체 목록이다. 작성 내용은 전송하지 않는다. 클라이언트는 입력 시작 즉시, 계속 입력하면 약 2초 간격으로 갱신한다. 서버에서 5초 후 만료되고 전송·채팅 닫기·퇴장·소켓 종료 때 해제한다. 여러 탭의 상태는 계정 단위로 합친다.
+- **업무 오류:** 요청 소켓에 `{type:"ERROR", roomId, requestId?, clientMessageId?, code, message}`로 응답한다. 채팅 안에서 오류·재시도를 표시하며 추첨 조작의 busy·오류 상태와 공유하지 않는다. 인증 또는 구독 권한 오류는 기존 STOMP 연결 종료 정책을 따른다.
+
+방마다 최근 1,000개만 서버 메모리에 보관한다. 같은 방에서 새 추첨을 준비해도 대화는 유지하지만, 방이 삭제되거나 서버가 재시작하면 대화·읽음·입력 상태를 모두 잃는다. 마지막 연결 종료 후 기존 30초 재접속 유예 동안에는 유지한다. DB 저장과 스키마 변경은 없다. 자동 기록 조회·메시지 수신·읽음·입력 중 알림·heartbeat는 로그인 유휴 시간을 연장하지 않는다.
+
+배포는 READY를 지원하는 백엔드를 먼저 반영한 뒤 프런트를 반영한다. 기존 프런트는 새 백엔드에서도 추첨 기능을 사용하지만, 새 프런트는 구형 백엔드에서 READY를 받지 못해 연결 준비 시간이 초과된다.
+
+'언급하기'는 공개 대화 입력란에 `@이름`을 넣으며 개인 메시지는 아니다. 참가자 구 선택은 그 사람이 보낸 대화를 조회하는 필터다. 실제 추첨과 채팅의 3D 효과는 각각 독립적으로 동작한다.
 
 ## 추첨과 방 수명
 
