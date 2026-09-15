@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties, FormEvent, KeyboardEvent } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import { Button } from '@/shared/ui/Button'
 import { usePrefersReducedMotion } from '@/shared/lib/usePrefersReducedMotion'
 import type { ChatDisplayMessage, ChatPerson } from '../../api/chatTypes'
@@ -66,7 +66,8 @@ export const LotteryChatPanel = ({ transport, currentUser, members }: Props) => 
   const searchToggle = useRef<HTMLButtonElement>(null)
   const orbit = useRef<OrbitHandle>(null)
   const composing = useRef(false)
-  const compositionEnded = useRef(-Infinity)
+  const pendingSend = useRef(false)
+  const sendTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const following = useRef(true)
   const previousView = useRef('')
   const anchor = useRef<{ height: number; top: number; oldest: number } | null>(null)
@@ -145,19 +146,51 @@ export const LotteryChatPanel = ({ transport, currentUser, members }: Props) => 
     void animation.finished.then(() => { orbit.current?.pulse(currentUser.userId) }).catch(() => undefined)
       .finally(() => { flights.current.delete(animation); ball.remove() })
   }
-  const send = (event?: FormEvent) => {
-    event?.preventDefault()
-    if (composing.current || !chat.connected || !draft.trim() || count > 300) return
-    if (!chat.send(draft.trim())) return
+  const cancelPendingSend = () => {
+    pendingSend.current = false
+    clearTimeout(sendTimer.current)
+    sendTimer.current = undefined
+  }
+  useEffect(() => {
+    const input = composer.current
+    const preventPendingNewline = (event: InputEvent) => {
+      if (pendingSend.current && (event.inputType === 'insertLineBreak' || event.inputType === 'insertParagraph')) event.preventDefault()
+    }
+    input?.addEventListener('beforeinput', preventPendingNewline)
+    return () => {
+      input?.removeEventListener('beforeinput', preventPendingNewline)
+      cancelPendingSend()
+    }
+  }, [open, chat.connected])
+
+  const send = () => {
+    const value = composer.current?.value ?? draft
+    if (composing.current || !chat.connected || !value.trim() || codepoints(value).length > 300) return
+    if (!chat.send(value.trim())) return
+    cancelPendingSend()
+    if (composer.current) composer.current.value = ''
     following.current = true; anchor.current = null
     setDraft(''); setDraftError(null); chat.setTyping(false); flyToOrbit()
     if (chat.senderId !== null) chat.filterSender(null)
     if (chat.query) chat.search('')
     setSearchInput(''); setSearchOpen(false); composer.current?.focus({ preventScroll: true })
   }
+  const scheduleSend = () => {
+    clearTimeout(sendTimer.current)
+    sendTimer.current = setTimeout(() => {
+      sendTimer.current = undefined
+      if (!pendingSend.current || composing.current) return
+      pendingSend.current = false
+      send()
+    }, 0)
+  }
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && !composing.current
-      && event.keyCode !== 229 && performance.now() - compositionEnded.current > 60) { event.preventDefault(); send() }
+    if (event.key !== 'Enter' || event.shiftKey) { cancelPendingSend(); return }
+    if (event.repeat) { event.preventDefault(); return }
+    pendingSend.current = true
+    if (event.nativeEvent.isComposing || composing.current) return
+    if (event.keyCode !== 229) event.preventDefault()
+    scheduleSend()
   }
   const toggleSearch = () => {
     if (searchOpen) { setSearchOpen(false); setSearchInput(''); chat.search(''); searchToggle.current?.focus({ preventScroll: true }) }
@@ -222,13 +255,13 @@ export const LotteryChatPanel = ({ transport, currentUser, members }: Props) => 
         {!atBottom && <button type="button" className={styles.jump} onClick={jumpToLatest}>{chat.unreadCount ? `새 메시지 ${chat.unreadCount}개` : '최신 대화로'} ↓</button>}
         <div className={styles.typing} role="status">{chat.typing.length > 0 && `${chat.typing.slice(0, 2).map(person => person.name).join(', ')}${chat.typing.length > 2 ? ` 외 ${chat.typing.length - 2}명` : ''} 입력 중…`}</div>
         {draftError && <p className={styles.draftError} role="alert">{draftError}</p>}
-        <form className={styles.compose} aria-label="메시지 작성" onSubmit={send}>
+        <form className={styles.compose} aria-label="메시지 작성" onSubmit={event => { event.preventDefault(); send() }}>
           <div><label className={styles.srOnly} htmlFor={inputId}>메시지 작성</label>
             <textarea ref={composer} id={inputId} rows={1} value={draft} placeholder="메시지 입력" onKeyDown={onKeyDown}
               onChange={event => { const value = composing.current ? event.target.value : codepoints(event.target.value).slice(0, 300).join(''); setDraft(value); setDraftError(null); chat.setTyping(!!value.trim()) }}
-              onCompositionStart={() => { composing.current = true }}
-              onCompositionEnd={event => { composing.current = false; compositionEnded.current = performance.now(); setDraft(codepoints(event.currentTarget.value).slice(0, 300).join('')) }}
-              onBlur={() => chat.setTyping(false)} />
+              onCompositionStart={() => { cancelPendingSend(); composing.current = true }}
+              onCompositionEnd={event => { composing.current = false; setDraft(codepoints(event.currentTarget.value).slice(0, 300).join('')); if (pendingSend.current) scheduleSend() }}
+              onBlur={() => { cancelPendingSend(); composing.current = false; chat.setTyping(false) }} />
             {count >= 240 && <span className={styles.count} aria-label={`${count}자, 최대 300자`}>{count} / 300</span>}
           </div>
           <button ref={sendButton} type="submit" className={styles.send} aria-label="메시지 보내기" disabled={!chat.connected || !draft.trim() || count > 300}>↑</button>
