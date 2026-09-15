@@ -60,3 +60,34 @@ describe('Dialog', () => {
     expect(screen.getByRole('dialog', { name: '부모' })).toHaveAttribute('open')
   })
 })
+
+it('prevents native Escape on focused content in a non-dismissible dialog', () => {
+  const dismiss = vi.fn()
+  render(
+    <Dialog open labelledBy="locked-title" dismissible={false} onDismiss={dismiss}>
+      <h2 id="locked-title">로그인 확인</h2>
+      <button>다시 확인</button>
+    </Dialog>,
+  )
+  const button = screen.getByRole('button', { name: '다시 확인' })
+  button.focus()
+  const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+  button.dispatchEvent(escape)
+  expect(escape.defaultPrevented).toBe(true)
+  expect(screen.getByRole('dialog', { name: '로그인 확인' })).toHaveAttribute('open')
+  expect(dismiss).not.toHaveBeenCalled()
+})
+
+it('prevents a non-bubbling native cancel event while dismissal is disabled', () => {
+  const dismiss = vi.fn()
+  render(
+    <Dialog open labelledBy="native-title" dismissible={false} onDismiss={dismiss}>
+      <h2 id="native-title">세션 만료</h2>
+    </Dialog>,
+  )
+  const dialog = screen.getByRole('dialog', { name: '세션 만료' })
+  const cancel = new Event('cancel', { cancelable: true, bubbles: false })
+  dialog.dispatchEvent(cancel)
+  expect(cancel.defaultPrevented).toBe(true)
+  expect(dismiss).not.toHaveBeenCalled()
+})

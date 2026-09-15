@@ -37,6 +37,12 @@ export const Dialog = ({
       className={className}
       aria-labelledby={labelledBy}
       aria-describedby={describedBy}
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape' || dismissible) return
+        if (event.target instanceof Element && event.target.closest('dialog') !== event.currentTarget) return
+        event.preventDefault()
+        event.stopPropagation()
+      }}
       onCancel={(event) => {
         event.preventDefault()
         event.stopPropagation()
