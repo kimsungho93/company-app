@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { createRoadCar, createWalkingPerson } from './campusActorModels'
+import { createWalkingPerson } from './campusActorModels'
+import { createRoadCar } from './campusCarModels'
 import {
   gateOpenAmount,
   sampleCarX,
@@ -52,7 +53,25 @@ const box = (
   z: number,
 ) => addMesh(parent, new THREE.BoxGeometry(width, height, depth), surface, x, y, z)
 
-export const createCampusActors = () => {
+const createCarShadow = () => {
+  const width = 96
+  const height = 48
+  const pixels = new Uint8Array(width * height * 4)
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const u = (x / (width - 1)) * 2 - 1
+      const v = (y / (height - 1)) * 2 - 1
+      pixels[(y * width + x) * 4 + 3] = 135 * Math.pow(1 - u * u, 0.65) * Math.pow(1 - v * v, 1.7)
+    }
+  }
+  const map = new THREE.DataTexture(pixels, width, height)
+  map.minFilter = THREE.LinearFilter
+  map.magFilter = THREE.LinearFilter
+  map.needsUpdate = true
+  return new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false })
+}
+
+export const createCampusActors = (carEnvironment: THREE.Texture | null = null) => {
   const group = new THREE.Group()
   group.name = 'campus-actors'
   const navy = material(0x26394c)
@@ -130,19 +149,26 @@ export const createCampusActors = () => {
   }
 
   const carGlass = new THREE.MeshPhysicalMaterial({
-    color: 0x172a38,
-    roughness: 0.075,
-    metalness: 0.35,
+    color: 0x18252e,
+    roughness: 0.085,
+    metalness: 0.24,
     clearcoat: 1,
     clearcoatRoughness: 0.045,
-    envMapIntensity: 1.1,
+    envMap: carEnvironment,
+    envMapIntensity: 0.9,
   })
   const rubber = material(0x15191e, 0.88)
-  const chrome = material(0xc0c9d1, 0.22, 0.92)
+  const chrome = new THREE.MeshStandardMaterial({
+    color: 0xb6bdc2,
+    roughness: 0.24,
+    metalness: 0.88,
+    envMap: carEnvironment,
+    envMapIntensity: 0.95,
+  })
   const headlight = new THREE.MeshStandardMaterial({
     color: 0xe9f4ff,
     emissive: 0xc5deff,
-    emissiveIntensity: 0.52,
+    emissiveIntensity: 0.15,
     roughness: 0.18,
     metalness: 0.2,
   })
@@ -154,30 +180,36 @@ export const createCampusActors = () => {
     clearcoat: 1,
   })
   const plate = material(0xe1e4e6, 0.58)
-  const carPaints = [0xd9e1e8, 0x1b3049, 0x34444d, 0xe6e8e5].map(
-    (color) =>
+  const carPaints = [0x62666c, 0xf0f0e9, 0x505760, 0xe9eceb].map(
+    (color, index) =>
       new THREE.MeshPhysicalMaterial({
         color,
-        metalness: 0.63,
-        roughness: 0.235,
+        metalness: index % 2 === 0 ? 0.68 : 0.16,
+        roughness: index % 2 === 0 ? 0.25 : 0.29,
         clearcoat: 1,
-        clearcoatRoughness: 0.115,
-        envMapIntensity: 0.85,
+        clearcoatRoughness: 0.075,
+        envMap: carEnvironment,
+        envMapIntensity: 0.8,
       }),
   )
   const carOffsets = [0.17, 0.69, 0.37, 0.89]
   const carLaneZ = [9, 11.6, 14.4, 17.2]
+  const contactShadow = createCarShadow()
   const cars = carPaints.map((paint, index) => {
     const car = createRoadCar(
       { paint, glass: carGlass, rubber, chrome, headlight, taillight, plate },
-      index === 2,
+      index % 2 === 1,
     )
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 2.1), contactShadow)
+    shadow.rotation.x = -Math.PI / 2
+    shadow.position.y = 0.008
+    car.group.add(shadow)
     car.group.position.y = GROUND_Y
     const direction: 1 | -1 = index < 2 ? 1 : -1
     car.group.position.z = carLaneZ[index]
     car.group.rotation.y = direction === 1 ? 0 : Math.PI
     group.add(car.group)
-    return { ...car, direction, speed: direction === 1 ? 3.05 : 2.7, offset: carOffsets[index] }
+    return { ...car, direction, speed: direction === 1 ? 12.2 : 10.8, offset: carOffsets[index] }
   })
 
   const update = (elapsedSeconds: number) => {

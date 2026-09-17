@@ -16,6 +16,7 @@ import {
 import type { BufferGeometry, Material } from 'three'
 import type { WebGLRenderTarget } from 'three'
 import { Sky } from 'three/addons/objects/Sky.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { createCampusEnvironment } from './campusEnvironment'
 import { createCampusActors } from './campusActors'
 import { createCampusIdentity } from './campusIdentity'
@@ -36,7 +37,7 @@ export const frameCampusCamera = (camera: PerspectiveCamera, aspect: number) => 
   camera.updateMatrixWorld()
 }
 
-const disposeScene = (scene: Scene) => {
+const disposeScene = (scene: Scene, renderTargetTextures: Set<Texture | undefined>) => {
   const geometries = new Set<BufferGeometry>()
   const materials = new Set<Material>()
   const textures = new Set<Texture>()
@@ -47,7 +48,7 @@ const disposeScene = (scene: Scene) => {
     for (const material of meshMaterials) {
       materials.add(material)
       for (const value of Object.values(material)) {
-        if (value instanceof Texture) textures.add(value)
+        if (value instanceof Texture && !renderTargetTextures.has(value)) textures.add(value)
       }
     }
     if (object instanceof InstancedMesh) object.dispose()
@@ -81,6 +82,7 @@ export const createCampusRenderer = (
   let observer: ResizeObserver | undefined
   let intersection: IntersectionObserver | undefined
   let environmentMap: WebGLRenderTarget | undefined
+  let carEnvironmentMap: WebGLRenderTarget | undefined
   let identity: ReturnType<typeof createCampusIdentity> | undefined
 
   const stop = () => {
@@ -101,8 +103,9 @@ export const createCampusRenderer = (
     identity?.dispose()
     if (gpuFrame) context.deleteSync(gpuFrame)
     gpuFrame = null
-    disposeScene(scene)
+    disposeScene(scene, new Set([environmentMap?.texture, carEnvironmentMap?.texture]))
     environmentMap?.dispose()
+    carEnvironmentMap?.dispose()
     sunlight.shadow.dispose()
     renderer.dispose()
     renderer.forceContextLoss()
@@ -176,7 +179,20 @@ export const createCampusRenderer = (
     sunlight.shadow.radius = 2
     scene.add(sunlight)
     scene.add(createCampusEnvironment())
-    const actors = createCampusActors()
+    const reflectionScene = new RoomEnvironment()
+    const reflectionGenerator = new PMREMGenerator(renderer)
+    try {
+      carEnvironmentMap = reflectionGenerator.fromScene(reflectionScene, 0.025, 0.1, 100, {
+        size: 128,
+      })
+    } finally {
+      reflectionScene.traverse((object) => {
+        if (object instanceof InstancedMesh) object.dispose()
+      })
+      reflectionScene.dispose()
+      reflectionGenerator.dispose()
+    }
+    const actors = createCampusActors(carEnvironmentMap.texture)
     scene.add(actors.group)
     actors.update(elapsed)
     canvas.setAttribute('aria-hidden', 'true')
