@@ -58,20 +58,11 @@
   font-size: 27px;
   font-weight: 750;
   letter-spacing: -1px;
-  svg {
-    width: 30px;
-    height: 30px;
+  img {
+    display: block;
+    width: 40px;
+    height: 40px;
   }
-}
-.wordmark {
-  display: inline-block;
-  margin-left: 12px;
-  padding-left: 12px;
-  border-left: 1px solid color-mix(in srgb, var(--campus-muted) 35%, transparent);
-  font-size: 10px;
-  font-weight: 550;
-  letter-spacing: 2px;
-  vertical-align: middle;
 }
 .intro {
   position: absolute;
@@ -79,13 +70,6 @@
   left: 44px;
   z-index: 2;
   pointer-events: none;
-}
-.eyebrow {
-  margin: 0 0 17px;
-  font-size: 10px;
-  font-weight: 650;
-  letter-spacing: 2.6px;
-  color: var(--campus-muted);
 }
 .headline {
   margin: 0;
@@ -145,16 +129,12 @@
     left: 26px;
     font-size: 23px;
   }
-  .brand svg {
-    width: 25px;
-    height: 25px;
+  .brand img {
+    width: 32px;
+    height: 32px;
   }
   .intro {
     display: none;
-  }
-  .eyebrow {
-    font-size: 9px;
-    margin-bottom: 12px;
   }
   .headline {
     font-size: 31px;
@@ -185,12 +165,6 @@
     left: 20px;
     font-size: 21px;
     gap: 7px;
-  }
-  .wordmark {
-    font-size: 8px;
-    margin-left: 9px;
-    padding-left: 9px;
-    letter-spacing: 1.5px;
   }
   .intro {
     display: none;
