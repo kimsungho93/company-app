@@ -45,9 +45,7 @@ export const RoomView = ({
     room.players.length >= 2 &&
     room.players.every((player) => player.userId === room.hostId || player.ready)
 
-  const loser = finished
-    ? room.players.find((player) => player.userId === game.loserId)
-    : undefined
+  const loser = finished ? room.players.find((player) => player.userId === game.loserId) : undefined
   const turnPlayer = playing
     ? room.players.find((player) => player.userId === game.turnUserId)
     : undefined

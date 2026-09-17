@@ -29,7 +29,6 @@ interface Shot {
 }
 
 export interface WaferCanvasProps {
-
   text: string
 
   fontReady: boolean
@@ -225,7 +224,7 @@ export const WaferCanvas = ({
       ctx.strokeStyle = 'rgba(120,170,200,.10)'
       ctx.beginPath()
       ctx.arc(cx, cy, rad + 15, 0, Math.PI * 2)
-      ctx.stroke();
+      ctx.stroke()
 
       for (const d of dies) {
         const exposed = instant || d.shot < cur || (d.shot === cur && ph > 0.35)
@@ -395,7 +394,6 @@ export const WaferCanvas = ({
 
   return (
     <div className={styles.host} ref={hostRef}>
-
       <canvas className={styles.canvas} ref={canvasRef} aria-hidden="true" />
     </div>
   )

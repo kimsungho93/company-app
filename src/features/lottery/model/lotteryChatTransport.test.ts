@@ -14,7 +14,8 @@ const createSocket = () => {
     publish: vi.fn(),
     close: vi.fn(),
   }
-  const ready = () => handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'room-one' })
+  const ready = () =>
+    handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'room-one' })
   return { handlers, unsubscribe, connection, ready }
 }
 
@@ -46,7 +47,9 @@ describe('lotteryChatTransport', () => {
     transport.subscribeConnection(listener)
     transport.connect(socket.connection)
     socket.ready()
-    socket.unsubscribe.mockImplementation(() => { throw new Error('Socket already closed') })
+    socket.unsubscribe.mockImplementation(() => {
+      throw new Error('Socket already closed')
+    })
     expect(() => transport.disconnect()).not.toThrow()
     expect(socket.unsubscribe).toHaveBeenCalledTimes(2)
     expect(transport.isConnected()).toBe(false)
@@ -61,8 +64,13 @@ describe('lotteryChatTransport', () => {
     transport.connect(socket.connection)
     socket.ready()
     expect(transport.publish('typing', { typing: true })).toBe(true)
-    expect(socket.connection.publish).toHaveBeenCalledWith('/app/lottery/rooms/room-one/chat/typing', { typing: true })
-    vi.mocked(socket.connection.publish).mockImplementation(() => { throw new Error('Disconnected') })
+    expect(socket.connection.publish).toHaveBeenCalledWith(
+      '/app/lottery/rooms/room-one/chat/typing',
+      { typing: true },
+    )
+    vi.mocked(socket.connection.publish).mockImplementation(() => {
+      throw new Error('Disconnected')
+    })
     expect(transport.publish('typing', { typing: false })).toBe(false)
   })
 
@@ -74,7 +82,10 @@ describe('lotteryChatTransport', () => {
     transport.connect(socket.connection)
     expect(transport.isConnected()).toBe(false)
     expect(transport.publish('history', { requestId: 'early' })).toBe(false)
-    socket.handlers.get('/topic/lottery/rooms/room-one/chat')?.({ type: 'READY', roomId: 'room-one' })
+    socket.handlers.get('/topic/lottery/rooms/room-one/chat')?.({
+      type: 'READY',
+      roomId: 'room-one',
+    })
     socket.handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'wrong-room' })
     expect(transport.isConnected()).toBe(false)
     expect(status).not.toHaveBeenCalled()
@@ -96,4 +107,5 @@ describe('lotteryChatTransport', () => {
     expect(transport.isConnected()).toBe(false)
     second.ready()
     expect(transport.isConnected()).toBe(true)
-  })})
+  })
+})

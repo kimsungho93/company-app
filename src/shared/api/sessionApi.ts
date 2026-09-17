@@ -1,6 +1,12 @@
 import { API_BASE } from './apiBase'
 import { reissueSession } from './reissue'
-import { errorCode, isSessionEndCode, isSessionMetadata, sessionEndReasonFor, sessionStore } from './sessionStore'
+import {
+  errorCode,
+  isSessionEndCode,
+  isSessionMetadata,
+  sessionEndReasonFor,
+  sessionStore,
+} from './sessionStore'
 import { tokenStore } from './tokenStore'
 
 export type SessionRequestResult = 'success' | 'terminal' | 'retryable' | 'cancelled'
@@ -47,11 +53,15 @@ let statusRequest: Promise<SessionRequestResult> | null = null
 let activityRequest: Promise<SessionRequestResult> | null = null
 
 export const checkSession = (): Promise<SessionRequestResult> => {
-  statusRequest ??= request(false).finally(() => { statusRequest = null })
+  statusRequest ??= request(false).finally(() => {
+    statusRequest = null
+  })
   return statusRequest
 }
 
 export const reportActivity = (): Promise<SessionRequestResult> => {
-  activityRequest ??= request(true).finally(() => { activityRequest = null })
+  activityRequest ??= request(true).finally(() => {
+    activityRequest = null
+  })
   return activityRequest
 }

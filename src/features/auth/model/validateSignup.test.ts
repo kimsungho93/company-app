@@ -24,7 +24,6 @@ describe('validateSignupEmail', () => {
   })
 
   it('형식 오류를 도메인 오류보다 먼저 알린다', () => {
-
     expect(validateSignupEmail('abc')).toBe('이메일 형식이 올바르지 않습니다.')
   })
 
@@ -47,7 +46,6 @@ describe('validateName', () => {
   })
 
   it('이모지를 한 글자로 센다', () => {
-
     expect(validateName('😀'.repeat(NAME_MAX))).toBeNull()
     expect(validateName('😀'.repeat(NAME_MAX + 1))).not.toBeNull()
   })

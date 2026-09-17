@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(yarn test*)",
+      "Bash(yarn vitest*)",
+      "Bash(yarn lint*)",
+      "Bash(yarn oxlint*)",
+      "Bash(yarn tsc*)",
+      "Bash(yarn build*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ],
+    "ask": [
+      "Bash(yarn add*)",
+      "Bash(yarn remove*)"
+    ],
+    "deny": [
+      "Bash(npm install*)",
+      "Bash(npm i)",
+      "Bash(npm i *)",
+      "Bash(npm ci*)",
+      "Bash(pnpm *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/lint-file.mjs",
+            "timeout": 60,
+            "statusMessage": "편집한 파일 oxlint"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/verify-before-stop.mjs",
+            "timeout": 180,
+            "statusMessage": "tsc -b · vitest --changed"
+          }
+        ]
+      }
+    ]
+  }
+}

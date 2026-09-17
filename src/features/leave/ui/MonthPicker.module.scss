@@ -73,7 +73,9 @@
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 
   &:hover {
     background: var(--bg-sunken);
@@ -112,7 +114,9 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 
   &:hover {
     background: var(--accent-soft);

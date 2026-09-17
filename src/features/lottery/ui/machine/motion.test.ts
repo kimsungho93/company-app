@@ -1,27 +1,55 @@
 import { describe, expect, it } from 'vitest'
-import { CAPTURE_DURATION_MS, CHUTE_DURATION_MS, ROLL_DURATION_MS, WINNER_HOLD_MS } from '../../model/drawTiming'
-import { ballRadius, CHUTE_END, drawnBallPosition, EXIT_DURATION_MS, exitingPosition, GATE_POSITION, GLOBE_CENTER_Y, GLOBE_RADIUS, restingPositions, swirlingPosition, TRAY_END } from './motion'
+import {
+  CAPTURE_DURATION_MS,
+  CHUTE_DURATION_MS,
+  ROLL_DURATION_MS,
+  WINNER_HOLD_MS,
+} from '../../model/drawTiming'
+import {
+  ballRadius,
+  CHUTE_END,
+  drawnBallPosition,
+  EXIT_DURATION_MS,
+  exitingPosition,
+  GATE_POSITION,
+  GLOBE_CENTER_Y,
+  GLOBE_RADIUS,
+  restingPositions,
+  swirlingPosition,
+  TRAY_END,
+} from './motion'
 
 describe('lottery machine motion', () => {
-  it.each([1, 13, 18, 19, 30, 31, 50])('keeps all %i resting balls inside the drum without overlapping', (count) => {
-    const positions = restingPositions(count)
-    const radius = ballRadius(count)
-    expect(positions).toHaveLength(count)
-    for (const [index, position] of positions.entries()) {
-      expect(Math.hypot(position[0], position[1] - GLOBE_CENTER_Y, position[2]) + radius).toBeLessThanOrEqual(GLOBE_RADIUS)
-      for (const other of positions.slice(index + 1)) {
-        expect(Math.hypot(position[0] - other[0], position[1] - other[1], position[2] - other[2])).toBeGreaterThanOrEqual(radius * 2)
+  it.each([1, 13, 18, 19, 30, 31, 50])(
+    'keeps all %i resting balls inside the drum without overlapping',
+    (count) => {
+      const positions = restingPositions(count)
+      const radius = ballRadius(count)
+      expect(positions).toHaveLength(count)
+      for (const [index, position] of positions.entries()) {
+        expect(
+          Math.hypot(position[0], position[1] - GLOBE_CENTER_Y, position[2]) + radius,
+        ).toBeLessThanOrEqual(GLOBE_RADIUS)
+        for (const other of positions.slice(index + 1)) {
+          expect(
+            Math.hypot(position[0] - other[0], position[1] - other[1], position[2] - other[2]),
+          ).toBeGreaterThanOrEqual(radius * 2)
+        }
       }
-    }
-  })
+    },
+  )
 
   it('shows the same bounded mixing positions to viewers with the same server time', () => {
     for (let index = 0; index < 50; index += 1) {
       const position = swirlingPosition(index, 50, 7, 1_800_000_000_000)
       expect(position).toEqual(swirlingPosition(index, 50, 7, 1_800_000_000_000))
-      expect(Math.hypot(position[0], position[1] - GLOBE_CENTER_Y, position[2]) + ballRadius(50)).toBeLessThan(GLOBE_RADIUS)
+      expect(
+        Math.hypot(position[0], position[1] - GLOBE_CENTER_Y, position[2]) + ballRadius(50),
+      ).toBeLessThan(GLOBE_RADIUS)
     }
-    expect(swirlingPosition(0, 13, 1, 1_800_000_000_000)).not.toEqual(swirlingPosition(0, 13, 2, 1_800_000_000_000))
+    expect(swirlingPosition(0, 13, 1, 1_800_000_000_000)).not.toEqual(
+      swirlingPosition(0, 13, 2, 1_800_000_000_000),
+    )
   })
 
   it('continues a revealed ball along its chute using elapsed server time, then removes it', () => {
@@ -59,16 +87,23 @@ describe('lottery machine motion', () => {
     expect(distance / 13).toBeGreaterThan(3)
   })
 
-  it.each([1, 13, 31, 50])('brings a selected ball to the gate inside the %i-ball drum before releasing it', (count) => {
-    const drawnAt = 1_800_000_000_000
-    for (let index = 0; index < count; index += 1) {
-      for (let elapsed = 0; elapsed <= CAPTURE_DURATION_MS; elapsed += 25) {
-        const position = drawnBallPosition(index, count, 7, drawnAt, drawnAt + elapsed)!
-        expect(Math.hypot(position[0], position[1] - GLOBE_CENTER_Y, position[2]) + ballRadius(count)).toBeLessThan(GLOBE_RADIUS)
+  it.each([1, 13, 31, 50])(
+    'brings a selected ball to the gate inside the %i-ball drum before releasing it',
+    (count) => {
+      const drawnAt = 1_800_000_000_000
+      for (let index = 0; index < count; index += 1) {
+        for (let elapsed = 0; elapsed <= CAPTURE_DURATION_MS; elapsed += 25) {
+          const position = drawnBallPosition(index, count, 7, drawnAt, drawnAt + elapsed)!
+          expect(
+            Math.hypot(position[0], position[1] - GLOBE_CENTER_Y, position[2]) + ballRadius(count),
+          ).toBeLessThan(GLOBE_RADIUS)
+        }
+        expect(drawnBallPosition(index, count, 7, drawnAt, drawnAt + CAPTURE_DURATION_MS)).toEqual(
+          GATE_POSITION,
+        )
       }
-      expect(drawnBallPosition(index, count, 7, drawnAt, drawnAt + CAPTURE_DURATION_MS)).toEqual(GATE_POSITION)
-    }
-  })
+    },
+  )
 
   it('keeps the path continuous at the gate and at the tray', () => {
     const drawnAt = 1_800_000_000_000
@@ -83,7 +118,9 @@ describe('lottery machine motion', () => {
     const drawnAt = 1_800_000_000_000
     const origin = { position: swirlingPosition(3, 13, 8, drawnAt + 240), startedAt: drawnAt + 240 }
     expect(drawnBallPosition(3, 13, 8, drawnAt, origin.startedAt, origin)).toEqual(origin.position)
-    expect(drawnBallPosition(3, 13, 8, drawnAt, drawnAt + CAPTURE_DURATION_MS, origin)).toEqual(GATE_POSITION)
+    expect(drawnBallPosition(3, 13, 8, drawnAt, drawnAt + CAPTURE_DURATION_MS, origin)).toEqual(
+      GATE_POSITION,
+    )
     expect(drawnBallPosition(3, 13, 8, drawnAt, drawnAt + EXIT_DURATION_MS, origin)).toBeNull()
   })
 

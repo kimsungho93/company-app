@@ -23,14 +23,21 @@ export const LeaveCalendar = ({ userName, userId, isAdmin = false }: LeaveCalend
   const [openIso, setOpenIso] = useState<string | null>(null)
 
   const grid = useMemo(() => monthGrid(cursor.year, cursor.month), [cursor])
-  const window = useMemo(
-    () => ({ from: grid[0][0].iso, to: grid[grid.length - 1][6].iso }),
-    [grid],
-  )
+  const window = useMemo(() => ({ from: grid[0][0].iso, to: grid[grid.length - 1][6].iso }), [grid])
 
   const {
-    byDate, holidayByDate, busy, isFetching, listError, leaveError, holidayError,
-    createLeave, deleteLeave, createHoliday, deleteHoliday, resetErrors,
+    byDate,
+    holidayByDate,
+    busy,
+    isFetching,
+    listError,
+    leaveError,
+    holidayError,
+    createLeave,
+    deleteLeave,
+    createHoliday,
+    deleteHoliday,
+    resetErrors,
   } = useLeaveCalendarData(window)
   const todayIso = toIsoDate(today)
 

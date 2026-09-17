@@ -36,7 +36,15 @@ const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: num
   })
 }
 
-const fillRoundedRect = (context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number, color: string) => {
+const fillRoundedRect = (
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  color: string,
+) => {
   context.fillStyle = color
   context.beginPath()
   context.roundRect(x, y, width, height, radius)
@@ -81,10 +89,20 @@ export const createResultImage = async (input: LotteryResultImageInput): Promise
   setFont(context, nameSize)
   const cards = entries.map((entry) => {
     const lines = wrapText(context, entry.name, labelWidth - 36)
-    const fittedLabelWidth = Math.min(labelWidth, Math.max(68, ...lines.map((line) => context.measureText(line).width + 36)))
+    const fittedLabelWidth = Math.min(
+      labelWidth,
+      Math.max(68, ...lines.map((line) => context.measureText(line).width + 36)),
+    )
     const labelHeight = Math.max(68, lines.length * nameLineHeight + 24)
     const visualHeight = Math.max(ballDiameter, labelHeight + 32)
-    return { ...entry, lines, labelWidth: fittedLabelWidth, labelHeight, visualHeight, height: visualHeight + 104 }
+    return {
+      ...entry,
+      lines,
+      labelWidth: fittedLabelWidth,
+      labelHeight,
+      visualHeight,
+      height: visualHeight + 104,
+    }
   })
   const rows = Array.from({ length: Math.ceil(cards.length / columns) }, (_, index) => {
     const items = cards.slice(index * columns, (index + 1) * columns)
@@ -92,7 +110,11 @@ export const createResultImage = async (input: LotteryResultImageInput): Promise
   })
 
   canvas.width = WIDTH
-  canvas.height = gridTop + rows.reduce((height, row) => height + row.height, 0) + GAP * (rows.length - 1) + PADDING
+  canvas.height =
+    gridTop +
+    rows.reduce((height, row) => height + row.height, 0) +
+    GAP * (rows.length - 1) +
+    PADDING
   context.fillStyle = '#ffffff'
   context.fillRect(0, 0, WIDTH, canvas.height)
   context.textBaseline = 'top'
@@ -102,10 +124,16 @@ export const createResultImage = async (input: LotteryResultImageInput): Promise
   context.fillText(`사람 뽑기 · ${finished ? '오늘의 당첨자' : '중간 결과'}`, PADDING, PADDING)
   setFont(context, 46)
   context.fillStyle = '#191f28'
-  titleLines.forEach((line, index) => context.fillText(line, PADDING, titleTop + index * titleLineHeight))
+  titleLines.forEach((line, index) =>
+    context.fillText(line, PADDING, titleTop + index * titleLineHeight),
+  )
   setFont(context, 25, 600)
   context.fillStyle = '#5b6472'
-  context.fillText(`${entries.length} / ${winnerCount}명 발표 · 추첨 대상 ${participantCount}명`, PADDING, summaryTop)
+  context.fillText(
+    `${entries.length} / ${winnerCount}명 발표 · 추첨 대상 ${participantCount}명`,
+    PADDING,
+    summaryTop,
+  )
 
   let rowTop = gridTop
   rows.forEach((row, rowIndex) => {
@@ -130,7 +158,14 @@ export const createResultImage = async (input: LotteryResultImageInput): Promise
       context.fillStyle = card.color
       context.fill()
 
-      const shading = context.createRadialGradient(centerX - radius * 0.35, centerY - radius * 0.4, 0, centerX, centerY, radius)
+      const shading = context.createRadialGradient(
+        centerX - radius * 0.35,
+        centerY - radius * 0.4,
+        0,
+        centerX,
+        centerY,
+        radius,
+      )
       shading.addColorStop(0, 'rgba(255,255,255,0.22)')
       shading.addColorStop(0.55, 'rgba(255,255,255,0)')
       shading.addColorStop(1, 'rgba(0,0,0,0.13)')
@@ -138,12 +173,30 @@ export const createResultImage = async (input: LotteryResultImageInput): Promise
       context.fill()
 
       const labelTop = centerY - card.labelHeight / 2
-      fillRoundedRect(context, centerX - card.labelWidth / 2, labelTop + 3, card.labelWidth, card.labelHeight, 18, 'rgba(25,31,40,0.08)')
-      fillRoundedRect(context, centerX - card.labelWidth / 2, labelTop, card.labelWidth, card.labelHeight, 18, '#ffffff')
+      fillRoundedRect(
+        context,
+        centerX - card.labelWidth / 2,
+        labelTop + 3,
+        card.labelWidth,
+        card.labelHeight,
+        18,
+        'rgba(25,31,40,0.08)',
+      )
+      fillRoundedRect(
+        context,
+        centerX - card.labelWidth / 2,
+        labelTop,
+        card.labelWidth,
+        card.labelHeight,
+        18,
+        '#ffffff',
+      )
       setFont(context, nameSize)
       context.fillStyle = '#191f28'
-      const nameTop = centerY - card.lines.length * nameLineHeight / 2 + 4
-      card.lines.forEach((line, index) => context.fillText(line, centerX, nameTop + index * nameLineHeight))
+      const nameTop = centerY - (card.lines.length * nameLineHeight) / 2 + 4
+      card.lines.forEach((line, index) =>
+        context.fillText(line, centerX, nameTop + index * nameLineHeight),
+      )
     })
     rowTop += row.height + GAP
   })

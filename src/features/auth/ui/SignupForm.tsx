@@ -37,12 +37,7 @@ export const SignupForm = () => {
   const { status, formError, fieldError, submit, clearError } = useSignup()
   const busy = status === 'submitting'
 
-  const revalidate = (next: {
-    email: string
-    name: string
-    password: string
-    confirm: string
-  }) => {
+  const revalidate = (next: { email: string; name: string; password: string; confirm: string }) => {
     const result: FieldErrors = {
       email: validateSignupEmail(next.email),
       name: validateName(next.name),
@@ -69,8 +64,7 @@ export const SignupForm = () => {
   }
 
   const errorFor = (field: 'email' | 'name' | 'password') =>
-    (fieldError?.field === field ? fieldError.message : null) ??
-    (submitted ? errors[field] : null)
+    (fieldError?.field === field ? fieldError.message : null) ?? (submitted ? errors[field] : null)
 
   return (
     <AuthCard
@@ -109,7 +103,6 @@ export const SignupForm = () => {
           disabled={busy}
           error={errorFor('email')}
           onChange={(e) => {
-
             const next = e.target.value.toLowerCase()
             setEmail(next)
             if (submitted) revalidate({ ...current, email: next })
@@ -177,9 +170,10 @@ export const SignupForm = () => {
           }
         />
 
-        <Button type="submit" variant="accent" size="large" fullWidth loading={busy}>{status === 'success' ? '가입 완료' : '가입하기'}</Button>
+        <Button type="submit" variant="accent" size="large" fullWidth loading={busy}>
+          {status === 'success' ? '가입 완료' : '가입하기'}
+        </Button>
       </form>
-
     </AuthCard>
   )
 }

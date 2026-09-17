@@ -26,7 +26,10 @@
     box-shadow: 0 0 0 1px var(--border);
     opacity: 0.5;
     filter: grayscale(0.55);
-    transition: box-shadow 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+    transition:
+      box-shadow 0.15s ease,
+      opacity 0.15s ease,
+      filter 0.15s ease;
   }
 
   &:hover img {
@@ -35,7 +38,9 @@
   }
 
   input:checked + img {
-    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+    box-shadow:
+      0 0 0 2px var(--surface),
+      0 0 0 4px var(--accent);
     opacity: 1;
     filter: none;
   }

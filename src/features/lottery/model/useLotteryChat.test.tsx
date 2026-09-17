@@ -8,8 +8,14 @@ import { useLotteryChat } from './useLotteryChat'
 const me = { userId: 1, name: '선도우' }
 const other = { userId: 2, name: '육이슬' }
 const message = (seq: number, text = `대화 ${seq}`, senderId = 2): ChatMessage => ({
-  id: `message-${seq}`, seq, clientMessageId: `client-${seq}`, senderId,
-  senderName: senderId === 1 ? me.name : other.name, text, sentAt: '2026-09-15T00:00:00Z', readers: [],
+  id: `message-${seq}`,
+  seq,
+  clientMessageId: `client-${seq}`,
+  senderId,
+  senderName: senderId === 1 ? me.name : other.name,
+  text,
+  sentAt: '2026-09-15T00:00:00Z',
+  readers: [],
 })
 
 const makeSocket = () => {
@@ -18,12 +24,15 @@ const makeSocket = () => {
   const connection: StompConnection = {
     subscribe: (destination, listener) => {
       handlers.set(destination, listener as (event: LotteryChatEvent) => void)
-      return () => { handlers.delete(destination) }
+      return () => {
+        handlers.delete(destination)
+      }
     },
     publish,
     close: vi.fn(),
   }
-  const ready = (roomId = 'room-one') => handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId })
+  const ready = (roomId = 'room-one') =>
+    handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId })
   return { connection, publish, handlers, ready }
 }
 
@@ -32,14 +41,32 @@ const setup = async (open = true) => {
   const transport = createLotteryChatTransport('room-one')
   transport.connect(socket.connection)
   socket.ready()
-  const hook = renderHook(({ visible }) => useLotteryChat({ transport, currentUser: me, open: visible }), { initialProps: { visible: open } })
+  const hook = renderHook(
+    ({ visible }) => useLotteryChat({ transport, currentUser: me, open: visible }),
+    { initialProps: { visible: open } },
+  )
   await act(async () => vi.advanceTimersByTimeAsync(0))
-  const emit = (event: LotteryChatEvent) => act(() => socket.handlers.get('/topic/lottery/rooms/room-one/chat')?.(event))
-  const latestRequest = () => socket.publish.mock.calls.filter(([destination]) => destination.endsWith('/history')).at(-1)?.[1] as { requestId: string; beforeSeq?: number; query?: string; senderId?: number }
-  const page = (messages: ChatMessage[], extra: { hasMore?: boolean; latestSeq?: number; oldestSeq?: number; requestId?: string } = {}) => emit({
-    type: 'PAGE', roomId: 'room-one', requestId: latestRequest().requestId, messages,
-    hasMore: false, latestSeq: messages.at(-1)?.seq ?? 0, oldestSeq: messages[0]?.seq ?? 0, typing: [], ...extra,
-  })
+  const emit = (event: LotteryChatEvent) =>
+    act(() => socket.handlers.get('/topic/lottery/rooms/room-one/chat')?.(event))
+  const latestRequest = () =>
+    socket.publish.mock.calls
+      .filter(([destination]) => destination.endsWith('/history'))
+      .at(-1)?.[1] as { requestId: string; beforeSeq?: number; query?: string; senderId?: number }
+  const page = (
+    messages: ChatMessage[],
+    extra: { hasMore?: boolean; latestSeq?: number; oldestSeq?: number; requestId?: string } = {},
+  ) =>
+    emit({
+      type: 'PAGE',
+      roomId: 'room-one',
+      requestId: latestRequest().requestId,
+      messages,
+      hasMore: false,
+      latestSeq: messages.at(-1)?.seq ?? 0,
+      oldestSeq: messages[0]?.seq ?? 0,
+      typing: [],
+      ...extra,
+    })
   return { ...hook, ...socket, transport, emit, page, latestRequest }
 }
 
@@ -87,7 +114,10 @@ describe('useLotteryChat', () => {
     chat.emit({ type: 'MESSAGE', roomId: 'room-one', message: message(9, '당첨!', 1) })
     chat.emit({ type: 'MESSAGE', roomId: 'room-one', message: message(10, '당첨 한 번 더') })
     expect(chat.result.current.messages.map((item) => item.seq)).toEqual([7, 10])
-    act(() => { chat.result.current.search(''); chat.result.current.filterSender(null) })
+    act(() => {
+      chat.result.current.search('')
+      chat.result.current.filterSender(null)
+    })
     await act(async () => vi.advanceTimersByTimeAsync(0))
     expect(chat.latestRequest().query).toBeUndefined()
     expect(chat.latestRequest().senderId).toBeUndefined()
@@ -101,7 +131,12 @@ describe('useLotteryChat', () => {
     expect(pending.delivery).toBe('sending')
     const confirmed = { ...message(1, pending.text, 1), clientMessageId: pending.clientMessageId }
     chat.emit({ type: 'MESSAGE', roomId: 'room-one', message: confirmed })
-    chat.emit({ type: 'ACK', roomId: 'room-one', clientMessageId: pending.clientMessageId, message: confirmed })
+    chat.emit({
+      type: 'ACK',
+      roomId: 'room-one',
+      clientMessageId: pending.clientMessageId,
+      message: confirmed,
+    })
     expect(chat.result.current.messages).toHaveLength(1)
     expect(chat.result.current.messages[0]).toMatchObject({ seq: 1, delivery: 'sent' })
     expect(chat.result.current.unreadCount).toBe(0)
@@ -113,7 +148,9 @@ describe('useLotteryChat', () => {
     act(() => expect(chat.result.current.send('😀'.repeat(300))).toBe(true))
     act(() => expect(chat.result.current.send('😀'.repeat(301))).toBe(false))
     act(() => expect(chat.result.current.send(' \n ')).toBe(false))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/send'))).toHaveLength(1)
+    expect(
+      chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/send')),
+    ).toHaveLength(1)
     expect(chat.result.current.error).toContain('300자')
   })
 
@@ -125,8 +162,17 @@ describe('useLotteryChat', () => {
     await act(async () => vi.advanceTimersByTimeAsync(10_000))
     expect(chat.result.current.messages[0].delivery).toBe('failed')
     act(() => expect(chat.result.current.retry(id)).toBe(true))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/send')).map(([, body]) => body.clientMessageId)).toEqual([id, id])
-    chat.emit({ type: 'ACK', roomId: 'room-one', clientMessageId: id, message: { ...message(1, '재시도', 1), clientMessageId: id } })
+    expect(
+      chat.publish.mock.calls
+        .filter(([destination]) => destination.endsWith('/send'))
+        .map(([, body]) => body.clientMessageId),
+    ).toEqual([id, id])
+    chat.emit({
+      type: 'ACK',
+      roomId: 'room-one',
+      clientMessageId: id,
+      message: { ...message(1, '재시도', 1), clientMessageId: id },
+    })
     expect(chat.result.current.messages).toHaveLength(1)
     expect(chat.result.current.messages[0].delivery).toBe('sent')
   })
@@ -140,7 +186,12 @@ describe('useLotteryChat', () => {
     act(() => chat.result.current.send('모두에게'))
     const send = chat.publish.mock.calls.find(([destination]) => destination.endsWith('/send'))?.[1]
     expect(chat.result.current.messages).toEqual([])
-    chat.emit({ type: 'ACK', roomId: 'room-one', clientMessageId: send.clientMessageId, message: { ...message(1, '모두에게', 1), clientMessageId: send.clientMessageId } })
+    chat.emit({
+      type: 'ACK',
+      roomId: 'room-one',
+      clientMessageId: send.clientMessageId,
+      message: { ...message(1, '모두에게', 1), clientMessageId: send.clientMessageId },
+    })
     act(() => chat.result.current.filterSender(null))
     await act(async () => vi.advanceTimersByTimeAsync(0))
     chat.page([{ ...message(1, '모두에게', 1), clientMessageId: send.clientMessageId }])
@@ -160,13 +211,26 @@ describe('useLotteryChat', () => {
     act(() => abandoned?.({ type: 'MESSAGE', roomId: 'room-one', message: message(99) }))
     expect(chat.result.current.messages).toHaveLength(1)
     const fresh = makeSocket()
-    act(() => { chat.transport.connect(fresh.connection); fresh.ready() })
+    act(() => {
+      chat.transport.connect(fresh.connection)
+      fresh.ready()
+    })
     await act(async () => vi.advanceTimersByTimeAsync(0))
-    const requestId = fresh.publish.mock.calls.find(([destination]) => destination.endsWith('/history'))?.[1].requestId
-    act(() => fresh.handlers.get('/user/queue/lottery-chat')?.({
-      type: 'PAGE', roomId: 'room-one', requestId, messages: [{ ...message(1, '연결 복구', 1), clientMessageId: id }],
-      hasMore: false, oldestSeq: 1, latestSeq: 1, typing: [],
-    }))
+    const requestId = fresh.publish.mock.calls.find(([destination]) =>
+      destination.endsWith('/history'),
+    )?.[1].requestId
+    act(() =>
+      fresh.handlers.get('/user/queue/lottery-chat')?.({
+        type: 'PAGE',
+        roomId: 'room-one',
+        requestId,
+        messages: [{ ...message(1, '연결 복구', 1), clientMessageId: id }],
+        hasMore: false,
+        oldestSeq: 1,
+        latestSeq: 1,
+        typing: [],
+      }),
+    )
     expect(chat.result.current.connected).toBe(true)
     expect(chat.result.current.messages).toHaveLength(1)
     expect(chat.result.current.messages[0].delivery).toBe('sent')
@@ -176,9 +240,15 @@ describe('useLotteryChat', () => {
     const chat = await setup()
     chat.page([message(1), message(2), message(3), message(4, '내 대화', 1)])
     act(() => chat.result.current.markRead([1, 3, 3, 4, 9999]))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read')).map(([, body]) => body.seqs)).toEqual([[1, 3]])
+    expect(
+      chat.publish.mock.calls
+        .filter(([destination]) => destination.endsWith('/read'))
+        .map(([, body]) => body.seqs),
+    ).toEqual([[1, 3]])
     act(() => chat.result.current.markRead([1, 3]))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read'))).toHaveLength(1)
+    expect(
+      chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read')),
+    ).toHaveLength(1)
     chat.emit({ type: 'READ', roomId: 'room-one', seqs: [3], reader: other })
     chat.emit({ type: 'READ', roomId: 'room-one', seqs: [3], reader: other })
     expect(chat.result.current.messages[2].readers).toEqual([other])
@@ -191,19 +261,28 @@ describe('useLotteryChat', () => {
     chat.rerender({ visible: true })
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
     act(() => chat.result.current.markRead([1]))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read'))).toHaveLength(0)
+    expect(
+      chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read')),
+    ).toHaveLength(0)
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
     act(() => chat.result.current.markRead([1]))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read'))).toHaveLength(1)
+    expect(
+      chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read')),
+    ).toHaveLength(1)
   })
 
   it('bounds read batches and removes unread badges only for viewed messages', async () => {
     const chat = await setup()
     chat.page([])
-    for (let seq = 1; seq <= 101; seq += 1) chat.emit({ type: 'MESSAGE', roomId: 'room-one', message: message(seq) })
+    for (let seq = 1; seq <= 101; seq += 1)
+      chat.emit({ type: 'MESSAGE', roomId: 'room-one', message: message(seq) })
     expect(chat.result.current.unreadCount).toBe(101)
     act(() => chat.result.current.markRead(Array.from({ length: 101 }, (_, index) => index + 1)))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/read')).map(([, body]) => body.seqs.length)).toEqual([100, 1])
+    expect(
+      chat.publish.mock.calls
+        .filter(([destination]) => destination.endsWith('/read'))
+        .map(([, body]) => body.seqs.length),
+    ).toEqual([100, 1])
     expect(chat.result.current.unreadCount).toBe(0)
   })
 
@@ -222,15 +301,27 @@ describe('useLotteryChat', () => {
     act(() => chat.result.current.setTyping(true))
     await act(async () => vi.advanceTimersByTimeAsync(1000))
     act(() => chat.result.current.setTyping(true))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/typing'))).toHaveLength(1)
+    expect(
+      chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/typing')),
+    ).toHaveLength(1)
     await act(async () => vi.advanceTimersByTimeAsync(1000))
     act(() => chat.result.current.setTyping(true))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/typing'))).toHaveLength(2)
+    expect(
+      chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/typing')),
+    ).toHaveLength(2)
     await act(async () => vi.advanceTimersByTimeAsync(5000))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/typing')).at(-1)?.[1]).toEqual({ typing: false })
+    expect(
+      chat.publish.mock.calls
+        .filter(([destination]) => destination.endsWith('/typing'))
+        .at(-1)?.[1],
+    ).toEqual({ typing: false })
     act(() => chat.result.current.setTyping(true))
     chat.rerender({ visible: false })
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/typing')).at(-1)?.[1]).toEqual({ typing: false })
+    expect(
+      chat.publish.mock.calls
+        .filter(([destination]) => destination.endsWith('/typing'))
+        .at(-1)?.[1],
+    ).toEqual({ typing: false })
   })
 
   it('keeps remote typing until the server expiry event even if the active list is unchanged', async () => {
@@ -249,7 +340,11 @@ describe('useLotteryChat', () => {
     act(() => chat.result.current.setTyping(true))
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
     act(() => document.dispatchEvent(new Event('visibilitychange')))
-    expect(chat.publish.mock.calls.filter(([destination]) => destination.endsWith('/typing')).at(-1)?.[1]).toEqual({ typing: false })
+    expect(
+      chat.publish.mock.calls
+        .filter(([destination]) => destination.endsWith('/typing'))
+        .at(-1)?.[1],
+    ).toEqual({ typing: false })
   })
 
   it('routes correlated send errors to the failed message without replacing history', async () => {
@@ -257,9 +352,18 @@ describe('useLotteryChat', () => {
     chat.page([message(1)])
     act(() => chat.result.current.send('잠깐'))
     const id = chat.result.current.messages[1].clientMessageId
-    chat.emit({ type: 'ERROR', roomId: 'room-one', clientMessageId: id, code: 'CHAT_RATE_LIMIT', message: '잠시 후 보내 주세요.' })
+    chat.emit({
+      type: 'ERROR',
+      roomId: 'room-one',
+      clientMessageId: id,
+      code: 'CHAT_RATE_LIMIT',
+      message: '잠시 후 보내 주세요.',
+    })
     expect(chat.result.current.error).toBeNull()
-    expect(chat.result.current.messages[1]).toMatchObject({ delivery: 'failed', failure: '잠시 후 보내 주세요.' })
+    expect(chat.result.current.messages[1]).toMatchObject({
+      delivery: 'failed',
+      failure: '잠시 후 보내 주세요.',
+    })
     expect(chat.result.current.messages[0].seq).toBe(1)
   })
 
@@ -316,15 +420,24 @@ describe('useLotteryChat', () => {
     const secondSocket = makeSocket()
     second.connect(secondSocket.connection)
     secondSocket.ready('room-two')
-    const hook = renderHook(({ transport }) => useLotteryChat({ transport, currentUser: me, open: true }), { initialProps: { transport: first } })
+    const hook = renderHook(
+      ({ transport }) => useLotteryChat({ transport, currentUser: me, open: true }),
+      { initialProps: { transport: first } },
+    )
     await act(async () => vi.advanceTimersByTimeAsync(0))
     act(() => hook.result.current.send('첫 번째 방 메시지'))
     expect(hook.result.current.messages).toHaveLength(1)
     hook.rerender({ transport: second })
     await act(async () => vi.advanceTimersByTimeAsync(0))
     expect(hook.result.current.messages).toEqual([])
-    expect(secondSocket.publish.mock.calls.some(([destination]) => destination === '/app/lottery/rooms/room-two/chat/history')).toBe(true)
-    expect(secondSocket.publish.mock.calls.some(([destination]) => destination.endsWith('/send'))).toBe(false)
+    expect(
+      secondSocket.publish.mock.calls.some(
+        ([destination]) => destination === '/app/lottery/rooms/room-two/chat/history',
+      ),
+    ).toBe(true)
+    expect(
+      secondSocket.publish.mock.calls.some(([destination]) => destination.endsWith('/send')),
+    ).toBe(false)
   })
   it('does not request history until the room transport receives READY', async () => {
     const socket = makeSocket()
@@ -337,5 +450,9 @@ describe('useLotteryChat', () => {
     act(() => socket.ready())
     await act(async () => vi.advanceTimersByTimeAsync(0))
     expect(result.current.connected).toBe(true)
-    expect(socket.publish).toHaveBeenCalledWith('/app/lottery/rooms/room-one/chat/history', expect.objectContaining({ requestId: expect.any(String) }))
-  })})
+    expect(socket.publish).toHaveBeenCalledWith(
+      '/app/lottery/rooms/room-one/chat/history',
+      expect.objectContaining({ requestId: expect.any(String) }),
+    )
+  })
+})

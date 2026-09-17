@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  clearRememberedEmail,
-  loadRememberedEmail,
-  saveRememberedEmail,
-} from './rememberedEmail'
+import { clearRememberedEmail, loadRememberedEmail, saveRememberedEmail } from './rememberedEmail'
 
 describe('rememberedEmail', () => {
   beforeEach(() => {

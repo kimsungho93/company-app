@@ -4,18 +4,44 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { OrbitParticipants } from './OrbitParticipants'
 
 const state = vi.hoisted(() => ({ create: vi.fn() }))
-vi.mock('./orbitScene', () => ({ createLotteryOrbitScene: (...args: unknown[]) => state.create(...args) }))
+vi.mock('./orbitScene', () => ({
+  createLotteryOrbitScene: (...args: unknown[]) => state.create(...args),
+}))
 vi.mock('@/shared/theme', () => ({ useTheme: () => ({ resolved: 'light' }) }))
-const instance = { select: vi.fn(), setTyping: vi.fn(), pulse: vi.fn(), rotateBy: vi.fn(), updateColors: vi.fn(), dispose: vi.fn() }
-const members = Array.from({ length: 9 }, (_, index) => ({ userId: index + 1, name: `참여자 ${index + 1}` }))
+const instance = {
+  select: vi.fn(),
+  setTyping: vi.fn(),
+  pulse: vi.fn(),
+  rotateBy: vi.fn(),
+  updateColors: vi.fn(),
+  dispose: vi.fn(),
+}
+const members = Array.from({ length: 9 }, (_, index) => ({
+  userId: index + 1,
+  name: `참여자 ${index + 1}`,
+}))
 
 describe('OrbitParticipants', () => {
-  beforeEach(() => { vi.clearAllMocks(); state.create.mockReturnValue(instance) })
-  afterEach(() => { vi.restoreAllMocks() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    state.create.mockReturnValue(instance)
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
 
   it('limits the orbit to six real members including the current user and keeps the rest accessible', async () => {
-    const onSelect = vi.fn(), user = userEvent.setup()
-    const { container, unmount } = render(<OrbitParticipants members={members} currentUserId={9} selectedId={null} typing={[]} onSelect={onSelect} />)
+    const onSelect = vi.fn(),
+      user = userEvent.setup()
+    const { container, unmount } = render(
+      <OrbitParticipants
+        members={members}
+        currentUserId={9}
+        selectedId={null}
+        typing={[]}
+        onSelect={onSelect}
+      />,
+    )
     await waitFor(() => expect(state.create).toHaveBeenCalledOnce())
     expect(container.querySelectorAll('[data-orbit-person]')).toHaveLength(6)
     expect(screen.getByRole('button', { name: '참여자 9, 나 대화 보기' })).toBeInTheDocument()
@@ -39,9 +65,20 @@ describe('OrbitParticipants', () => {
   })
 
   it('keeps person selection and rotation usable when WebGL initialization fails', async () => {
-    state.create.mockImplementation(() => { throw new Error('WebGL unavailable') })
-    const onSelect = vi.fn(), user = userEvent.setup()
-    render(<OrbitParticipants members={members.slice(0, 3)} currentUserId={1} selectedId={null} typing={[]} onSelect={onSelect} />)
+    state.create.mockImplementation(() => {
+      throw new Error('WebGL unavailable')
+    })
+    const onSelect = vi.fn(),
+      user = userEvent.setup()
+    render(
+      <OrbitParticipants
+        members={members.slice(0, 3)}
+        currentUserId={1}
+        selectedId={null}
+        typing={[]}
+        onSelect={onSelect}
+      />,
+    )
     await waitFor(() => expect(state.create).toHaveBeenCalledOnce())
     expect(screen.getByTestId('chat-orbit')).toHaveAttribute('data-ready', 'false')
     await user.click(screen.getByRole('button', { name: '참여자 2 대화 보기' }))

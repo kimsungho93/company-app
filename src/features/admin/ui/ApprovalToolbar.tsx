@@ -15,8 +15,16 @@ interface ApprovalToolbarProps {
 }
 
 export const ApprovalToolbar = ({
-  allSelected, someSelected, selectedCount, selfSelected, busy,
-  canApprove, canReject, onToggleAll, onApprove, onReject,
+  allSelected,
+  someSelected,
+  selectedCount,
+  selfSelected,
+  busy,
+  canApprove,
+  canReject,
+  onToggleAll,
+  onApprove,
+  onReject,
 }: ApprovalToolbarProps) => (
   <div className={styles.toolbar}>
     <Checkbox
@@ -37,12 +45,7 @@ export const ApprovalToolbar = ({
         )}
 
         {canApprove && (
-          <button
-            type="button"
-            className={styles.approve}
-            disabled={busy}
-            onClick={onApprove}
-          >
+          <button type="button" className={styles.approve} disabled={busy} onClick={onApprove}>
             일괄 승인
           </button>
         )}

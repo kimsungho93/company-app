@@ -50,14 +50,17 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
   const [startDraw] = useStartLotteryMutation()
   const [resetDraw] = useResetLotteryMutation()
 
-  const accept = useCallback((snapshot: LotteryRoomSnapshot) => {
-    if (snapshot.id !== roomId) return
-    if (latest.current?.id === snapshot.id && latest.current.version >= snapshot.version) return
-    latest.current = snapshot
-    setRoom(snapshot)
-    const serverTime = Date.parse(snapshot.serverTime)
-    if (Number.isFinite(serverTime)) setServerOffsetMs(serverTime - Date.now())
-  }, [roomId])
+  const accept = useCallback(
+    (snapshot: LotteryRoomSnapshot) => {
+      if (snapshot.id !== roomId) return
+      if (latest.current?.id === snapshot.id && latest.current.version >= snapshot.version) return
+      latest.current = snapshot
+      setRoom(snapshot)
+      const serverTime = Date.parse(snapshot.serverTime)
+      if (Number.isFinite(serverTime)) setServerOffsetMs(serverTime - Date.now())
+    },
+    [roomId],
+  )
 
   useEffect(() => {
     const current = ++generation.current
@@ -162,18 +165,27 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
               ready.subscribe<LotteryRoomSnapshot>(`/topic/lottery/rooms/${roomId}`, (next) => {
                 if (active() && !failed) accept(next)
               })
-              ready.subscribe<{ code?: string; message: string }>('/user/queue/errors', (reason) => {
-                if (!active() || failed) return
-                if (reason.code === 'NOT_IN_LOTTERY_ROOM' || reason.code === 'LOTTERY_ROOM_NOT_FOUND') fail(reason.message)
-                else setError(reason.message)
-              })
+              ready.subscribe<{ code?: string; message: string }>(
+                '/user/queue/errors',
+                (reason) => {
+                  if (!active() || failed) return
+                  if (
+                    reason.code === 'NOT_IN_LOTTERY_ROOM' ||
+                    reason.code === 'LOTTERY_ROOM_NOT_FOUND'
+                  )
+                    fail(reason.message)
+                  else setError(reason.message)
+                },
+              )
               unsubscribeChatReady = chatTransport.subscribeConnection(() => {
                 if (!active() || failed || !chatTransport.isConnected() || socketReady) return
                 clearTimeout(timeout)
                 connectedRef.current = true
                 setConnecting(false)
                 socketReady = true
-                verificationInterval = setInterval(() => { void verify() }, 5000)
+                verificationInterval = setInterval(() => {
+                  void verify()
+                }, 5000)
               })
               chatTransport.connect(ready)
               ready.publish(`/app/lottery/rooms/${roomId}/enter`)
@@ -210,7 +222,10 @@ export const useLotteryRoom = (roomId: string): LotteryRoomState => {
     }
   }, [roomId, attempt, joinRoom, getRoom, accept, chatTransport])
 
-  const perform = async (operation: () => Promise<LotteryRoomSnapshot | void | false>, leaving = false): Promise<boolean> => {
+  const perform = async (
+    operation: () => Promise<LotteryRoomSnapshot | void | false>,
+    leaving = false,
+  ): Promise<boolean> => {
     if (busyRef.current || (!connectedRef.current && !leaving)) return false
     const current = generation.current
     busyRef.current = true

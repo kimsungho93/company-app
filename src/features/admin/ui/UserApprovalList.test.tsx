@@ -37,7 +37,10 @@ describe('UserApprovalList', () => {
   })
 
   it('조회 중에는 빈 목록이라고 안내하지 않는다', () => {
-    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>(() => {})),
+    )
     const { wrapper } = createTestWrapper()
     render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     expect(screen.getByRole('status')).toHaveTextContent('불러오는 중')
@@ -46,9 +49,15 @@ describe('UserApprovalList', () => {
 
   it('조회 실패를 알리고 다시 시도하면 목록을 보여준다', async () => {
     const user = userEvent.setup()
-    vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(jsonResponse({ code: 'INTERNAL_ERROR', message: '목록 조회 실패' }, 500))
-      .mockResolvedValue(jsonResponse([row(2, '이영희')])))
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          jsonResponse({ code: 'INTERNAL_ERROR', message: '목록 조회 실패' }, 500),
+        )
+        .mockResolvedValue(jsonResponse([row(2, '이영희')])),
+    )
     const { wrapper } = createTestWrapper()
     render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     expect(await screen.findByRole('alert')).toHaveTextContent('목록 조회 실패')
@@ -60,10 +69,13 @@ describe('UserApprovalList', () => {
 
   it('새 탭을 조회하는 동안 이전 탭의 사용자를 표시하지 않는다', async () => {
     const user = userEvent.setup()
-    vi.stubGlobal('fetch', vi.fn((input: Request) => {
-      if (input.url.includes('APPROVED')) return new Promise<Response>(() => {})
-      return Promise.resolve(jsonResponse([row(2, '이영희')]))
-    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: Request) => {
+        if (input.url.includes('APPROVED')) return new Promise<Response>(() => {})
+        return Promise.resolve(jsonResponse([row(2, '이영희')]))
+      }),
+    )
     const { wrapper } = createTestWrapper()
     render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await screen.findByText('이영희')
@@ -75,11 +87,17 @@ describe('UserApprovalList', () => {
   it('일괄 작업의 마지막 요청까지 확인창과 탭을 잠근다', async () => {
     const user = userEvent.setup()
     let finishLast!: (response: Response) => void
-    vi.stubGlobal('fetch', vi.fn((input: Request) => {
-      if (input.url.includes('/2/approve')) return new Promise<Response>(resolve => { finishLast = resolve })
-      if (input.url.includes('/approve')) return Promise.resolve(emptyResponse(204))
-      return Promise.resolve(jsonResponse([row(2, '이영희'), row(3, '박철수')]))
-    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: Request) => {
+        if (input.url.includes('/2/approve'))
+          return new Promise<Response>((resolve) => {
+            finishLast = resolve
+          })
+        if (input.url.includes('/approve')) return Promise.resolve(emptyResponse(204))
+        return Promise.resolve(jsonResponse([row(2, '이영희'), row(3, '박철수')]))
+      }),
+    )
     const { wrapper } = createTestWrapper()
     render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
     await screen.findByText('이영희')
@@ -110,9 +128,7 @@ describe('UserApprovalList', () => {
 
     render(<UserApprovalList currentUserId={ME.id} />, { wrapper })
 
-    await waitFor(() =>
-      expect(screen.getByText(/2026-08-18 07:11:11/)).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText(/2026-08-18 07:11:11/)).toBeInTheDocument())
   })
 
   it('자기 자신의 거절 버튼은 비활성이다', async () => {

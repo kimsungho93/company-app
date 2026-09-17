@@ -88,9 +88,11 @@ describe('RoomList', () => {
   it('조회가 실패하면 알린다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'INTERNAL_ERROR', message: '서버에 문제가 발생했습니다.' }, 500),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ code: 'INTERNAL_ERROR', message: '서버에 문제가 발생했습니다.' }, 500),
+        ),
     )
     setup()
 

@@ -5,7 +5,10 @@ import { usePresentedWinners, WINNER_EXIT_MS } from '../model/usePresentedWinner
 import { WinnerTray } from './WinnerTray'
 
 const start = Date.parse('2026-09-14T00:00:00Z')
-const winner = (name: string, delay = 0): LotteryWinner => ({ name, drawnAt: new Date(start + delay).toISOString() })
+const winner = (name: string, delay = 0): LotteryWinner => ({
+  name,
+  drawnAt: new Date(start + delay).toISOString(),
+})
 
 describe('winner presentation', () => {
   afterEach(() => vi.useRealTimers())
@@ -33,7 +36,8 @@ describe('winner presentation', () => {
   it('still schedules the last winner when the reveal boundary passes between render and effect', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(start + WINNER_EXIT_MS + 1)
-    const clock = vi.spyOn(Date, 'now')
+    const clock = vi
+      .spyOn(Date, 'now')
       .mockReturnValueOnce(start + WINNER_EXIT_MS - 1)
       .mockReturnValueOnce(start + WINNER_EXIT_MS - 1)
       .mockReturnValue(start + WINNER_EXIT_MS + 1)
@@ -62,7 +66,9 @@ describe('winner presentation', () => {
     vi.useFakeTimers()
     vi.setSystemTime(start)
     const winners = [winner('선도우'), winner('육이슬', 4000)]
-    const { result, rerender } = renderHook(({ list }) => usePresentedWinners(list, 0), { initialProps: { list: winners } })
+    const { result, rerender } = renderHook(({ list }) => usePresentedWinners(list, 0), {
+      initialProps: { list: winners },
+    })
     await act(async () => vi.advanceTimersByTimeAsync(WINNER_EXIT_MS + 20))
     expect(result.current.map((item) => item.name)).toEqual(['선도우'])
     await act(async () => vi.advanceTimersByTimeAsync(4000))
@@ -79,8 +85,12 @@ describe('winner presentation', () => {
     rerender(<WinnerTray winners={[first]} count={2} finished={false} />)
     expect(screen.getByRole('status')).toHaveTextContent('1번째 당첨자 선도우')
     rerender(<WinnerTray winners={[first, second]} count={2} finished />)
-    expect(screen.getByRole('status')).toHaveTextContent('2번째 당첨자 육이슬. 추첨이 완료되었습니다.')
-    expect(within(screen.getByRole('list', { name: '발표 순서대로 당첨자' })).getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '2번째 당첨자 육이슬. 추첨이 완료되었습니다.',
+    )
+    expect(
+      within(screen.getByRole('list', { name: '발표 순서대로 당첨자' })).getAllByRole('listitem'),
+    ).toHaveLength(2)
     rerender(<WinnerTray winners={[]} count={2} finished={false} />)
     expect(screen.getByRole('status')).toHaveTextContent('추첨을 기다리고 있습니다.')
     expect(screen.queryByRole('list')).not.toBeInTheDocument()

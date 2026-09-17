@@ -35,7 +35,9 @@ describe('session lifecycle', () => {
   it('warns one minute before idle expiry', async () => {
     const { result } = renderHook(() => useSessionLifecycle())
     expect(result.current.warning).toBe(false)
-    await act(async () => { await vi.advanceTimersByTimeAsync(30_000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000)
+    })
     expect(result.current.warning).toBe(true)
     expect(result.current.secondsRemaining).toBe(60)
     expect(calls.activity).not.toHaveBeenCalled()
@@ -62,7 +64,9 @@ describe('session lifecycle', () => {
     })
     const { result } = renderHook(() => useSessionLifecycle())
     expect(result.current.warning).toBe(true)
-    await act(async () => { await result.current.continueSession() })
+    await act(async () => {
+      await result.current.continueSession()
+    })
     expect(calls.activity).toHaveBeenCalledOnce()
     expect(result.current.warning).toBe(false)
   })
@@ -74,7 +78,9 @@ describe('session lifecycle', () => {
       return 'success'
     })
     const { result } = renderHook(() => useSessionLifecycle())
-    await act(async () => { await vi.advanceTimersByTimeAsync(1_000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000)
+    })
     expect(calls.check).toHaveBeenCalledOnce()
     expect(sessionStore.get().ended).toBe(false)
     expect(result.current.expired).toBe(false)
@@ -85,7 +91,9 @@ describe('session lifecycle', () => {
     sessionStore.accept(metadata(1_000), true, false)
     calls.check.mockResolvedValue('retryable')
     const { result } = renderHook(() => useSessionLifecycle())
-    await act(async () => { await vi.advanceTimersByTimeAsync(1_000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000)
+    })
     expect(result.current.expired).toBe(true)
     expect(result.current.failed).toBe(true)
     expect(sessionStore.get().ended).toBe(false)

@@ -55,7 +55,9 @@
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.15s ease, rotate 0.2s ease;
+  transition:
+    color 0.15s ease,
+    rotate 0.2s ease;
 
   &:hover {
     color: var(--text-strong);
@@ -135,7 +137,10 @@
   font-family: inherit;
   font-size: 11.5px;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, scale 0.1s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    scale 0.1s ease;
 
   &:hover {
     background: var(--danger-soft);

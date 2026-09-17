@@ -27,7 +27,9 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, scale 0.1s ease;
+  transition:
+    background 0.15s ease,
+    scale 0.1s ease;
 
   &:active:not(:disabled) {
     scale: 0.98;

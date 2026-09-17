@@ -1,16 +1,38 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { BackSide, BufferGeometry, CatmullRomCurve3, Curve, DoubleSide, Float32BufferAttribute, FrontSide, PMREMGenerator, Quaternion, Vector3 } from 'three'
+import {
+  BackSide,
+  BufferGeometry,
+  CatmullRomCurve3,
+  Curve,
+  DoubleSide,
+  Float32BufferAttribute,
+  FrontSide,
+  PMREMGenerator,
+  Quaternion,
+  Vector3,
+} from 'three'
 import type { Group } from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import type { LotteryMachineProps } from '../LotteryMachine'
 import { SETTLE_DURATION_MS } from '../../model/drawTiming'
 import { NameBall } from './NameBall'
-import { ballRadius, chutePosition, GLOBE_CENTER_Y, GLOBE_RADIUS, restingPositions, rollingPosition } from './motion'
+import {
+  ballRadius,
+  chutePosition,
+  GLOBE_CENTER_Y,
+  GLOBE_RADIUS,
+  restingPositions,
+  rollingPosition,
+} from './motion'
 import type { BallPosition } from './motion'
 
-type MachineSceneProps = LotteryMachineProps & { mixing: boolean; reducedMotion: boolean; onContextLost: () => void }
+type MachineSceneProps = LotteryMachineProps & {
+  mixing: boolean
+  reducedMotion: boolean
+  onContextLost: () => void
+}
 type Coordinates = [number, number, number]
 
 class BallPath extends Curve<Vector3> {
@@ -45,7 +67,14 @@ void main() {
   #include <colorspace_fragment>
 }`
 
-const RoundedBlock = ({ size, position, color, radius = 0.08, metalness = 0.2, roughness = 0.4 }: {
+const RoundedBlock = ({
+  size,
+  position,
+  color,
+  radius = 0.08,
+  metalness = 0.2,
+  roughness = 0.4,
+}: {
   size: Coordinates
   position: Coordinates
   color: string
@@ -54,11 +83,20 @@ const RoundedBlock = ({ size, position, color, radius = 0.08, metalness = 0.2, r
   roughness?: number
 }) => {
   const [width, height, depth] = size
-  const geometry = useMemo(() => new RoundedBoxGeometry(width, height, depth, 4, radius), [width, height, depth, radius])
+  const geometry = useMemo(
+    () => new RoundedBoxGeometry(width, height, depth, 4, radius),
+    [width, height, depth, radius],
+  )
   useEffect(() => () => geometry.dispose(), [geometry])
   return (
     <mesh geometry={geometry} position={position} castShadow receiveShadow>
-      <meshPhysicalMaterial color={color} roughness={roughness} metalness={metalness} clearcoat={0.22} clearcoatRoughness={0.38} />
+      <meshPhysicalMaterial
+        color={color}
+        roughness={roughness}
+        metalness={metalness}
+        clearcoat={0.22}
+        clearcoatRoughness={0.38}
+      />
     </mesh>
   )
 }
@@ -87,7 +125,15 @@ const StudioEnvironment = () => {
   return null
 }
 
-const Mixer = ({ drawing, serverOffsetMs, reducedMotion }: { drawing: boolean; serverOffsetMs: number; reducedMotion: boolean }) => {
+const Mixer = ({
+  drawing,
+  serverOffsetMs,
+  reducedMotion,
+}: {
+  drawing: boolean
+  serverOffsetMs: number
+  reducedMotion: boolean
+}) => {
   const mixer = useRef<Group>(null)
   const wasDrawing = useRef(drawing)
   const stopping = useRef<{ angle: number; startedAt: number } | null>(null)
@@ -97,7 +143,7 @@ const Mixer = ({ drawing, serverOffsetMs, reducedMotion }: { drawing: boolean; s
     if (drawing) {
       wasDrawing.current = true
       stopping.current = null
-      mixer.current.rotation.z = now / 1000 * 5.5
+      mixer.current.rotation.z = (now / 1000) * 5.5
     } else {
       if (!stopping.current) {
         if (!wasDrawing.current) return
@@ -106,12 +152,13 @@ const Mixer = ({ drawing, serverOffsetMs, reducedMotion }: { drawing: boolean; s
       }
       const progress = Math.min(1, (now - stopping.current.startedAt) / SETTLE_DURATION_MS)
       const distance = progress - progress ** 2 + progress ** 3 / 3
-      mixer.current.rotation.z = stopping.current.angle + 5.5 * SETTLE_DURATION_MS / 1000 * distance
+      mixer.current.rotation.z =
+        stopping.current.angle + ((5.5 * SETTLE_DURATION_MS) / 1000) * distance
     }
   })
   return (
     <group ref={mixer} position={[0, GLOBE_CENTER_Y, -0.87]}>
-      {[0, Math.PI * 2 / 3, Math.PI * 4 / 3].map((rotation) => (
+      {[0, (Math.PI * 2) / 3, (Math.PI * 4) / 3].map((rotation) => (
         <group key={rotation} rotation={[0, 0, rotation]}>
           <mesh position={[0, 0.46, 0]} castShadow>
             <capsuleGeometry args={[0.027, 0.78, 4, 8]} />
@@ -119,7 +166,15 @@ const Mixer = ({ drawing, serverOffsetMs, reducedMotion }: { drawing: boolean; s
           </mesh>
           <mesh position={[0.035, 0.9, 0.025]} rotation={[0, 0.15, -0.28]}>
             <capsuleGeometry args={[0.075, 0.16, 4, 12]} />
-            <meshPhysicalMaterial color="#d5e5ed" transparent opacity={0.55} metalness={0.05} roughness={0.22} clearcoat={0.8} depthWrite={false} />
+            <meshPhysicalMaterial
+              color="#d5e5ed"
+              transparent
+              opacity={0.55}
+              metalness={0.05}
+              roughness={0.22}
+              clearcoat={0.8}
+              depthWrite={false}
+            />
           </mesh>
         </group>
       ))}
@@ -146,7 +201,7 @@ const createTrayGeometry = (curve: Curve<Vector3>, radius: number) => {
     const tangent = curve.getTangent(progress)
     const side = new Vector3(tangent.z, 0, -tangent.x).normalize()
     for (let radial = 0; radial <= radialSegments; radial += 1) {
-      const angle = Math.PI + radial / radialSegments * Math.PI
+      const angle = Math.PI + (radial / radialSegments) * Math.PI
       positions.push(
         center.x + side.x * Math.cos(angle) * radius,
         center.y + Math.sin(angle) * radius,
@@ -171,18 +226,36 @@ const Outlet = ({ radius }: { radius: number }) => {
   const tray = useMemo(() => new BallPath(rollingPosition), [])
   const trayRadius = radius + 0.028
   const trayGeometry = useMemo(() => createTrayGeometry(tray, trayRadius), [tray, trayRadius])
-  const rims = useMemo(() => [0, 1].map((progress) => ({
-    center: tube.getPoint(progress),
-    orientation: new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), tube.getTangent(progress).normalize()),
-  })), [tube])
-  const rails = useMemo(() => [-1, 1].map((direction) => new CatmullRomCurve3(
-    Array.from({ length: 20 }, (_, index) => {
-      const progress = index / 19
-      const point = tray.getPoint(progress)
-      const tangent = tray.getTangent(progress)
-      return point.add(new Vector3(tangent.z, 0, -tangent.x).normalize().multiplyScalar(trayRadius * direction))
-    }),
-  )), [tray, trayRadius])
+  const rims = useMemo(
+    () =>
+      [0, 1].map((progress) => ({
+        center: tube.getPoint(progress),
+        orientation: new Quaternion().setFromUnitVectors(
+          new Vector3(0, 0, 1),
+          tube.getTangent(progress).normalize(),
+        ),
+      })),
+    [tube],
+  )
+  const rails = useMemo(
+    () =>
+      [-1, 1].map(
+        (direction) =>
+          new CatmullRomCurve3(
+            Array.from({ length: 20 }, (_, index) => {
+              const progress = index / 19
+              const point = tray.getPoint(progress)
+              const tangent = tray.getTangent(progress)
+              return point.add(
+                new Vector3(tangent.z, 0, -tangent.x)
+                  .normalize()
+                  .multiplyScalar(trayRadius * direction),
+              )
+            }),
+          ),
+      ),
+    [tray, trayRadius],
+  )
 
   useEffect(() => () => trayGeometry.dispose(), [trayGeometry])
 
@@ -190,11 +263,28 @@ const Outlet = ({ radius }: { radius: number }) => {
     <>
       <mesh renderOrder={3}>
         <tubeGeometry args={[tube, 40, 0.353, 32, false]} />
-        <meshPhysicalMaterial color="#edf8ff" side={FrontSide} transparent opacity={0.14} depthWrite={false} roughness={0.16} clearcoat={0.55} envMapIntensity={0.7} />
+        <meshPhysicalMaterial
+          color="#edf8ff"
+          side={FrontSide}
+          transparent
+          opacity={0.14}
+          depthWrite={false}
+          roughness={0.16}
+          clearcoat={0.55}
+          envMapIntensity={0.7}
+        />
       </mesh>
       <mesh renderOrder={2}>
         <tubeGeometry args={[tube, 40, 0.325, 32, false]} />
-        <meshPhysicalMaterial color="#c8dbe7" side={BackSide} transparent opacity={0.12} depthWrite={false} roughness={0.16} envMapIntensity={0.6} />
+        <meshPhysicalMaterial
+          color="#c8dbe7"
+          side={BackSide}
+          transparent
+          opacity={0.12}
+          depthWrite={false}
+          roughness={0.16}
+          envMapIntensity={0.6}
+        />
       </mesh>
       {rims.map(({ center, orientation }, index) => (
         <mesh key={index} position={center} quaternion={orientation}>
@@ -229,52 +319,122 @@ const AcrylicDrum = () => (
   <group position={[0, GLOBE_CENTER_Y, 0]}>
     <mesh renderOrder={2}>
       <sphereGeometry args={[GLOBE_RADIUS - 0.026, 64, 40]} />
-      <meshPhysicalMaterial color="#bfd3df" side={BackSide} transparent opacity={0.012} depthWrite={false} roughness={0.22} envMapIntensity={0.2} />
+      <meshPhysicalMaterial
+        color="#bfd3df"
+        side={BackSide}
+        transparent
+        opacity={0.012}
+        depthWrite={false}
+        roughness={0.22}
+        envMapIntensity={0.2}
+      />
     </mesh>
     <mesh renderOrder={4}>
       <sphereGeometry args={[GLOBE_RADIUS, 64, 40]} />
-      <meshPhysicalMaterial color="#eff9ff" side={FrontSide} transparent opacity={0.02} depthWrite={false} roughness={0.16} clearcoat={0.4} clearcoatRoughness={0.24} envMapIntensity={0.4} />
+      <meshPhysicalMaterial
+        color="#eff9ff"
+        side={FrontSide}
+        transparent
+        opacity={0.02}
+        depthWrite={false}
+        roughness={0.16}
+        clearcoat={0.4}
+        clearcoatRoughness={0.24}
+        envMapIntensity={0.4}
+      />
     </mesh>
     <mesh renderOrder={5}>
       <sphereGeometry args={[GLOBE_RADIUS + 0.002, 64, 40]} />
-      <shaderMaterial vertexShader={rimVertexShader} fragmentShader={rimFragmentShader} transparent depthWrite={false} side={FrontSide} />
+      <shaderMaterial
+        vertexShader={rimVertexShader}
+        fragmentShader={rimFragmentShader}
+        transparent
+        depthWrite={false}
+        side={FrontSide}
+      />
     </mesh>
     <mesh rotation={[Math.PI / 2, 0, 0]}>
       <torusGeometry args={[GLOBE_RADIUS, 0.009, 8, 100]} />
-      <meshPhysicalMaterial color="#bfccd6" metalness={0.15} roughness={0.22} transparent opacity={0.3} depthWrite={false} />
+      <meshPhysicalMaterial
+        color="#bfccd6"
+        metalness={0.15}
+        roughness={0.22}
+        transparent
+        opacity={0.3}
+        depthWrite={false}
+      />
     </mesh>
   </group>
 )
 
 const MachineBody = ({ drawing, radius }: { drawing: boolean; radius: number }) => (
   <>
-    <RoundedBlock size={[2.28, 0.8, 1.22]} position={[0, -1.46, -0.54]} color="#293849" radius={0.14} metalness={0.22} roughness={0.46} />
-    <RoundedBlock size={[2.32, 0.12, 1.26]} position={[0, -1.025, -0.54]} color="#e3e9ed" radius={0.05} metalness={0.35} roughness={0.3} />
-    <RoundedBlock size={[2.78, 0.13, 2.54]} position={[0, -1.935, 0.045]} color="#354455" radius={0.06} metalness={0.3} roughness={0.4} />
-    {[-1, 1].flatMap((x) => [-1, 1].map((z) => (
-      <mesh key={`${x}:${z}`} position={[x * 1.04, -2.035, z * 0.88]} castShadow>
-        <cylinderGeometry args={[0.13, 0.14, 0.07, 24]} />
-        <meshStandardMaterial color="#17232f" roughness={0.8} />
-      </mesh>
-    )))}
+    <RoundedBlock
+      size={[2.28, 0.8, 1.22]}
+      position={[0, -1.46, -0.54]}
+      color="#293849"
+      radius={0.14}
+      metalness={0.22}
+      roughness={0.46}
+    />
+    <RoundedBlock
+      size={[2.32, 0.12, 1.26]}
+      position={[0, -1.025, -0.54]}
+      color="#e3e9ed"
+      radius={0.05}
+      metalness={0.35}
+      roughness={0.3}
+    />
+    <RoundedBlock
+      size={[2.78, 0.13, 2.54]}
+      position={[0, -1.935, 0.045]}
+      color="#354455"
+      radius={0.06}
+      metalness={0.3}
+      roughness={0.4}
+    />
+    {[-1, 1].flatMap((x) =>
+      [-1, 1].map((z) => (
+        <mesh key={`${x}:${z}`} position={[x * 1.04, -2.035, z * 0.88]} castShadow>
+          <cylinderGeometry args={[0.13, 0.14, 0.07, 24]} />
+          <meshStandardMaterial color="#17232f" roughness={0.8} />
+        </mesh>
+      )),
+    )}
     <mesh position={[0, -0.965, 0]} rotation={[Math.PI / 2, 0, 0]}>
       <torusGeometry args={[0.49, 0.042, 12, 64]} />
       <meshStandardMaterial color="#b6c4ce" metalness={0.8} roughness={0.26} />
     </mesh>
     <mesh position={[-0.74, -1.33, 0.075]}>
       <boxGeometry args={[0.28, 0.031, 0.01]} />
-      <meshStandardMaterial color={drawing ? '#91c8ff' : '#a6b7c6'} emissive={drawing ? '#4e99ee' : '#000000'} emissiveIntensity={drawing ? 0.7 : 0} roughness={0.3} />
+      <meshStandardMaterial
+        color={drawing ? '#91c8ff' : '#a6b7c6'}
+        emissive={drawing ? '#4e99ee' : '#000000'}
+        emissiveIntensity={drawing ? 0.7 : 0}
+        roughness={0.3}
+      />
     </mesh>
     <Outlet radius={radius} />
     <AcrylicDrum />
   </>
 )
 
-export const MachineScene = ({ participants, winners, mixing, drawId, serverOffsetMs, reducedMotion, onContextLost }: MachineSceneProps) => {
+export const MachineScene = ({
+  participants,
+  winners,
+  mixing,
+  drawId,
+  serverOffsetMs,
+  reducedMotion,
+  onContextLost,
+}: MachineSceneProps) => {
   const gl = useThree((state) => state.gl)
   const camera = useThree((state) => state.camera)
   const invalidate = useThree((state) => state.invalidate)
-  const drawn = useMemo(() => new Map(winners.map((winner) => [winner.name, Date.parse(winner.drawnAt)])), [winners])
+  const drawn = useMemo(
+    () => new Map(winners.map((winner) => [winner.name, Date.parse(winner.drawnAt)])),
+    [winners],
+  )
   const remainingPositions = useMemo(() => {
     const names = participants.filter((name) => !drawn.has(name))
     const positions = restingPositions(names.length, participants.length)
@@ -298,10 +458,22 @@ export const MachineScene = ({ participants, winners, mixing, drawId, serverOffs
       <StudioEnvironment />
       <ambientLight intensity={0.38} />
       <hemisphereLight args={['#edf5ff', '#6d7a87', 0.55]} />
-      <directionalLight position={[-1.5, 9, 2]} intensity={1.65} castShadow
-        shadow-mapSize-width={512} shadow-mapSize-height={512} shadow-camera-near={0.5} shadow-camera-far={16}
-        shadow-camera-left={-3.5} shadow-camera-right={3.5} shadow-camera-top={3.5} shadow-camera-bottom={-3.5}
-        shadow-bias={-0.0003} shadow-normalBias={0.025} shadow-radius={4} />
+      <directionalLight
+        position={[-1.5, 9, 2]}
+        intensity={1.65}
+        castShadow
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
+        shadow-camera-near={0.5}
+        shadow-camera-far={16}
+        shadow-camera-left={-3.5}
+        shadow-camera-right={3.5}
+        shadow-camera-top={3.5}
+        shadow-camera-bottom={-3.5}
+        shadow-bias={-0.0003}
+        shadow-normalBias={0.025}
+        shadow-radius={4}
+      />
       <directionalLight position={[3, 2, -3]} color="#e1ebf6" intensity={0.72} />
       <directionalLight position={[1, 0, 4]} intensity={0.42} />
       <mesh position={[0, -2.075, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -310,9 +482,18 @@ export const MachineScene = ({ participants, winners, mixing, drawId, serverOffs
       </mesh>
       <Mixer drawing={mixing} serverOffsetMs={serverOffsetMs} reducedMotion={reducedMotion} />
       {participants.slice(0, 50).map((name, index) => (
-        <NameBall key={`${drawId}:${name}`} name={name} index={index} count={participants.length}
-          restingPosition={remainingPositions.get(name) ?? [0, GLOBE_CENTER_Y, 0]} drawing={mixing}
-          drawId={drawId} drawnAt={drawn.get(name) ?? null} serverOffsetMs={serverOffsetMs} reducedMotion={reducedMotion} />
+        <NameBall
+          key={`${drawId}:${name}`}
+          name={name}
+          index={index}
+          count={participants.length}
+          restingPosition={remainingPositions.get(name) ?? [0, GLOBE_CENTER_Y, 0]}
+          drawing={mixing}
+          drawId={drawId}
+          drawnAt={drawn.get(name) ?? null}
+          serverOffsetMs={serverOffsetMs}
+          reducedMotion={reducedMotion}
+        />
       ))}
       <MachineBody drawing={mixing} radius={ballRadius(participants.length)} />
     </>

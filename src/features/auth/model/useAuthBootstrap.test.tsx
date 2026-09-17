@@ -25,7 +25,9 @@ describe('auth bootstrap', () => {
   })
 
   it('shows retryable startup state for network failure and recovers', async () => {
-    const fetch = vi.fn().mockRejectedValueOnce(new TypeError('offline'))
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('offline'))
       .mockResolvedValueOnce(jsonResponse({ ...metadata, accessToken: 'new', expiresIn: 600 }))
     vi.stubGlobal('fetch', fetch)
     const { store, wrapper } = createTestWrapper()
@@ -37,14 +39,23 @@ describe('auth bootstrap', () => {
   })
 
   it('clears global authentication and API cache for server expiry', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({
-      ...metadata, accessToken: 'new', expiresIn: 600,
-    })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          ...metadata,
+          accessToken: 'new',
+          expiresIn: 600,
+        }),
+      ),
+    )
     const { store, wrapper } = createTestWrapper()
     renderHook(() => useAuthBootstrap(), { wrapper })
     await waitFor(() => expect(store.getState().auth.status).toBe('authenticated'))
     const cacheApi = baseApi.injectEndpoints({
-      endpoints: (build) => ({ sessionTestData: build.query<unknown, void>({ query: () => '/session-test-data' }) }),
+      endpoints: (build) => ({
+        sessionTestData: build.query<unknown, void>({ query: () => '/session-test-data' }),
+      }),
     })
     await store.dispatch(cacheApi.endpoints.sessionTestData.initiate())
     expect(Object.keys(store.getState().api.queries)).toHaveLength(1)

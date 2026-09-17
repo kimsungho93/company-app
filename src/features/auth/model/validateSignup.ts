@@ -10,7 +10,6 @@ export const PASSWORD_MAX = 20
 const lengthOf = (value: string): number => [...value].length
 
 export const validateSignupEmail = (value: string): string | null => {
-
   const formatError = validateEmail(value)
   if (formatError) return formatError
 
@@ -32,7 +31,6 @@ export const validateName = (value: string): string | null => {
 }
 
 export const validateNewPassword = (value: string): string | null => {
-
   if (!value) return '비밀번호를 입력해 주세요.'
 
   const length = lengthOf(value)
@@ -42,10 +40,7 @@ export const validateNewPassword = (value: string): string | null => {
   return null
 }
 
-export const validatePasswordConfirm = (
-  password: string,
-  confirm: string,
-): string | null => {
+export const validatePasswordConfirm = (password: string, confirm: string): string | null => {
   if (!confirm) return '비밀번호를 한 번 더 입력해 주세요.'
   if (password !== confirm) return '비밀번호가 일치하지 않습니다.'
   return null

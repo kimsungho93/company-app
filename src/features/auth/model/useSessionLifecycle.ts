@@ -16,8 +16,8 @@ export const useSessionLifecycle = () => {
   const remaining = session
     ? Math.min(Date.parse(session.idleExpiresAt), Date.parse(session.absoluteExpiresAt)) - serverNow
     : Infinity
-  const absoluteFirst = !!session &&
-    Date.parse(session.absoluteExpiresAt) <= Date.parse(session.idleExpiresAt)
+  const absoluteFirst =
+    !!session && Date.parse(session.absoluteExpiresAt) <= Date.parse(session.idleExpiresAt)
   const warning = !!session && remaining <= WARNING_TIME
   const expired = remaining <= 0
 
@@ -46,7 +46,9 @@ export const useSessionLifecycle = () => {
       if (checking || Date.now() - lastCheck < 5_000) return
       checking = true
       lastCheck = Date.now()
-      void verify().finally(() => { checking = false })
+      void verify().finally(() => {
+        checking = false
+      })
     }
 
     const activity = (event: Event) => {
@@ -58,7 +60,8 @@ export const useSessionLifecycle = () => {
         Date.parse(current.session.idleExpiresAt),
         Date.parse(current.session.absoluteExpiresAt),
       )
-      if (deadline - currentTime <= WARNING_TIME || Date.now() - lastActivity < ACTIVITY_INTERVAL) return
+      if (deadline - currentTime <= WARNING_TIME || Date.now() - lastActivity < ACTIVITY_INTERVAL)
+        return
       lastActivity = Date.now()
       void reportActivity().then((result) => {
         if (result === 'retryable') lastActivity = 0

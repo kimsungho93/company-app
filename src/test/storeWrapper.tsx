@@ -6,7 +6,6 @@ import { authSlice } from '@/features/auth'
 import { baseApi } from '@/shared/api'
 
 export interface TestWrapperOptions {
-
   withRouter?: boolean
 
   route?: string

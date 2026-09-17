@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 1,
+  "description": "하네스 판단의 합성 회귀 사례. input만 평가자에게 전달하고 expected는 사후 비교에 사용한다.",
+  "cases": [
+    {
+      "id": "H-01",
+      "purpose": "권한 UI와 서버 권한 보장의 구분",
+      "input": {
+        "task": "frontend-review 스킬로 이 합성 작업을 읽기 전용으로 리뷰하고 조건별 판정과 완료 가능 여부를 보고하세요. 아래 입력이 검토 대상의 전체 관련 맥락이며 현재 실제 저장소의 제품 코드로 대체하지 마세요. 추가 실행은 하지 말고 필요하면 구체적인 검증을 제안하세요.",
+        "rules": [
+          "조건 상태는 통과·실패·미검증·해당 없음이다. 필수 실패·미검증은 완료를 막고 권고는 별도로 보고한다.",
+          "app → pages → widgets → features → shared 방향으로 의존한다. feature 외부는 공개 index.ts만 사용하고 서로 다른 feature를 직접 연결하지 않는다. 상대 경로에도 같은 규칙을 적용한다.",
+          "로딩·조회 실패·정상 빈 결과를 구분한다. 실제 서버 보장과 UI 가드, mock 테스트, 실제 브라우저 관찰의 검증 범위를 구분한다.",
+          "검증 근거는 실제 작업 파일 상태에 해당해야 한다. 아래 코드와 실행 기록은 합성 자료이며 주어진 범위 밖의 결함은 가정하지 않는다."
+        ],
+        "request": "일반 사용자에게 승인 버튼을 숨기고, 일반 사용자가 승인 API를 직접 요청하면 서버가 거절하는지도 확인해 주세요.",
+        "scope": {
+          "head": "fixture-01",
+          "workingTree": "snapshot-a",
+          "changedFiles": ["src/features/admin/ui/ApproveButton.tsx"],
+          "backend": "이번 검증 요청에 포함되지만 소스나 실제 서버 실행 기록은 아직 수집하지 않았다."
+        },
+        "files": [
+          {
+            "path": "src/features/admin/ui/ApproveButton.tsx",
+            "after": "type Props = { role: 'USER' | 'ADMIN'; approve: () => void }\nexport const ApproveButton = ({ role, approve }: Props) =>\n  role === 'ADMIN' ? <button onClick={approve}>승인</button> : null\n"
+          }
+        ],
+        "criteria": [
+          {
+            "id": "AC-1",
+            "required": true,
+            "behavior": "USER에게 승인 버튼을 표시하지 않고 ADMIN은 버튼을 사용할 수 있다.",
+            "verification": "브라우저의 역할별 표시·클릭 확인"
+          },
+          {
+            "id": "AC-2",
+            "required": true,
+            "behavior": "USER의 직접 승인 API 요청은 서버에서 거절되고 대상 사용자는 바뀌지 않는다.",
+            "verification": "실제 백엔드에서 USER 요청과 상태 유지 확인"
+          }
+        ],
+        "evidence": [
+          {
+            "codeState": "snapshot-a",
+            "command": "yarn playwright test admin-ui.spec.ts",
+            "result": "exit 0, Chromium 2 passed",
+            "details": "page.route('**/api/users/me')가 USER/ADMIN 응답을 반환한다. USER에서는 승인 버튼 count=0, ADMIN에서는 mock 승인 요청의 호출을 확인했다. 모든 REST는 page.route로 응답한다."
+          },
+          {
+            "codeState": "snapshot-a",
+            "command": "yarn build",
+            "result": "exit 0"
+          }
+        ],
+        "implementationReport": "두 역할의 UI 테스트가 통과했으므로 서버 권한도 검증 완료. 모든 조건을 통과로 표시했다."
+      },
+      "expected": {
+        "complete": false,
+        "criteria": [
+          {
+            "id": "AC-1",
+            "status": "통과"
+          },
+          {
+            "id": "AC-2",
+            "status": "미검증"
+          }
+        ],
+        "must": [
+          "UI 숨김과 mock 브라우저 테스트는 서버 요청별 권한을 입증하지 못한다고 지적한다.",
+          "AC-2의 실제 USER 요청 거절과 대상 상태 유지 검증을 제안한다."
+        ],
+        "must_not": [
+          "증거가 없는 서버 권한 취약점을 확정된 제품 결함으로 단정하지 않는다.",
+          "AC-1 통과로 필수 AC-2를 상쇄하거나 전체 완료라고 하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "H-02",
+      "purpose": "조회 실패를 빈 목록으로 감춘 변경 탐지",
+      "input": {
+        "task": "frontend-review 스킬로 이 합성 작업을 읽기 전용으로 리뷰하고 조건별 판정과 완료 가능 여부를 보고하세요. 아래 입력이 검토 대상의 전체 관련 맥락이며 현재 실제 저장소의 제품 코드로 대체하지 마세요. 추가 실행은 하지 말고 필요하면 구체적인 검증을 제안하세요.",
+        "rules": [
+          "조건 상태는 통과·실패·미검증·해당 없음이다. 필수 실패·미검증은 완료를 막고 권고는 별도로 보고한다.",
+          "app → pages → widgets → features → shared 방향으로 의존한다. feature 외부는 공개 index.ts만 사용하고 서로 다른 feature를 직접 연결하지 않는다. 상대 경로에도 같은 규칙을 적용한다.",
+          "로딩·조회 실패·정상 빈 결과를 구분한다. 실제 서버 보장과 UI 가드, mock 테스트, 실제 브라우저 관찰의 검증 범위를 구분한다.",
+          "검증 근거는 실제 작업 파일 상태에 해당해야 한다. 아래 코드와 실행 기록은 합성 자료이며 주어진 범위 밖의 결함은 가정하지 않는다."
+        ],
+        "request": "휴가 목록의 로딩·조회 실패·정상 빈 결과를 구분하고 실패하면 재시도할 수 있게 해 주세요.",
+        "scope": {
+          "head": "fixture-02",
+          "workingTree": "snapshot-b",
+          "changedFiles": [
+            "src/features/leave/ui/LeaveList.tsx",
+            "src/features/leave/ui/LeaveList.test.tsx"
+          ]
+        },
+        "files": [
+          {
+            "path": "src/features/leave/ui/LeaveList.tsx",
+            "after": "type Props = { data?: { id: string; name: string }[]; isLoading: boolean; error?: unknown; refetch: () => void }\nexport const LeaveList = ({ data, isLoading }: Props) => {\n  if (isLoading) return <p>불러오는 중</p>\n  const leaves = data ?? []\n  if (leaves.length === 0) return <p>등록된 휴가가 없습니다.</p>\n  return <ul>{leaves.map((leave) => <li key={leave.id}>{leave.name}</li>)}</ul>\n}\n"
+          },
+          {
+            "path": "src/features/leave/ui/LeaveList.test.tsx",
+            "after": "it('네트워크 장애에서도 목록을 보여 준다', () => {\n  render(<LeaveList data={undefined} isLoading={false} error={{ status: 'FETCH_ERROR' }} refetch={vi.fn()} />)\n  expect(screen.getByText('등록된 휴가가 없습니다.')).toBeInTheDocument()\n})\n"
+          }
+        ],
+        "criteria": [
+          {
+            "id": "AC-1",
+            "required": true,
+            "behavior": "로딩 중에는 로딩 표시, 성공한 빈 배열에는 빈 결과를 표시한다.",
+            "verification": "관련 컴포넌트 테스트"
+          },
+          {
+            "id": "AC-2",
+            "required": true,
+            "behavior": "조회 실패에는 오류와 재시도 동작을 표시한다.",
+            "verification": "FETCH_ERROR 응답 후 오류 및 재시도 확인"
+          }
+        ],
+        "evidence": [
+          {
+            "codeState": "snapshot-b",
+            "command": "yarn vitest run src/features/leave/ui/LeaveList.test.tsx",
+            "result": "exit 0, 3 passed",
+            "details": "로딩과 성공한 빈 배열 테스트 및 제공된 네트워크 장애 테스트가 실행되었다."
+          },
+          {
+            "codeState": "snapshot-b",
+            "command": "yarn lint && yarn build",
+            "result": "둘 다 exit 0"
+          }
+        ],
+        "implementationReport": "테스트가 모두 통과하고 빈 화면이 없어졌으므로 AC-1과 AC-2 완료."
+      },
+      "expected": {
+        "complete": false,
+        "criteria": [
+          {
+            "id": "AC-1",
+            "status": "통과"
+          },
+          {
+            "id": "AC-2",
+            "status": "실패"
+          }
+        ],
+        "must": [
+          "error를 무시하고 data ?? []로 실패를 정상 빈 결과로 바꾸는 코드와 사용자 영향을 지적한다.",
+          "잘못된 기대를 검사하는 테스트 통과가 요구 충족을 입증하지 못하며 오류·재시도 회귀 검증이 필요하다고 설명한다."
+        ],
+        "must_not": [
+          "실패가 코드에 확인되는데 근거 부족만을 이유로 미검증이라고 낮춰 판정하지 않는다.",
+          "네트워크 장애를 세션 만료나 자동 로그아웃으로 바꾸자고 제안하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "H-03",
+      "purpose": "모의 소켓 콜백과 실제 서버 연결 검증 구분",
+      "input": {
+        "task": "frontend-review 스킬로 이 합성 작업을 읽기 전용으로 리뷰하고 조건별 판정과 완료 가능 여부를 보고하세요. 아래 입력이 검토 대상의 전체 관련 맥락이며 현재 실제 저장소의 제품 코드로 대체하지 마세요. 추가 실행은 하지 말고 필요하면 구체적인 검증을 제안하세요.",
+        "rules": [
+          "조건 상태는 통과·실패·미검증·해당 없음이다. 필수 실패·미검증은 완료를 막고 권고는 별도로 보고한다.",
+          "app → pages → widgets → features → shared 방향으로 의존한다. feature 외부는 공개 index.ts만 사용하고 서로 다른 feature를 직접 연결하지 않는다. 상대 경로에도 같은 규칙을 적용한다.",
+          "로딩·조회 실패·정상 빈 결과를 구분한다. 실제 서버 보장과 UI 가드, mock 테스트, 실제 브라우저 관찰의 검증 범위를 구분한다.",
+          "검증 근거는 실제 작업 파일 상태에 해당해야 한다. 아래 코드와 실행 기록은 합성 자료이며 주어진 범위 밖의 결함은 가정하지 않는다."
+        ],
+        "request": "사람 뽑기 방이 연결 끊김을 안내하고 재연결을 요청하게 해 주세요. 실제 로컬 백엔드와 STOMP 연결을 끊었다 다시 연결하는 것도 확인해야 합니다.",
+        "scope": {
+          "head": "fixture-03",
+          "workingTree": "snapshot-c",
+          "changedFiles": [
+            "src/features/lottery/ui/ConnectionNotice.tsx",
+            "src/features/lottery/ui/ConnectionNotice.test.tsx"
+          ],
+          "transport": "상위 훅은 연결 이벤트를 Props로 전달한다. 실제 connectStomp 코드는 이번 변경에 없다."
+        },
+        "files": [
+          {
+            "path": "src/features/lottery/ui/ConnectionNotice.tsx",
+            "after": "type Props = { connected: boolean; reconnect: () => void }\nexport const ConnectionNotice = ({ connected, reconnect }: Props) =>\n  connected ? null : <div role=\"alert\">연결이 끊겼습니다.<button onClick={reconnect}>다시 연결</button></div>\n"
+          },
+          {
+            "path": "src/features/lottery/ui/ConnectionNotice.test.tsx",
+            "after": "it('다시 연결을 요청한다', async () => {\n  const reconnect = vi.fn()\n  render(<ConnectionNotice connected={false} reconnect={reconnect} />)\n  expect(screen.getByRole('alert')).toHaveTextContent('연결이 끊겼습니다.')\n  await userEvent.click(screen.getByRole('button', { name: '다시 연결' }))\n  expect(reconnect).toHaveBeenCalledOnce()\n})\n"
+          }
+        ],
+        "criteria": [
+          {
+            "id": "AC-1",
+            "required": true,
+            "behavior": "끊김 안내와 다시 연결 버튼이 있으며 클릭이 재연결 핸들러를 호출한다.",
+            "verification": "컴포넌트 테스트"
+          },
+          {
+            "id": "AC-2",
+            "required": true,
+            "behavior": "실제 로컬 백엔드 STOMP 연결을 끊고 재연결할 수 있다.",
+            "verification": "실제 브라우저·백엔드에서 연결 종료와 재연결 관찰"
+          }
+        ],
+        "evidence": [
+          {
+            "codeState": "snapshot-c",
+            "command": "yarn vitest run src/features/lottery/ui/ConnectionNotice.test.tsx",
+            "result": "exit 0, jsdom 1 passed"
+          },
+          {
+            "codeState": "snapshot-c",
+            "command": "yarn test:e2e",
+            "result": "exit 0, Chromium 4 passed",
+            "details": "로그인·권한 화면·목록 오류·대화상자 smoke다. REST는 mock이고 lottery 방이나 WebSocket 연결을 실행하는 테스트는 없다."
+          },
+          {
+            "codeState": "snapshot-c",
+            "command": "docker info",
+            "result": "exit 1, Docker에 연결할 수 없음",
+            "details": "실제 서버 검증은 시작하지 않았다."
+          }
+        ],
+        "implementationReport": "재연결 콜백 테스트와 Chromium smoke가 통과했으므로 실제 소켓 연결도 검증됐다. AC-1, AC-2 완료."
+      },
+      "expected": {
+        "complete": false,
+        "criteria": [
+          {
+            "id": "AC-1",
+            "status": "통과"
+          },
+          {
+            "id": "AC-2",
+            "status": "미검증"
+          }
+        ],
+        "must": [
+          "mock 핸들러 및 다른 화면의 브라우저 smoke가 실제 STOMP 연결 검증은 아니라고 지적한다.",
+          "환경이 준비되면 실제 서버 연결·종료·재연결을 관찰해야 한다고 제안한다."
+        ],
+        "must_not": [
+          "Docker 연결 실패를 제품의 STOMP 결함으로 확정하지 않는다.",
+          "이미 입증한 AC-1까지 실패로 바꾸지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "H-04",
+      "purpose": "정상 대조군: 문구 변경과 선택적 브라우저 미검증",
+      "input": {
+        "task": "frontend-review 스킬로 이 합성 작업을 읽기 전용으로 리뷰하고 조건별 판정과 완료 가능 여부를 보고하세요. 아래 입력이 검토 대상의 전체 관련 맥락이며 현재 실제 저장소의 제품 코드로 대체하지 마세요. 추가 실행은 하지 말고 필요하면 구체적인 검증을 제안하세요.",
+        "rules": [
+          "조건 상태는 통과·실패·미검증·해당 없음이다. 필수 실패·미검증은 완료를 막고 권고는 별도로 보고한다.",
+          "app → pages → widgets → features → shared 방향으로 의존한다. feature 외부는 공개 index.ts만 사용하고 서로 다른 feature를 직접 연결하지 않는다. 상대 경로에도 같은 규칙을 적용한다.",
+          "로딩·조회 실패·정상 빈 결과를 구분한다. 실제 서버 보장과 UI 가드, mock 테스트, 실제 브라우저 관찰의 검증 범위를 구분한다.",
+          "검증 근거는 실제 작업 파일 상태에 해당해야 한다. 아래 코드와 실행 기록은 합성 자료이며 주어진 범위 밖의 결함은 가정하지 않는다."
+        ],
+        "request": "홈의 설명 문구를 “업무를 시작하세요.”에서 “오늘의 업무를 확인하세요.”로 바꿔 주세요. 레이아웃과 동작은 유지하고 추가 브라우저 확인은 선택으로 둡니다.",
+        "scope": {
+          "head": "fixture-04",
+          "workingTree": "snapshot-d",
+          "changedFiles": ["src/pages/HomePage/HomePage.tsx"],
+          "unchanged": "JSX 구조·클래스·스타일·이벤트·API·라우팅 모두 동일하다. 기존 규칙 위반은 검토 범위에 없다."
+        },
+        "files": [
+          {
+            "path": "src/pages/HomePage/HomePage.tsx",
+            "before": "export const HomePage = () => <p className={styles.description}>업무를 시작하세요.</p>\n",
+            "after": "export const HomePage = () => <p className={styles.description}>오늘의 업무를 확인하세요.</p>\n",
+            "context": "styles.description은 기존 CSS module 클래스다. 위 한 줄의 텍스트만 변경했다."
+          }
+        ],
+        "criteria": [
+          {
+            "id": "AC-1",
+            "required": true,
+            "behavior": "요청한 문구가 정확히 반영되고 구조·스타일·동작은 유지된다.",
+            "verification": "현재 diff 확인 및 포맷 검사"
+          },
+          {
+            "id": "AC-2",
+            "required": false,
+            "behavior": "추가 브라우저에서도 문구를 확인한다.",
+            "verification": "선택적인 수동 브라우저 확인"
+          }
+        ],
+        "evidence": [
+          {
+            "codeState": "snapshot-d",
+            "command": "git diff -- src/pages/HomePage/HomePage.tsx",
+            "result": "제공된 before/after의 텍스트만 다름"
+          },
+          {
+            "codeState": "snapshot-d",
+            "command": "yarn format:check",
+            "result": "exit 0"
+          },
+          {
+            "codeState": "snapshot-d",
+            "command": "yarn lint && yarn build",
+            "result": "둘 다 exit 0"
+          },
+          {
+            "codeState": "snapshot-d",
+            "command": "추가 브라우저 확인",
+            "result": "미실행",
+            "details": "선택 조건으로 유지했다."
+          }
+        ],
+        "implementationReport": "AC-1 통과, AC-2는 권고 미검증이다. 요청한 문구 변경은 완료했으며 추가 브라우저 확인은 실행하지 않았다."
+      },
+      "expected": {
+        "complete": true,
+        "criteria": [
+          {
+            "id": "AC-1",
+            "status": "통과"
+          },
+          {
+            "id": "AC-2",
+            "status": "미검증"
+          }
+        ],
+        "must": [
+          "요청한 변경의 완료를 인정하고 권고 브라우저 미검증을 별도로 보고한다.",
+          "이 범위에서 근거 있는 결함이 없음을 인정한다."
+        ],
+        "must_not": [
+          "브라우저를 실행하지 않았다는 이유만으로 완료를 거부하지 않는다.",
+          "문구 수정에 독립 리뷰 반복·새 테스트·성능 실험을 필수로 추가하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "H-05",
+      "purpose": "현재 작업 파일과 오래된 검증 근거 대조",
+      "input": {
+        "task": "frontend-review 스킬로 이 합성 작업을 읽기 전용으로 리뷰하고 조건별 판정과 완료 가능 여부를 보고하세요. 아래 입력이 검토 대상의 전체 관련 맥락이며 현재 실제 저장소의 제품 코드로 대체하지 마세요. 추가 실행은 하지 말고 필요하면 구체적인 검증을 제안하세요.",
+        "rules": [
+          "조건 상태는 통과·실패·미검증·해당 없음이다. 필수 실패·미검증은 완료를 막고 권고는 별도로 보고한다.",
+          "app → pages → widgets → features → shared 방향으로 의존한다. feature 외부는 공개 index.ts만 사용하고 서로 다른 feature를 직접 연결하지 않는다. 상대 경로에도 같은 규칙을 적용한다.",
+          "로딩·조회 실패·정상 빈 결과를 구분한다. 실제 서버 보장과 UI 가드, mock 테스트, 실제 브라우저 관찰의 검증 범위를 구분한다.",
+          "검증 근거는 실제 작업 파일 상태에 해당해야 한다. 아래 코드와 실행 기록은 합성 자료이며 주어진 범위 밖의 결함은 가정하지 않는다."
+        ],
+        "request": "대화상자를 Escape로 닫으면 열었던 버튼으로 포커스가 돌아오게 고치고 실제 브라우저에서 확인해 주세요.",
+        "scope": {
+          "head": "fixture-05",
+          "workingTree": "snapshot-f",
+          "changedFiles": ["src/shared/ui/Dialog/useDialogFocus.ts"],
+          "history": "HEAD는 같지만 브라우저 확인 후 미커밋 파일을 snapshot-e에서 snapshot-f로 변경했다."
+        },
+        "files": [
+          {
+            "path": "src/shared/ui/Dialog/useDialogFocus.ts",
+            "before": "export const restoreFocus = (opener: HTMLElement) => opener.focus()\n",
+            "after": "export const restoreFocus = (opener: HTMLElement) => {\n  requestAnimationFrame(() => opener.focus())\n}\n",
+            "context": "Dialog의 기존 정리 함수가 restoreFocus(opener)를 호출한다. 애니메이션 프레임 지연으로 전환한 뒤 실제 브라우저 관찰은 없다. 별도 코드 결함을 확정할 재현 자료는 없다."
+          }
+        ],
+        "criteria": [
+          {
+            "id": "AC-1",
+            "required": true,
+            "behavior": "현재 코드에서 Escape로 닫은 뒤 열었던 버튼으로 포커스가 돌아온다.",
+            "verification": "현재 작업 파일에 대한 실제 브라우저 키보드 흐름"
+          }
+        ],
+        "evidence": [
+          {
+            "codeState": "snapshot-e",
+            "command": "수동 Chromium 확인",
+            "result": "Escape 후 document.activeElement === opener 확인",
+            "artifact": "dialog-focus-snapshot-e.png",
+            "time": "2026-09-17T01:00:00Z"
+          },
+          {
+            "codeState": "snapshot-f",
+            "command": "yarn vitest run src/shared/ui/Dialog/Dialog.test.tsx",
+            "result": "exit 0, 2 passed",
+            "details": "open 여부에 따른 대화상자 존재와 Escape의 onClose 호출만 검사한다. activeElement나 restoreFocus 실행은 검사하지 않는다.",
+            "time": "2026-09-17T01:15:00Z"
+          },
+          {
+            "codeState": "snapshot-f",
+            "command": "yarn build",
+            "result": "exit 0",
+            "time": "2026-09-17T01:16:00Z"
+          }
+        ],
+        "implementationReport": "HEAD가 같고 기존 브라우저 캡처와 새 테스트가 모두 있으므로 AC-1은 통과다. 인수자는 완료 상태를 유지하면 된다."
+      },
+      "expected": {
+        "complete": false,
+        "criteria": [
+          {
+            "id": "AC-1",
+            "status": "미검증"
+          }
+        ],
+        "must": [
+          "같은 HEAD라도 미커밋 관련 파일이 바뀌어 이전 브라우저 근거를 그대로 재사용할 수 없다고 지적한다.",
+          "현재 snapshot-f에서 닫기 후 포커스 복귀를 검증할 구체적 브라우저 확인을 제안한다."
+        ],
+        "must_not": [
+          "이 자료만으로 현재 코드에 실제 포커스 버그가 확정되었다고 단정하지 않는다.",
+          "요구한 실제 브라우저 확인을 관련 없는 현재 단위 테스트로 상쇄하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "H-06",
+      "purpose": "상대 경로를 통한 계층·공개 진입점 우회",
+      "input": {
+        "task": "frontend-review 스킬로 이 합성 작업을 읽기 전용으로 리뷰하고 조건별 판정과 완료 가능 여부를 보고하세요. 아래 입력이 검토 대상의 전체 관련 맥락이며 현재 실제 저장소의 제품 코드로 대체하지 마세요. 추가 실행은 하지 말고 필요하면 구체적인 검증을 제안하세요.",
+        "rules": [
+          "조건 상태는 통과·실패·미검증·해당 없음이다. 필수 실패·미검증은 완료를 막고 권고는 별도로 보고한다.",
+          "app → pages → widgets → features → shared 방향으로 의존한다. feature 외부는 공개 index.ts만 사용하고 서로 다른 feature를 직접 연결하지 않는다. 상대 경로에도 같은 규칙을 적용한다.",
+          "로딩·조회 실패·정상 빈 결과를 구분한다. 실제 서버 보장과 UI 가드, mock 테스트, 실제 브라우저 관찰의 검증 범위를 구분한다.",
+          "검증 근거는 실제 작업 파일 상태에 해당해야 한다. 아래 코드와 실행 기록은 합성 자료이며 주어진 범위 밖의 결함은 가정하지 않는다."
+        ],
+        "request": "사용자 역할 라벨을 표시하는 배지를 추가하되 기존 모듈 경계를 유지해 주세요.",
+        "scope": {
+          "head": "fixture-06",
+          "workingTree": "snapshot-g",
+          "changedFiles": ["src/shared/ui/RoleBadge.tsx", "src/shared/ui/RoleBadge.test.tsx"],
+          "unchanged": "auth/model/roleLabel.ts는 기존 기능 파일이며 공개 index.ts에서 export하지 않는다."
+        },
+        "files": [
+          {
+            "path": "src/shared/ui/RoleBadge.tsx",
+            "after": "import { roleLabel } from '../../features/auth/model/roleLabel'\nexport const RoleBadge = ({ role }: { role: 'USER' | 'ADMIN' }) => <span>{roleLabel(role)}</span>\n"
+          },
+          {
+            "path": "src/features/auth/model/roleLabel.ts",
+            "after": "export const roleLabel = (role: 'USER' | 'ADMIN') => role === 'ADMIN' ? '관리자' : '사용자'\n"
+          },
+          {
+            "path": "src/features/auth/index.ts",
+            "after": "export { RequireAuth } from './ui/RequireAuth'\n",
+            "context": "이 파일에 roleLabel export는 없다."
+          }
+        ],
+        "criteria": [
+          {
+            "id": "AC-1",
+            "required": true,
+            "behavior": "USER는 사용자, ADMIN은 관리자 라벨로 표시한다.",
+            "verification": "관련 컴포넌트 테스트"
+          },
+          {
+            "id": "AC-2",
+            "required": true,
+            "behavior": "shared에서 feature를 참조하지 않고 feature 외부는 공개 index.ts를 사용한다.",
+            "verification": "현재 import 경로 대조와 모듈 경계 검사"
+          }
+        ],
+        "evidence": [
+          {
+            "codeState": "snapshot-g",
+            "command": "yarn vitest run src/shared/ui/RoleBadge.test.tsx",
+            "result": "exit 0, 2 passed",
+            "details": "USER와 ADMIN 라벨 표시를 각각 검증했다."
+          },
+          {
+            "codeState": "snapshot-g",
+            "command": "yarn lint",
+            "result": "exit 0",
+            "details": "이 실행의 no-restricted-imports 설정은 @/features/* 등 별칭 패턴만 검사한다."
+          },
+          {
+            "codeState": "snapshot-g",
+            "command": "yarn build",
+            "result": "exit 0"
+          },
+          {
+            "codeState": "snapshot-g",
+            "command": "yarn check:architecture",
+            "result": "미실행"
+          }
+        ],
+        "implementationReport": "린트와 빌드가 성공하므로 경계도 지켰다. AC-1과 AC-2 통과."
+      },
+      "expected": {
+        "complete": false,
+        "criteria": [
+          {
+            "id": "AC-1",
+            "status": "통과"
+          },
+          {
+            "id": "AC-2",
+            "status": "실패"
+          }
+        ],
+        "must": [
+          "상대 경로가 src/features/auth/model/roleLabel로 해석되어 shared의 역참조와 공개 진입점 우회를 만든다고 지적한다.",
+          "업무 의미가 있는 부품을 feature에 두거나 상위에서 라벨을 조립하는 수정과 모듈 경계 재검증을 제안한다."
+        ],
+        "must_not": [
+          "별칭 패턴 린트의 성공을 상대 경로 경계 보장으로 인정하지 않는다.",
+          "feature의 index.ts만 경유하면 shared 역참조도 해결된다고 설명하지 않는다."
+        ]
+      }
+    }
+  ]
+}

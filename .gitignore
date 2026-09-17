@@ -25,6 +25,7 @@ docs/superpowers/plans/
 
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -32,3 +33,7 @@ docs/superpowers/plans/
 *.njsproj
 *.sln
 *.sw?
+
+playwright-report/
+test-results/
+.harness/

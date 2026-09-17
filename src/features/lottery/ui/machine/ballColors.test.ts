@@ -14,5 +14,4 @@ describe('lottery ball colors', () => {
     const reverseRead = Array.from({ length: 50 }, (_, index) => ballColor(49 - index)).reverse()
     expect(reverseRead).toEqual(colors)
   })
-
 })

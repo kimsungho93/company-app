@@ -108,7 +108,6 @@ export const MainNav = () => {
       {open && (
         <div className={styles.megaPanel}>
           <div className={styles.megaInner}>
-
             {open.groups.map((group, col) => (
               <div
                 key={group.caption}

@@ -12,7 +12,6 @@ export const ThemeToggle = () => {
       aria-label={next === 'dark' ? '다크 모드로 전환' : '라이트 모드로 전환'}
       onClick={() => setPreference(next)}
     >
-
       <img
         src={resolved === 'dark' ? '/theme-moon.png' : '/theme-sun.png'}
         alt=""

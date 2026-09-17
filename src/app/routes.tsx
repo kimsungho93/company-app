@@ -12,7 +12,6 @@ import { AppLayout } from './layouts/AppLayout'
 
 export const router = createBrowserRouter([
   {
-
     element: <RequireAuth />,
     children: [
       {
@@ -33,7 +32,6 @@ export const router = createBrowserRouter([
     ],
   },
   {
-
     element: <RedirectIfAuthenticated />,
     children: [
       {

@@ -31,7 +31,13 @@ export const Stage = ({ players, hostId, onSelectPlayer, onReorder, game }: Stag
 
   const send = (next: number[]) => {
     setOrder(next)
-    if (!sameOrder(next, players.map((player) => player.userId))) onReorder?.(next)
+    if (
+      !sameOrder(
+        next,
+        players.map((player) => player.userId),
+      )
+    )
+      onReorder?.(next)
   }
 
   const onPointerDown = (userId: number) => (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -59,7 +65,9 @@ export const Stage = ({ players, hostId, onSelectPlayer, onReorder, game }: Stag
     const overId = over ? Number(over.dataset.userId) : null
     if (overId === null || overId === draggingId) return
 
-    setOrder((current) => moveTo(current ?? seatedIds, draggingId, (current ?? seatedIds).indexOf(overId)))
+    setOrder((current) =>
+      moveTo(current ?? seatedIds, draggingId, (current ?? seatedIds).indexOf(overId)),
+    )
   }
 
   const onPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { formatJoinedAt } from './formatJoinedAt'
 
 describe('formatJoinedAt', () => {
-
   it('UTC ISO 문자열을 KST 로 옮긴다', () => {
     expect(formatJoinedAt('2026-08-17T22:11:11Z')).toBe('2026-08-18 07:11:11')
   })

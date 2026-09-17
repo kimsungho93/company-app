@@ -12,7 +12,10 @@ export const usePresentedWinners = (winners: LotteryWinner[], offset: number) =>
 
   useEffect(() => {
     if (!next) return
-    const timer = setTimeout(() => setNow(Date.now()), Math.max(0, Date.parse(next.drawnAt) + WINNER_EXIT_MS - Date.now() - offset) + 20)
+    const timer = setTimeout(
+      () => setNow(Date.now()),
+      Math.max(0, Date.parse(next.drawnAt) + WINNER_EXIT_MS - Date.now() - offset) + 20,
+    )
     return () => clearTimeout(timer)
   }, [next, offset, now])
 

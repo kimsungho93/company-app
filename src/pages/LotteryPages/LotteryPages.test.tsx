@@ -9,12 +9,19 @@ const mocks = vi.hoisted(() => ({ me: vi.fn(), room: vi.fn() }))
 vi.mock('@/features/auth', () => ({ useMeQuery: () => mocks.me() }))
 vi.mock('@/features/lottery', () => ({
   LotteryLobby: () => null,
-  LotteryRoom: (props: unknown) => { mocks.room(props); return <p>추첨방 내용</p> },
+  LotteryRoom: (props: unknown) => {
+    mocks.room(props)
+    return <p>추첨방 내용</p>
+  },
 }))
 
-const page = () => <MemoryRouter initialEntries={['/games/lottery/room-one']}>
-  <Routes><Route path="/games/lottery/:roomId" element={<LotteryRoomPage />} /></Routes>
-</MemoryRouter>
+const page = () => (
+  <MemoryRouter initialEntries={['/games/lottery/room-one']}>
+    <Routes>
+      <Route path="/games/lottery/:roomId" element={<LotteryRoomPage />} />
+    </Routes>
+  </MemoryRouter>
+)
 
 describe('LotteryRoomPage identity', () => {
   beforeEach(() => vi.clearAllMocks())

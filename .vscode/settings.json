@@ -1,0 +1,6 @@
+{
+  "editor.formatOnSave": true,
+  "[javascript][javascriptreact][typescript][typescriptreact][json][jsonc][scss][css][markdown][html][yaml]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  }
+}

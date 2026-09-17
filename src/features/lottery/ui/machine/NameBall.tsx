@@ -44,7 +44,17 @@ const createNameTexture = (name: string) => {
   return texture
 }
 
-export const NameBall = ({ name, index, count, drawId, drawing, drawnAt, serverOffsetMs, reducedMotion, restingPosition }: NameBallProps) => {
+export const NameBall = ({
+  name,
+  index,
+  count,
+  drawId,
+  drawing,
+  drawnAt,
+  serverOffsetMs,
+  reducedMotion,
+  restingPosition,
+}: NameBallProps) => {
   const group = useRef<Group>(null)
   const label = useRef<Sprite>(null)
   const previousDrawing = useRef(drawing)
@@ -64,18 +74,26 @@ export const NameBall = ({ name, index, count, drawId, drawing, drawnAt, serverO
     let position: BallPosition | null
 
     if (drawing !== previousDrawing.current || (!rendered.current && drawing)) {
-      transition.current = { position: group.current.position.toArray() as BallPosition, startedAt: now }
+      transition.current = {
+        position: group.current.position.toArray() as BallPosition,
+        startedAt: now,
+      }
       previousDrawing.current = drawing
     }
     if (drawnAt !== previousDrawnAt.current) {
       if (drawnAt !== null && rendered.current && now < drawnAt + CAPTURE_DURATION_MS) {
-        capture.current = { position: group.current.position.toArray() as BallPosition, startedAt: now }
+        capture.current = {
+          position: group.current.position.toArray() as BallPosition,
+          startedAt: now,
+        }
       }
       previousDrawnAt.current = drawnAt
     }
 
     if (drawnAt !== null) {
-      position = reducedMotion ? null : drawnBallPosition(index, count, drawId, drawnAt, now, capture.current)
+      position = reducedMotion
+        ? null
+        : drawnBallPosition(index, count, drawId, drawnAt, now, capture.current)
     } else if (drawing && !reducedMotion) {
       position = swirlingPosition(index, count, drawId, now)
     } else {
@@ -92,7 +110,11 @@ export const NameBall = ({ name, index, count, drawId, drawing, drawnAt, serverO
     group.current.visible = position !== null
     if (position) {
       group.current.position.set(...position)
-      label.current?.position.copy(camera.position).sub(group.current.position).normalize().multiplyScalar(radius + 0.012)
+      label.current?.position
+        .copy(camera.position)
+        .sub(group.current.position)
+        .normalize()
+        .multiplyScalar(radius + 0.012)
     }
     rendered.current = true
   })
@@ -101,9 +123,22 @@ export const NameBall = ({ name, index, count, drawId, drawing, drawnAt, serverO
     <group ref={group} position={restingPosition} visible={drawnAt === null}>
       <mesh castShadow>
         <sphereGeometry args={[radius, 32, 24]} />
-        <meshPhysicalMaterial color={ballColor(index)} roughness={0.43} metalness={0} clearcoat={0.18} clearcoatRoughness={0.46} specularIntensity={0.35} envMapIntensity={0.3} />
+        <meshPhysicalMaterial
+          color={ballColor(index)}
+          roughness={0.43}
+          metalness={0}
+          clearcoat={0.18}
+          clearcoatRoughness={0.46}
+          specularIntensity={0.35}
+          envMapIntensity={0.3}
+        />
       </mesh>
-      <sprite ref={label} renderOrder={6} position={[0, 0, radius + 0.012]} scale={[labelWidth, labelWidth * 0.375, 1]}>
+      <sprite
+        ref={label}
+        renderOrder={6}
+        position={[0, 0, radius + 0.012]}
+        scale={[labelWidth, labelWidth * 0.375, 1]}
+      >
         <spriteMaterial map={texture} transparent depthWrite={false} toneMapped={false} />
       </sprite>
     </group>

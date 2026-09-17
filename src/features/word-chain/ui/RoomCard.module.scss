@@ -18,7 +18,10 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s ease, translate 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    translate 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover:not(:disabled) {
     border-color: var(--accent);

@@ -5,8 +5,15 @@ import type { LotteryRoomSnapshot } from '../api/types'
 import type { StompConnection } from '@/shared/ws'
 
 const mocks = vi.hoisted(() => ({
-  join: vi.fn(), save: vi.fn(), start: vi.fn(), reset: vi.fn(), leave: vi.fn(),
-  connect: vi.fn(), token: vi.fn(), reissue: vi.fn(), get: vi.fn(),
+  join: vi.fn(),
+  save: vi.fn(),
+  start: vi.fn(),
+  reset: vi.fn(),
+  leave: vi.fn(),
+  connect: vi.fn(),
+  token: vi.fn(),
+  reissue: vi.fn(),
+  get: vi.fn(),
 }))
 
 vi.mock('../api/lotteryApi', () => ({
@@ -32,14 +39,26 @@ vi.mock('@/shared/api', async (original) => ({
 import { useLotteryRoom } from './useLotteryRoom'
 
 const snapshot = (version = 1): LotteryRoomSnapshot => ({
-  id: 'room-one', title: '추첨', hostId: 1, hostName: '선도우',
-  participants: ['선도우', '육이슬'], winnerCount: 1, status: 'READY',
-  winners: [], members: [{ userId: 1, name: '선도우' }], version,
-  serverTime: '2026-09-14T00:00:00Z', nextDrawAt: null, drawId: 0,
+  id: 'room-one',
+  title: '추첨',
+  hostId: 1,
+  hostName: '선도우',
+  participants: ['선도우', '육이슬'],
+  winnerCount: 1,
+  status: 'READY',
+  winners: [],
+  members: [{ userId: 1, name: '선도우' }],
+  version,
+  serverTime: '2026-09-14T00:00:00Z',
+  nextDrawAt: null,
+  drawId: 0,
 })
 
 interface SocketSession {
-  options: { onConnect: (ready: StompConnection) => void; onError: (reason?: { code: string; message: string }) => void }
+  options: {
+    onConnect: (ready: StompConnection) => void
+    onError: (reason?: { code: string; message: string }) => void
+  }
   handlers: Map<string, (body: unknown) => void>
   connection: StompConnection
 }
@@ -50,7 +69,10 @@ let automaticReady: boolean
 const deferred = <T,>() => {
   let resolve!: (value: T) => void
   let reject!: (value: unknown) => void
-  const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no })
+  const promise = new Promise<T>((yes, no) => {
+    resolve = yes
+    reject = no
+  })
   return { promise, resolve, reject }
 }
 
@@ -62,7 +84,11 @@ describe('useLotteryRoom', () => {
     mocks.token.mockReturnValue('access-token')
     mocks.reissue.mockResolvedValue(false)
     mocks.join.mockImplementation(() => ({ unwrap: () => Promise.resolve(snapshot()) }))
-    mocks.get.mockImplementation(() => ({ unwrap: () => Promise.resolve(snapshot()), abort: vi.fn(), unsubscribe: vi.fn() }))
+    mocks.get.mockImplementation(() => ({
+      unwrap: () => Promise.resolve(snapshot()),
+      abort: vi.fn(),
+      unsubscribe: vi.fn(),
+    }))
     mocks.save.mockImplementation(() => ({ unwrap: () => Promise.resolve(snapshot(2)) }))
     mocks.start.mockImplementation(() => ({ unwrap: () => Promise.resolve(snapshot(2)) }))
     mocks.reset.mockImplementation(() => ({ unwrap: () => Promise.resolve(snapshot(2)) }))
@@ -78,7 +104,8 @@ describe('useLotteryRoom', () => {
           if (automaticReady && destination.endsWith('/enter')) {
             handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'room-one' })
           }
-        }), close: vi.fn(),
+        }),
+        close: vi.fn(),
       }
       sessions.push({ options, handlers, connection })
       options.onConnect(connection)
@@ -107,13 +134,22 @@ describe('useLotteryRoom', () => {
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await waitFor(() => expect(result.current.connecting).toBe(false))
     let operation!: Promise<boolean>
-    act(() => { operation = result.current.start() })
-    act(() => sessions[0].handlers.get('/topic/lottery/rooms/room-one')?.({
-      ...snapshot(4), serverTime: '2026-09-14T00:01:00Z',
-      status: 'DRAWING', winners: [{ name: '육이슬', drawnAt: '2026-09-14T00:01:00Z' }],
-    }))
+    act(() => {
+      operation = result.current.start()
+    })
+    act(() =>
+      sessions[0].handlers.get('/topic/lottery/rooms/room-one')?.({
+        ...snapshot(4),
+        serverTime: '2026-09-14T00:01:00Z',
+        status: 'DRAWING',
+        winners: [{ name: '육이슬', drawnAt: '2026-09-14T00:01:00Z' }],
+      }),
+    )
     const offset = result.current.serverOffsetMs
-    await act(async () => { pending.resolve(snapshot(2)); await operation })
+    await act(async () => {
+      pending.resolve(snapshot(2))
+      await operation
+    })
     expect(result.current.room?.version).toBe(4)
     expect(result.current.room?.winners[0].name).toBe('육이슬')
     expect(result.current.serverOffsetMs).toBe(offset)
@@ -134,7 +170,9 @@ describe('useLotteryRoom', () => {
   })
 
   it('shows REST join failures and can retry them', async () => {
-    mocks.join.mockImplementationOnce(() => ({ unwrap: () => Promise.reject({ status: 403, data: { message: '입장 불가' } }) }))
+    mocks.join.mockImplementationOnce(() => ({
+      unwrap: () => Promise.reject({ status: 403, data: { message: '입장 불가' } }),
+    }))
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await waitFor(() => expect(result.current.disconnected).toBe(true))
     expect(result.current.error).toBe('입장 불가')
@@ -145,10 +183,17 @@ describe('useLotteryRoom', () => {
   })
 
   it('keeps the last room and displays command failures', async () => {
-    mocks.save.mockReturnValue({ unwrap: () => Promise.reject({ status: 403, data: { message: '방장만 변경할 수 있습니다.' } }) })
+    mocks.save.mockReturnValue({
+      unwrap: () =>
+        Promise.reject({ status: 403, data: { message: '방장만 변경할 수 있습니다.' } }),
+    })
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await waitFor(() => expect(result.current.connecting).toBe(false))
-    await act(async () => expect(await result.current.saveSettings({ participants: ['김성호'], winnerCount: 1 })).toBe(false))
+    await act(async () =>
+      expect(await result.current.saveSettings({ participants: ['김성호'], winnerCount: 1 })).toBe(
+        false,
+      ),
+    )
     expect(result.current.room?.participants).toEqual(['선도우', '육이슬'])
     expect(result.current.error).toBe('방장만 변경할 수 있습니다.')
     expect(result.current.busy).toBe(false)
@@ -164,7 +209,9 @@ describe('useLotteryRoom', () => {
     await waitFor(() => expect(result.current.connecting).toBe(false))
 
     let operation!: Promise<boolean>
-    act(() => { operation = result.current.start(settings) })
+    act(() => {
+      operation = result.current.start(settings)
+    })
     expect(result.current.busy).toBe(true)
     expect(mocks.save).toHaveBeenCalledWith({ id: 'room-one', settings })
     expect(mocks.start).not.toHaveBeenCalled()
@@ -195,11 +242,15 @@ describe('useLotteryRoom', () => {
   })
 
   it('does not start when saving the draft fails', async () => {
-    mocks.save.mockReturnValue({ unwrap: () => Promise.reject({ status: 400, data: { message: '같은 이름이 있습니다.' } }) })
+    mocks.save.mockReturnValue({
+      unwrap: () => Promise.reject({ status: 400, data: { message: '같은 이름이 있습니다.' } }),
+    })
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await waitFor(() => expect(result.current.connecting).toBe(false))
     await act(async () => {
-      expect(await result.current.start({ participants: ['선도우', '김성호'], winnerCount: 1 })).toBe(false)
+      expect(
+        await result.current.start({ participants: ['선도우', '김성호'], winnerCount: 1 }),
+      ).toBe(false)
     })
     expect(mocks.start).not.toHaveBeenCalled()
     expect(result.current.room?.version).toBe(1)
@@ -215,7 +266,9 @@ describe('useLotteryRoom', () => {
     await waitFor(() => expect(result.current.connecting).toBe(false))
     const previousStart = result.current.start
     let operation!: Promise<boolean>
-    act(() => { operation = previousStart(settings) })
+    act(() => {
+      operation = previousStart(settings)
+    })
     act(() => sessions[0].options.onError({ code: 'CLOSED', message: '연결이 끊겼습니다.' }))
     await act(async () => {
       pending.resolve({ ...snapshot(2), ...settings })
@@ -235,7 +288,9 @@ describe('useLotteryRoom', () => {
     const { result, unmount } = renderHook(() => useLotteryRoom('room-one'))
     await waitFor(() => expect(result.current.connecting).toBe(false))
     let operation!: Promise<boolean>
-    act(() => { operation = result.current.start({ participants: ['김성호'], winnerCount: 1 }) })
+    act(() => {
+      operation = result.current.start({ participants: ['김성호'], winnerCount: 1 })
+    })
     unmount()
     await act(async () => {
       pending.resolve({ ...snapshot(2), participants: ['김성호'] })
@@ -253,12 +308,16 @@ describe('useLotteryRoom', () => {
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await waitFor(() => expect(result.current.connecting).toBe(false))
     let abandoned!: Promise<boolean>
-    act(() => { abandoned = result.current.start({ participants: ['김성호'], winnerCount: 1 }) })
+    act(() => {
+      abandoned = result.current.start({ participants: ['김성호'], winnerCount: 1 })
+    })
     act(() => sessions[0].options.onError({ code: 'CLOSED', message: '연결 종료' }))
     act(() => result.current.reconnect())
     await waitFor(() => expect(sessions).toHaveLength(2))
     let current!: Promise<boolean>
-    act(() => { current = result.current.start() })
+    act(() => {
+      current = result.current.start()
+    })
     await act(async () => {
       saved.resolve({ ...snapshot(2), participants: ['김성호'] })
       expect(await abandoned).toBe(false)
@@ -310,7 +369,9 @@ describe('useLotteryRoom', () => {
   it('ignores an abandoned StrictMode join and closes the active socket on unmount', async () => {
     const first = deferred<LotteryRoomSnapshot>()
     mocks.join.mockImplementationOnce(() => ({ unwrap: () => first.promise }))
-    const { result, unmount } = renderHook(() => useLotteryRoom('room-one'), { wrapper: StrictMode })
+    const { result, unmount } = renderHook(() => useLotteryRoom('room-one'), {
+      wrapper: StrictMode,
+    })
     await waitFor(() => expect(result.current.connecting).toBe(false))
     await act(async () => first.resolve(snapshot(99)))
     expect(sessions).toHaveLength(1)
@@ -319,27 +380,37 @@ describe('useLotteryRoom', () => {
     expect(sessions[0].connection.close).toHaveBeenCalledOnce()
   })
 
-  it.each([401, 403, 404])('detects revoked membership or a missing room through periodic GET (%s)', async (status) => {
-    vi.useFakeTimers()
-    mocks.get.mockImplementation(() => ({
-      unwrap: () => Promise.reject({ status, data: { message: '더 이상 참여 중인 방이 아닙니다.' } }), abort: vi.fn(), unsubscribe: vi.fn(),
-    }))
-    const { result } = renderHook(() => useLotteryRoom('room-one'))
-    await act(async () => {})
-    expect(result.current.disconnected).toBe(false)
-    await act(async () => vi.advanceTimersByTimeAsync(5000))
-    expect(mocks.get).toHaveBeenCalledWith('room-one', false)
-    expect(result.current.disconnected).toBe(true)
-    expect(result.current.error).toBe('더 이상 참여 중인 방이 아닙니다.')
-    expect(sessions[0].connection.close).toHaveBeenCalledOnce()
-    await act(async () => vi.advanceTimersByTimeAsync(10_000))
-    expect(mocks.get).toHaveBeenCalledOnce()
-  })
+  it.each([401, 403, 404])(
+    'detects revoked membership or a missing room through periodic GET (%s)',
+    async (status) => {
+      vi.useFakeTimers()
+      mocks.get.mockImplementation(() => ({
+        unwrap: () =>
+          Promise.reject({ status, data: { message: '더 이상 참여 중인 방이 아닙니다.' } }),
+        abort: vi.fn(),
+        unsubscribe: vi.fn(),
+      }))
+      const { result } = renderHook(() => useLotteryRoom('room-one'))
+      await act(async () => {})
+      expect(result.current.disconnected).toBe(false)
+      await act(async () => vi.advanceTimersByTimeAsync(5000))
+      expect(mocks.get).toHaveBeenCalledWith('room-one', false)
+      expect(result.current.disconnected).toBe(true)
+      expect(result.current.error).toBe('더 이상 참여 중인 방이 아닙니다.')
+      expect(sessions[0].connection.close).toHaveBeenCalledOnce()
+      await act(async () => vi.advanceTimersByTimeAsync(10_000))
+      expect(mocks.get).toHaveBeenCalledOnce()
+    },
+  )
 
   it('verifies on tab return without overlapping GETs and ignores old snapshots and clock offsets', async () => {
     vi.useFakeTimers()
     const pending = deferred<LotteryRoomSnapshot>()
-    mocks.get.mockReturnValue({ unwrap: () => pending.promise, abort: vi.fn(), unsubscribe: vi.fn() })
+    mocks.get.mockReturnValue({
+      unwrap: () => pending.promise,
+      abort: vi.fn(),
+      unsubscribe: vi.fn(),
+    })
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await act(async () => {})
@@ -353,14 +424,22 @@ describe('useLotteryRoom', () => {
     await act(async () => pending.resolve({ ...snapshot(2), serverTime: '2030-01-01T00:00:00Z' }))
     expect(result.current.room?.version).toBe(4)
     expect(result.current.serverOffsetMs).toBe(offset)
-    mocks.get.mockReturnValue({ unwrap: () => Promise.resolve({ ...snapshot(4), serverTime: '2030-01-01T00:00:00Z' }), abort: vi.fn(), unsubscribe: vi.fn() })
+    mocks.get.mockReturnValue({
+      unwrap: () => Promise.resolve({ ...snapshot(4), serverTime: '2030-01-01T00:00:00Z' }),
+      abort: vi.fn(),
+      unsubscribe: vi.fn(),
+    })
     await act(async () => document.dispatchEvent(new Event('visibilitychange')))
     expect(result.current.serverOffsetMs).toBe(offset)
   })
 
   it('accepts a newer GET snapshot if a broadcast was missed', async () => {
     vi.useFakeTimers()
-    mocks.get.mockReturnValue({ unwrap: () => Promise.resolve(snapshot(3)), abort: vi.fn(), unsubscribe: vi.fn() })
+    mocks.get.mockReturnValue({
+      unwrap: () => Promise.resolve(snapshot(3)),
+      abort: vi.fn(),
+      unsubscribe: vi.fn(),
+    })
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await act(async () => {})
     await act(async () => vi.advanceTimersByTimeAsync(5000))
@@ -370,7 +449,11 @@ describe('useLotteryRoom', () => {
 
   it('allows one transient network failure and disconnects after a second failure', async () => {
     vi.useFakeTimers()
-    mocks.get.mockImplementation(() => ({ unwrap: () => Promise.reject({ status: 'FETCH_ERROR' }), abort: vi.fn(), unsubscribe: vi.fn() }))
+    mocks.get.mockImplementation(() => ({
+      unwrap: () => Promise.reject({ status: 'FETCH_ERROR' }),
+      abort: vi.fn(),
+      unsubscribe: vi.fn(),
+    }))
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await act(async () => {})
     await act(async () => vi.advanceTimersByTimeAsync(5000))
@@ -417,7 +500,12 @@ describe('useLotteryRoom', () => {
   it('treats rejected STOMP enter membership as a disconnected room', async () => {
     const { result } = renderHook(() => useLotteryRoom('room-one'))
     await waitFor(() => expect(result.current.connecting).toBe(false))
-    act(() => sessions[0].handlers.get('/user/queue/errors')?.({ code: 'NOT_IN_LOTTERY_ROOM', message: '다시 입장해 주세요.' }))
+    act(() =>
+      sessions[0].handlers.get('/user/queue/errors')?.({
+        code: 'NOT_IN_LOTTERY_ROOM',
+        message: '다시 입장해 주세요.',
+      }),
+    )
     expect(result.current.disconnected).toBe(true)
     expect(result.current.error).toBe('다시 입장해 주세요.')
   })
@@ -434,8 +522,21 @@ describe('useLotteryRoom', () => {
     transport.subscribe(receive)
     expect(transport.isConnected()).toBe(true)
     const renderCount = renders
-    act(() => sessions[0].handlers.get('/topic/lottery/rooms/room-one/chat')?.({ type: 'TYPING', roomId: 'room-one', people: [] }))
-    act(() => sessions[0].handlers.get('/user/queue/lottery-chat')?.({ type: 'ERROR', roomId: 'room-one', code: 'CHAT_RATE_LIMIT', message: '잠시 기다려 주세요.' }))
+    act(() =>
+      sessions[0].handlers.get('/topic/lottery/rooms/room-one/chat')?.({
+        type: 'TYPING',
+        roomId: 'room-one',
+        people: [],
+      }),
+    )
+    act(() =>
+      sessions[0].handlers.get('/user/queue/lottery-chat')?.({
+        type: 'ERROR',
+        roomId: 'room-one',
+        code: 'CHAT_RATE_LIMIT',
+        message: '잠시 기다려 주세요.',
+      }),
+    )
     expect(receive).toHaveBeenCalledTimes(2)
     expect(renders).toBe(renderCount)
     expect(mocks.connect).toHaveBeenCalledOnce()
@@ -457,7 +558,9 @@ describe('useLotteryRoom', () => {
     expect(result.current.chatTransport.isConnected()).toBe(false)
     await act(async () => vi.advanceTimersByTimeAsync(5000))
     expect(mocks.get).not.toHaveBeenCalled()
-    act(() => sessions[0].handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'room-one' }))
+    act(() =>
+      sessions[0].handlers.get('/user/queue/lottery-chat')?.({ type: 'READY', roomId: 'room-one' }),
+    )
     expect(result.current.connecting).toBe(false)
     expect(result.current.chatTransport.isConnected()).toBe(true)
     await act(async () => vi.advanceTimersByTimeAsync(5000))
@@ -477,4 +580,5 @@ describe('useLotteryRoom', () => {
     act(() => late?.({ type: 'READY', roomId: 'room-one' }))
     expect(result.current.chatTransport.isConnected()).toBe(false)
     expect(result.current.disconnected).toBe(true)
-  })})
+  })
+})

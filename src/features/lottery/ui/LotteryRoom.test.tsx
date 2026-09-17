@@ -11,31 +11,67 @@ const state = vi.hoisted(() => ({ useRoom: vi.fn(), saveImage: vi.fn() }))
 
 vi.mock('../model/useLotteryRoom', () => ({ useLotteryRoom: () => state.useRoom() }))
 vi.mock('./LotteryMachine', () => ({ LotteryMachine: () => <div data-testid="lottery-machine" /> }))
-vi.mock('./chat/LotteryChatPanel', () => ({ LotteryChatPanel: () => <section data-lottery-chat="true"><input aria-label="채팅 초안" /></section> }))
+vi.mock('./chat/LotteryChatPanel', () => ({
+  LotteryChatPanel: () => (
+    <section data-lottery-chat="true">
+      <input aria-label="채팅 초안" />
+    </section>
+  ),
+}))
 vi.mock('@/shared/lib/usePrefersReducedMotion', () => ({ usePrefersReducedMotion: () => false }))
-vi.mock('../model/useResultImageDownload', () => ({ useResultImageDownload: () => ({ saveImage: state.saveImage, status: 'idle' }) }))
+vi.mock('../model/useResultImageDownload', () => ({
+  useResultImageDownload: () => ({ saveImage: state.saveImage, status: 'idle' }),
+}))
 
 let game: LotteryRoomState
 
 const setup = (myUserId = 1) => ({
-  ...render(<MemoryRouter><LotteryRoom roomId="room" myUserId={myUserId} /></MemoryRouter>),
+  ...render(
+    <MemoryRouter>
+      <LotteryRoom roomId="room" myUserId={myUserId} />
+    </MemoryRouter>,
+  ),
   user: userEvent.setup(),
 })
 
 describe('LotteryRoom permissions and lifecycle', () => {
-  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
 
   beforeEach(() => {
     state.saveImage.mockReset()
     game = {
       room: {
-        id: 'room', title: '점심 추첨', hostId: 1, hostName: '선도우', participants: ['선도우', '육이슬'],
-        winnerCount: 1, status: 'READY', winners: [], members: [{ userId: 1, name: '선도우' }, { userId: 2, name: '육이슬' }], version: 1,
-        serverTime: '2026-09-14T00:00:00Z', nextDrawAt: null, drawId: 1,
+        id: 'room',
+        title: '점심 추첨',
+        hostId: 1,
+        hostName: '선도우',
+        participants: ['선도우', '육이슬'],
+        winnerCount: 1,
+        status: 'READY',
+        winners: [],
+        members: [
+          { userId: 1, name: '선도우' },
+          { userId: 2, name: '육이슬' },
+        ],
+        version: 1,
+        serverTime: '2026-09-14T00:00:00Z',
+        nextDrawAt: null,
+        drawId: 1,
       },
-      connecting: false, disconnected: false, busy: false, error: null, serverOffsetMs: 0, chatTransport: createLotteryChatTransport('room'),
-      saveSettings: vi.fn().mockResolvedValue(true), start: vi.fn().mockResolvedValue(true),
-      reset: vi.fn().mockResolvedValue(true), leave: vi.fn().mockResolvedValue(true), reconnect: vi.fn(),
+      connecting: false,
+      disconnected: false,
+      busy: false,
+      error: null,
+      serverOffsetMs: 0,
+      chatTransport: createLotteryChatTransport('room'),
+      saveSettings: vi.fn().mockResolvedValue(true),
+      start: vi.fn().mockResolvedValue(true),
+      reset: vi.fn().mockResolvedValue(true),
+      leave: vi.fn().mockResolvedValue(true),
+      reconnect: vi.fn(),
     }
     state.useRoom.mockImplementation(() => game)
   })
@@ -44,7 +80,11 @@ describe('LotteryRoom permissions and lifecycle', () => {
     const { user, rerender } = setup()
     await user.click(screen.getByRole('button', { name: '1명 추첨 시작' }))
     expect(game.start).toHaveBeenCalledOnce()
-    rerender(<MemoryRouter><LotteryRoom roomId="room" myUserId={2} /></MemoryRouter>)
+    rerender(
+      <MemoryRouter>
+        <LotteryRoom roomId="room" myUserId={2} />
+      </MemoryRouter>,
+    )
     expect(screen.queryByRole('button', { name: /추첨 시작/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
     expect(screen.getByText('당첨 인원')).toBeInTheDocument()
@@ -67,13 +107,21 @@ describe('LotteryRoom permissions and lifecycle', () => {
     expect(screen.getByRole('status')).toHaveTextContent('추첨방에 들어가는 중')
     expect(screen.queryByRole('button', { name: '다시 연결' })).not.toBeInTheDocument()
     game = { ...game, connecting: false, disconnected: true, error: '방을 찾을 수 없습니다.' }
-    rerender(<MemoryRouter><LotteryRoom roomId="room" myUserId={1} /></MemoryRouter>)
+    rerender(
+      <MemoryRouter>
+        <LotteryRoom roomId="room" myUserId={1} />
+      </MemoryRouter>,
+    )
     expect(screen.getByRole('alert')).toHaveTextContent('방을 찾을 수 없습니다.')
     expect(screen.getByRole('button', { name: '다시 연결' })).toBeEnabled()
   })
 
   it('requires host confirmation before clearing the finished results', async () => {
-    game.room = { ...game.room!, status: 'FINISHED', winners: [{ name: '육이슬', drawnAt: '2020-01-01T00:00:00Z' }] }
+    game.room = {
+      ...game.room!,
+      status: 'FINISHED',
+      winners: [{ name: '육이슬', drawnAt: '2020-01-01T00:00:00Z' }],
+    }
     const { user } = setup()
     await user.click(screen.getByRole('button', { name: '새 추첨 준비' }))
     const dialog = screen.getByRole('dialog', { name: '새 추첨을 준비할까요?' })
@@ -82,22 +130,34 @@ describe('LotteryRoom permissions and lifecycle', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(game.reset).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: '새 추첨 준비' }))
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '새 추첨 준비' }))
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: '새 추첨 준비' }),
+    )
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(game.reset).toHaveBeenCalledOnce()
   })
 
   it('keeps the reset confirmation open when the server rejects the reset', async () => {
-    game.room = { ...game.room!, status: 'FINISHED', winners: [{ name: '육이슬', drawnAt: '2020-01-01T00:00:00Z' }] }
+    game.room = {
+      ...game.room!,
+      status: 'FINISHED',
+      winners: [{ name: '육이슬', drawnAt: '2020-01-01T00:00:00Z' }],
+    }
     game.reset = vi.fn().mockResolvedValue(false)
     const { user } = setup()
     await user.click(screen.getByRole('button', { name: '새 추첨 준비' }))
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: '새 추첨 준비' }))
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: '새 추첨 준비' }),
+    )
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('shows completed results to spectators without exposing reset controls', () => {
-    game.room = { ...game.room!, status: 'FINISHED', winners: [{ name: '육이슬', drawnAt: '2020-01-01T00:00:00Z' }] }
+    game.room = {
+      ...game.room!,
+      status: 'FINISHED',
+      winners: [{ name: '육이슬', drawnAt: '2020-01-01T00:00:00Z' }],
+    }
     setup(2)
     expect(screen.getByRole('heading', { name: '오늘의 당첨자' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '새 추첨 준비' })).not.toBeInTheDocument()
@@ -107,7 +167,11 @@ describe('LotteryRoom permissions and lifecycle', () => {
     vi.useFakeTimers()
     const now = Date.parse('2026-09-14T00:00:00Z')
     vi.setSystemTime(now)
-    game.room = { ...game.room!, status: 'FINISHED', winners: [{ name: '육이슬', drawnAt: new Date(now).toISOString() }] }
+    game.room = {
+      ...game.room!,
+      status: 'FINISHED',
+      winners: [{ name: '육이슬', drawnAt: new Date(now).toISOString() }],
+    }
     setup()
     expect(screen.queryByRole('heading', { name: '오늘의 당첨자' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '새 추첨 준비' })).not.toBeInTheDocument()
@@ -124,8 +188,13 @@ describe('LotteryRoom permissions and lifecycle', () => {
   it('copies the announced winners in order without exposing an unannounced winner', async () => {
     const now = Date.now()
     game.room = {
-      ...game.room!, status: 'DRAWING', winnerCount: 2,
-      winners: [{ name: '육이슬', drawnAt: new Date(now - 10_000).toISOString() }, { name: '선도우', drawnAt: new Date(now).toISOString() }],
+      ...game.room!,
+      status: 'DRAWING',
+      winnerCount: 2,
+      winners: [
+        { name: '육이슬', drawnAt: new Date(now - 10_000).toISOString() },
+        { name: '선도우', drawnAt: new Date(now).toISOString() },
+      ],
     }
     const { user } = setup()
     const write = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined)
@@ -137,7 +206,9 @@ describe('LotteryRoom permissions and lifecycle', () => {
 
   it('provides a selectable invite link when clipboard access fails', async () => {
     const { user } = setup()
-    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValueOnce(new Error('Clipboard unavailable'))
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValueOnce(
+      new Error('Clipboard unavailable'),
+    )
     await user.click(screen.getByRole('button', { name: '초대 링크 복사' }))
     expect(screen.getByRole('alert')).toHaveTextContent('링크를 직접 선택해 복사해 주세요.')
     expect(screen.getByRole('textbox', { name: '초대 링크' })).toHaveValue(window.location.href)
@@ -147,12 +218,20 @@ describe('LotteryRoom permissions and lifecycle', () => {
     const now = Date.now()
     const presented = { name: '육이슬', drawnAt: new Date(now - 10_000).toISOString() }
     game.room = {
-      ...game.room!, status: 'DRAWING', winnerCount: 2,
+      ...game.room!,
+      status: 'DRAWING',
+      winnerCount: 2,
       winners: [presented, { name: '선도우', drawnAt: new Date(now).toISOString() }],
     }
     const { user } = setup(2)
     await user.click(screen.getByRole('button', { name: '결과 이미지 저장' }))
-    expect(state.saveImage).toHaveBeenCalledWith({ title: '점심 추첨', participants: ['선도우', '육이슬'], winners: [presented], winnerCount: 2, finished: false })
+    expect(state.saveImage).toHaveBeenCalledWith({
+      title: '점심 추첨',
+      participants: ['선도우', '육이슬'],
+      winners: [presented],
+      winnerCount: 2,
+      finished: false,
+    })
     expect(screen.getByRole('button', { name: '결과 복사' })).toBeInTheDocument()
   })
 
@@ -163,7 +242,11 @@ describe('LotteryRoom permissions and lifecycle', () => {
     stage.scrollIntoView = vi.fn()
     await user.click(draft)
     game = { ...game, room: { ...game.room!, status: 'DRAWING' } }
-    rerender(<MemoryRouter><LotteryRoom roomId="room" myUserId={1} /></MemoryRouter>)
+    rerender(
+      <MemoryRouter>
+        <LotteryRoom roomId="room" myUserId={1} />
+      </MemoryRouter>,
+    )
     expect(draft).toHaveFocus()
     expect(stage.scrollIntoView).not.toHaveBeenCalled()
   })
@@ -174,7 +257,11 @@ describe('LotteryRoom permissions and lifecycle', () => {
     stage.scrollIntoView = vi.fn()
     await user.click(screen.getByRole('button', { name: '1명 추첨 시작' }))
     game = { ...game, room: { ...game.room!, status: 'DRAWING' } }
-    rerender(<MemoryRouter><LotteryRoom roomId="room" myUserId={1} /></MemoryRouter>)
+    rerender(
+      <MemoryRouter>
+        <LotteryRoom roomId="room" myUserId={1} />
+      </MemoryRouter>,
+    )
     expect(stage).toHaveFocus()
     expect(stage.scrollIntoView).toHaveBeenCalledOnce()
   })

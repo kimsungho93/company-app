@@ -13,7 +13,13 @@ export const useAuthBootstrap = (): { retry: () => void } => {
         if (sessionStore.get().ended) dispatch(anonymous())
         return
       }
-      dispatch(result === 'success' ? authenticated() : result === 'retryable' ? unavailable() : anonymous())
+      dispatch(
+        result === 'success'
+          ? authenticated()
+          : result === 'retryable'
+            ? unavailable()
+            : anonymous(),
+      )
     })
   }, [dispatch])
 

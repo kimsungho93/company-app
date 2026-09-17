@@ -30,7 +30,9 @@ describe('Stage', () => {
   it('준비한 사람을 표시한다', () => {
     render(<Stage players={[player(1, { ready: true }), player(2)]} hostId={9} />)
 
-    expect(within(screen.getByRole('listitem', { name: '사람1' })).getByText('준비')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('listitem', { name: '사람1' })).getByText('준비'),
+    ).toBeInTheDocument()
     expect(within(screen.getByRole('listitem', { name: '사람2' })).queryByText('준비')).toBeNull()
   })
 
@@ -64,11 +66,15 @@ describe('Stage', () => {
 
     const [back, front] = screen.getAllByRole('list')
 
-    expect(within(back).getAllByRole('listitem').map((li) => li.getAttribute('aria-label'))).toEqual(
-      ['사람1', '사람2', '사람3'],
-    )
     expect(
-      within(front).getAllByRole('listitem').map((li) => li.getAttribute('aria-label')),
+      within(back)
+        .getAllByRole('listitem')
+        .map((li) => li.getAttribute('aria-label')),
+    ).toEqual(['사람1', '사람2', '사람3'])
+    expect(
+      within(front)
+        .getAllByRole('listitem')
+        .map((li) => li.getAttribute('aria-label')),
     ).toEqual(['사람4', '사람5', '사람6'])
   })
 
@@ -109,7 +115,9 @@ describe('Stage', () => {
   it('게임이 없으면 준비 표시를 그대로 그린다', () => {
     render(<Stage players={[player(1, { ready: true }), player(2)]} hostId={9} />)
 
-    expect(within(screen.getByRole('listitem', { name: '사람1' })).getByText('준비')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('listitem', { name: '사람1' })).getByText('준비'),
+    ).toBeInTheDocument()
   })
 
   it('게임 중에는 준비 표시를 그리지 않는다', () => {
@@ -119,13 +127,12 @@ describe('Stage', () => {
   })
 
   it('turnOrder 에 없는 사람에게 관전 표시가 붙는다', () => {
-    render(
-      <Stage players={[player(1), player(9)]} hostId={1} game={game()} />,
-    )
+    render(<Stage players={[player(1), player(9)]} hostId={1} game={game()} />)
 
-    expect(within(screen.getByRole('listitem', { name: '사람9' })).getByText('관전')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('listitem', { name: '사람9' })).getByText('관전'),
+    ).toBeInTheDocument()
   })
-
 
   it('말풍선은 낸 사람 자리에만 뜬다', () => {
     render(
@@ -136,7 +143,9 @@ describe('Stage', () => {
       />,
     )
 
-    expect(within(screen.getByRole('listitem', { name: '사람2' })).getByText('과일')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('listitem', { name: '사람2' })).getByText('과일'),
+    ).toBeInTheDocument()
     expect(within(screen.getByRole('listitem', { name: '사람1' })).queryByText('과일')).toBeNull()
   })
 
@@ -157,7 +166,9 @@ describe('Stage', () => {
       <Stage
         players={[player(1)]}
         hostId={9}
-        game={game({ bubbles: [{ userId: 1, word: '바나나', state: 'FAIL', reason: 'NOT_CHAINED' }] })}
+        game={game({
+          bubbles: [{ userId: 1, word: '바나나', state: 'FAIL', reason: 'NOT_CHAINED' }],
+        })}
       />,
     )
 

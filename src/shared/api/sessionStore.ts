@@ -36,25 +36,37 @@ const LOGOUT_KEY = 'company.auth.logout-pending'
 let pendingLogout: string | null = null
 
 export const getPendingLogout = (): string | null => {
-  try { return localStorage.getItem(LOGOUT_KEY) } catch { return pendingLogout }
+  try {
+    return localStorage.getItem(LOGOUT_KEY)
+  } catch {
+    return pendingLogout
+  }
 }
 
 export const clearPendingLogout = (marker: string | null): void => {
   if (getPendingLogout() !== marker) return
   pendingLogout = null
-  try { localStorage.removeItem(LOGOUT_KEY) } catch { return }
+  try {
+    localStorage.removeItem(LOGOUT_KEY)
+  } catch {
+    return
+  }
 }
 
 const notify = () => listeners.forEach((listener) => listener())
 
 export const isSessionEndCode = (code: unknown): code is SessionEndReason =>
-  code === 'SESSION_IDLE_EXPIRED' || code === 'SESSION_ABSOLUTE_EXPIRED' || code === 'SESSION_REVOKED'
+  code === 'SESSION_IDLE_EXPIRED' ||
+  code === 'SESSION_ABSOLUTE_EXPIRED' ||
+  code === 'SESSION_REVOKED'
 
 export const sessionEndReasonFor = (code: unknown): SessionEndReason => {
   if (isSessionEndCode(code)) return code
   const now = Date.now() + snapshot.clockOffset
-  if (snapshot.session && Date.parse(snapshot.session.absoluteExpiresAt) <= now) return 'SESSION_ABSOLUTE_EXPIRED'
-  if (snapshot.session && Date.parse(snapshot.session.idleExpiresAt) <= now) return 'SESSION_IDLE_EXPIRED'
+  if (snapshot.session && Date.parse(snapshot.session.absoluteExpiresAt) <= now)
+    return 'SESSION_ABSOLUTE_EXPIRED'
+  if (snapshot.session && Date.parse(snapshot.session.idleExpiresAt) <= now)
+    return 'SESSION_IDLE_EXPIRED'
   return 'UNAUTHENTICATED'
 }
 
@@ -66,9 +78,13 @@ export const errorCode = (body: unknown): string | undefined =>
 export const isSessionMetadata = (value: unknown): value is SessionMetadata => {
   if (!value || typeof value !== 'object') return false
   const data = value as Partial<SessionMetadata>
-  return typeof data.sessionId === 'string' && data.sessionId.length > 0 &&
-    [data.serverTime, data.idleExpiresAt, data.absoluteExpiresAt]
-      .every((date) => typeof date === 'string' && Number.isFinite(Date.parse(date)))
+  return (
+    typeof data.sessionId === 'string' &&
+    data.sessionId.length > 0 &&
+    [data.serverTime, data.idleExpiresAt, data.absoluteExpiresAt].every(
+      (date) => typeof date === 'string' && Number.isFinite(Date.parse(date)),
+    )
+  )
 }
 
 const publish = (message: Message) => {
@@ -86,7 +102,11 @@ const publish = (message: Message) => {
 
 const receive = (message: Message) => {
   if (message.type === 'ended') {
-    if (!message.sessionId || !snapshot.session || message.sessionId === snapshot.session.sessionId) {
+    if (
+      !message.sessionId ||
+      !snapshot.session ||
+      message.sessionId === snapshot.session.sessionId
+    ) {
       sessionStore.end(message.reason, false, false)
     }
   } else if (message.type === 'session' && isSessionMetadata(message.session)) {
@@ -103,11 +123,15 @@ export const sessionStore = {
   get: (): SessionSnapshot => snapshot,
   subscribe(listener: () => void): () => void {
     listeners.add(listener)
-    return () => { listeners.delete(listener) }
+    return () => {
+      listeners.delete(listener)
+    }
   },
   onEvent(listener: (event: SessionEvent) => void): () => void {
     eventListeners.add(listener)
-    return () => { eventListeners.delete(listener) }
+    return () => {
+      eventListeners.delete(listener)
+    }
   },
   initialize(): void {
     if (initialized || typeof window === 'undefined') return
@@ -118,7 +142,11 @@ export const sessionStore = {
     } else {
       window.addEventListener('storage', (event) => {
         if (event.key !== STORAGE_KEY || !event.newValue) return
-        try { receive(JSON.parse(event.newValue) as Message) } catch { return }
+        try {
+          receive(JSON.parse(event.newValue) as Message)
+        } catch {
+          return
+        }
       })
     }
   },
@@ -139,8 +167,12 @@ export const sessionStore = {
       absoluteExpiresAt: session.absoluteExpiresAt,
     }
     const previous = snapshot.session
-    if (!started && previous?.sessionId === session.sessionId &&
-        Date.parse(previous.serverTime) > Date.parse(session.serverTime)) return
+    if (
+      !started &&
+      previous?.sessionId === session.sessionId &&
+      Date.parse(previous.serverTime) > Date.parse(session.serverTime)
+    )
+      return
     snapshot = {
       session: metadata,
       clockOffset: Date.parse(session.serverTime) - Date.now(),
@@ -155,7 +187,9 @@ export const sessionStore = {
     const sessionId = snapshot.session?.sessionId ?? null
     if (reason === 'LOGOUT' && markPending && !getPendingLogout()) {
       pendingLogout = JSON.stringify({ sessionId, nonce: crypto.randomUUID() })
-      try { localStorage.setItem(LOGOUT_KEY, pendingLogout) } catch {}
+      try {
+        localStorage.setItem(LOGOUT_KEY, pendingLogout)
+      } catch {}
     }
     tokenStore.clear()
     snapshot = { session: null, clockOffset: 0, reason, ended: true }
@@ -169,5 +203,7 @@ export const withAuthLock = async <T>(operation: () => Promise<T>): Promise<T> =
   if (typeof navigator !== 'undefined' && navigator.locks) {
     return navigator.locks.request('company.auth.cookie', operation)
   }
-  throw new Error('이 브라우저는 안전한 로그인 동기화를 지원하지 않습니다. 최신 브라우저에서 다시 시도해 주세요.')
+  throw new Error(
+    '이 브라우저는 안전한 로그인 동기화를 지원하지 않습니다. 최신 브라우저에서 다시 시도해 주세요.',
+  )
 }

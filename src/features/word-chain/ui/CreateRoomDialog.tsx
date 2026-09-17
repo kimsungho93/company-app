@@ -62,7 +62,9 @@ export const CreateRoomDialog = ({ open, onClose, onCreated }: CreateRoomDialogP
           void submit()
         }}
       >
-        <h2 id={titleId} className={styles.title}>방 만들기</h2>
+        <h2 id={titleId} className={styles.title}>
+          방 만들기
+        </h2>
 
         <TextField
           label="방 이름"

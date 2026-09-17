@@ -10,12 +10,26 @@
   color: var(--text);
   box-shadow: var(--shadow-card);
 
-  &::backdrop { background: rgb(0 0 0 / 48%); }
-  h2 { margin: 0 0 14px; color: var(--text-strong); font-size: 20px; }
-  p { margin: 0 0 24px; line-height: 1.65; font-size: 14px; }
-  .error { color: var(--danger); }
+  &::backdrop {
+    background: rgb(0 0 0 / 48%);
+  }
+  h2 {
+    margin: 0 0 14px;
+    color: var(--text-strong);
+    font-size: 20px;
+  }
+  p {
+    margin: 0 0 24px;
+    line-height: 1.65;
+    font-size: 14px;
+  }
+  .error {
+    color: var(--danger);
+  }
 
-  @include s.below(s.$bp-mobile) { padding: 22px; }
+  @include s.below(s.$bp-mobile) {
+    padding: 22px;
+  }
 }
 
 .actions {
@@ -36,5 +50,8 @@
   text-align: center;
   color: var(--text);
   background: var(--bg);
-  p { margin: 0; line-height: 1.6; }
+  p {
+    margin: 0;
+    line-height: 1.6;
+  }
 }

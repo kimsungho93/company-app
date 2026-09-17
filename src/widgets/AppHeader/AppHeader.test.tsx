@@ -37,7 +37,10 @@ describe('AppHeader', () => {
   })
 
   it('me 가 오기 전에도 이름 자리를 차지한다', () => {
-    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => {})),
+    )
     const { wrapper } = createTestWrapper({ withRouter: true })
 
     render(<AppHeader />, { wrapper })

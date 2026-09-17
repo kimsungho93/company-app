@@ -10,14 +10,28 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = ({
-  children, loading = false, disabled, type = 'button', variant = 'primary',
-  size = 'medium', fullWidth = false, className, ...rest
+  children,
+  loading = false,
+  disabled,
+  type = 'button',
+  variant = 'primary',
+  size = 'medium',
+  fullWidth = false,
+  className,
+  ...rest
 }: ButtonProps) => (
   <button
     {...rest}
     type={type}
-    className={[styles.button, styles[variant], styles[size], fullWidth && styles.fullWidth, className]
-      .filter(Boolean).join(' ')}
+    className={[
+      styles.button,
+      styles[variant],
+      styles[size],
+      fullWidth && styles.fullWidth,
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ')}
     disabled={disabled || loading}
     aria-busy={loading || rest['aria-busy']}
   >

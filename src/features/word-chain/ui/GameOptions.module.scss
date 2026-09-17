@@ -62,7 +62,9 @@ label.row {
     color: var(--text-muted);
     font-size: 13px;
     font-weight: 500;
-    transition: background 0.18s ease, color 0.18s ease;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease;
   }
 
   &:hover input:not(:disabled) + span {

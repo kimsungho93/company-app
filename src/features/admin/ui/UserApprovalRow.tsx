@@ -16,7 +16,15 @@ interface UserApprovalRowProps {
 }
 
 export const UserApprovalRow = ({
-  user, selected, isSelf, busy, canApprove, canReject, onSelect, onApprove, onReject,
+  user,
+  selected,
+  isSelf,
+  busy,
+  canApprove,
+  canReject,
+  onSelect,
+  onApprove,
+  onReject,
 }: UserApprovalRowProps) => (
   <div className={styles.row}>
     <Checkbox
@@ -39,12 +47,7 @@ export const UserApprovalRow = ({
 
     <div className={styles.actions}>
       {canApprove && (
-        <button
-          type="button"
-          className={styles.approve}
-          disabled={busy}
-          onClick={onApprove}
-        >
+        <button type="button" className={styles.approve} disabled={busy} onClick={onApprove}>
           승인
         </button>
       )}

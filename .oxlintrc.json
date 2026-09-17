@@ -5,5 +5,112 @@
     "react/rules-of-hooks": "error",
     "react/only-export-components": ["warn", { "allowConstantExport": true }],
     "func-style": ["error", "expression"]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/shared/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/features/*",
+                  "@/features/*/**",
+                  "@/widgets/*",
+                  "@/widgets/*/**",
+                  "@/pages/*",
+                  "@/pages/*/**",
+                  "@/app/*",
+                  "@/app/*/**"
+                ],
+                "message": "shared 는 상위 레이어를 참조하지 않는다. 도메인 지식이 필요하면 features 로 옮긴다"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/features/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/widgets/*",
+                  "@/widgets/*/**",
+                  "@/pages/*",
+                  "@/pages/*/**",
+                  "@/app/*",
+                  "@/app/*/**"
+                ],
+                "message": "features 는 widgets·pages·app 을 참조하지 않는다"
+              },
+              {
+                "group": ["@/features/*", "@/features/*/**"],
+                "message": "feature 끼리 직접 import 하지 않는다. 조립은 widgets·pages 에서 한다"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/widgets/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/pages/*", "@/pages/*/**", "@/app/*", "@/app/*/**"],
+                "message": "widgets 는 pages·app 을 참조하지 않는다"
+              },
+              {
+                "group": ["@/features/*/**"],
+                "message": "feature 내부 경로를 직접 import 하지 않는다. index.ts 가 export 한 것만 쓴다"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/pages/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "group": ["@/app/*", "@/app/*/**"], "message": "pages 는 app 을 참조하지 않는다" },
+              {
+                "group": ["@/features/*/**"],
+                "message": "feature 내부 경로를 직접 import 하지 않는다. index.ts 가 export 한 것만 쓴다"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/app/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/features/*/**"],
+                "message": "feature 내부 경로를 직접 import 하지 않는다. index.ts 가 export 한 것만 쓴다"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

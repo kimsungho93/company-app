@@ -11,7 +11,6 @@ const FONT_SPEC = '500 100px "Wanted Sans Variable"'
 const INTRO_SEEN_KEY = 'ibs.intro.seen'
 
 const shouldSkipIntro = (): boolean => {
-
   if (import.meta.env.DEV) return false
   try {
     return sessionStorage.getItem(INTRO_SEEN_KEY) === '1'
@@ -34,7 +33,6 @@ export const AuthLayout = () => {
   }, [])
 
   return (
-
     <main className={styles.page} data-theme="dark">
       <section className={styles.waferPane} aria-hidden="true">
         <WaferCanvas

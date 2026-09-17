@@ -27,7 +27,10 @@ const createStore = () =>
 const urlOf = (call: unknown[]) => String(call[0])
 
 describe('baseQuery 401 처리', () => {
-  beforeEach(() => { localStorage.clear(); sessionStore.beginLogin() })
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStore.beginLogin()
+  })
   afterEach(() => {
     vi.unstubAllGlobals()
     tokenStore.clear()
@@ -59,7 +62,8 @@ describe('baseQuery 401 처리', () => {
     tokenStore.set('expired')
     const fetchMock = vi.fn().mockImplementation((input: Request | string) => {
       const url = typeof input === 'string' ? input : input.url
-      if (url.includes('/auth/reissue')) return Promise.resolve(json({ code: 'INVALID_TOKEN' }, 401))
+      if (url.includes('/auth/reissue'))
+        return Promise.resolve(json({ code: 'INVALID_TOKEN' }, 401))
       return Promise.resolve(json({ code: 'TOKEN_EXPIRED' }, 401))
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -77,14 +81,18 @@ describe('baseQuery 401 처리', () => {
     let acquired = false
     const block = withAuthLock(async () => {
       acquired = true
-      await new Promise<void>((resolve) => { release = resolve })
+      await new Promise<void>((resolve) => {
+        release = resolve
+      })
     })
     await vi.waitFor(() => expect(acquired).toBe(true))
     const fetch = vi.fn()
     vi.stubGlobal('fetch', fetch)
     const loginApi = baseApi.injectEndpoints({
       endpoints: (build) => ({
-        queuedLogin: build.mutation<unknown, void>({ query: () => ({ url: '/auth/login', method: 'POST', body: {} }) }),
+        queuedLogin: build.mutation<unknown, void>({
+          query: () => ({ url: '/auth/login', method: 'POST', body: {} }),
+        }),
       }),
     })
     const store = createStore()

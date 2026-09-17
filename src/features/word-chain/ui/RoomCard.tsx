@@ -16,7 +16,13 @@ export const RoomCard = ({ room, onJoin }: RoomCardProps) => {
           <span className={styles.name}>{room.name}</span>
           {room.locked && (
             <>
-              <svg className={styles.lock} viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <svg
+                className={styles.lock}
+                viewBox="0 0 16 16"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
                 <path
                   d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"
                   fill="none"

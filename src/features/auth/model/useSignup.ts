@@ -22,8 +22,9 @@ const FIELD_BY_CODE: Record<string, SignupErrorField> = {
 export const useSignup = (): UseSignupResult => {
   const [signup, { isLoading, isSuccess }] = useSignupMutation()
   const [formError, setFormError] = useState<string | null>(null)
-  const [fieldError, setFieldError] =
-    useState<{ field: SignupErrorField; message: string } | null>(null)
+  const [fieldError, setFieldError] = useState<{ field: SignupErrorField; message: string } | null>(
+    null,
+  )
 
   const clearError = useCallback(() => {
     setFormError(null)

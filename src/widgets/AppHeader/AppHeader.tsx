@@ -7,7 +7,6 @@ import styles from './AppHeader.module.scss'
 export const AppHeader = () => {
   return (
     <header className={styles.header}>
-
       <div className={styles.side}>
         <Link to="/" className={styles.logo} aria-label="아이비에스 홈">
           <img src="/logo-mark.png" alt="" width={32} height={32} className={styles.logoMark} />

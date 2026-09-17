@@ -87,7 +87,13 @@ export const LeaveDayDialog = ({
               <span className={styles.holiday}>{holiday?.name ?? fixedHoliday}</span>
             )}
             <span className={styles.count}>{dayEntries.length}명</span>
-            <button type="button" className={styles.close} aria-label="닫기" disabled={busy} onClick={onClose}>
+            <button
+              type="button"
+              className={styles.close}
+              aria-label="닫기"
+              disabled={busy}
+              onClick={onClose}
+            >
               ×
             </button>
           </header>
@@ -102,7 +108,10 @@ export const LeaveDayDialog = ({
 
                 return (
                   <li key={entry.id} className={styles.row}>
-                    <span className={`${styles.dot} ${KIND_CLASS[entry.kind]}`} aria-hidden="true" />
+                    <span
+                      className={`${styles.dot} ${KIND_CLASS[entry.kind]}`}
+                      aria-hidden="true"
+                    />
                     <span className={styles.name}>{entry.name ?? '알 수 없음'}</span>
                     <span className={styles.meta}>
                       {label}
@@ -125,13 +134,7 @@ export const LeaveDayDialog = ({
             </ul>
           )}
 
-          <LeaveForm
-            date={date}
-            name={userName}
-            busy={busy}
-            error={leaveError}
-            onAdd={onAdd}
-          />
+          <LeaveForm date={date} name={userName} busy={busy} error={leaveError} onAdd={onAdd} />
 
           {isAdmin && (
             <div className={styles.admin}>

@@ -50,11 +50,17 @@ describe('Dialog', () => {
     await user.click(parentTrigger)
     const childTrigger = screen.getByRole('button', { name: '자식 열기' })
     await user.click(childTrigger)
-    fireEvent(screen.getByRole('dialog', { name: '자식' }), new Event('cancel', { bubbles: true, cancelable: true }))
+    fireEvent(
+      screen.getByRole('dialog', { name: '자식' }),
+      new Event('cancel', { bubbles: true, cancelable: true }),
+    )
     expect(screen.getByRole('dialog', { name: '부모' })).toHaveAttribute('open')
     expect(screen.queryByRole('dialog', { name: '자식' })).not.toBeInTheDocument()
     expect(childTrigger).toHaveFocus()
-    fireEvent(screen.getByRole('dialog', { name: '부모' }), new Event('cancel', { bubbles: true, cancelable: true }))
+    fireEvent(
+      screen.getByRole('dialog', { name: '부모' }),
+      new Event('cancel', { bubbles: true, cancelable: true }),
+    )
     expect(parentTrigger).toHaveFocus()
     await user.click(parentTrigger)
     expect(screen.getByRole('dialog', { name: '부모' })).toHaveAttribute('open')

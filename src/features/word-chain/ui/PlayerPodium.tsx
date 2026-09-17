@@ -39,13 +39,7 @@ export const PlayerPodium = ({
 
   const body = (
     <>
-      <img
-        className={styles.avatar}
-        src={avatar.src}
-        alt={avatar.label}
-        width={72}
-        height={72}
-      />
+      <img className={styles.avatar} src={avatar.src} alt={avatar.label} width={72} height={72} />
       <span className={styles.podium}>
         <span className={styles.name}>{player.name}</span>
         {isHost && <span className={styles.host}>방장</span>}

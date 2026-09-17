@@ -7,7 +7,10 @@ type DownloadStatus = 'idle' | 'creating' | 'requested' | 'failed'
 const downloadImage = (blob: Blob, title: string) => {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
-  const filename = title.replace(/[<>:"/\\|?*]/g, '').replace(/\p{Cc}/gu, '').trim()
+  const filename = title
+    .replace(/[<>:"/\\|?*]/g, '')
+    .replace(/\p{Cc}/gu, '')
+    .trim()
   link.href = url
   link.download = `${filename || '사람 뽑기'}-당첨 결과.png`
   link.hidden = true
@@ -29,7 +32,9 @@ export const useResultImageDownload = (scope: string) => {
     generation.current += 1
     busy.current = false
     setStatus('idle')
-    return () => { generation.current += 1 }
+    return () => {
+      generation.current += 1
+    }
   }, [scope])
 
   useEffect(() => {
@@ -41,7 +46,11 @@ export const useResultImageDownload = (scope: string) => {
   const saveImage = async (input: LotteryResultImageInput) => {
     if (busy.current || input.winners.length === 0) return
     const currentGeneration = generation.current
-    const snapshot = { ...input, participants: [...input.participants], winners: input.winners.map((winner) => ({ ...winner })) }
+    const snapshot = {
+      ...input,
+      participants: [...input.participants],
+      winners: input.winners.map((winner) => ({ ...winner })),
+    }
     busy.current = true
     setStatus('creating')
     try {

@@ -7,7 +7,9 @@
   align-items: center;
   min-width: 0;
   list-style: none;
-  transition: opacity 0.2s ease, filter 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
 
   @include s.reduced-motion {
     transition: none;
@@ -117,7 +119,6 @@
   opacity: 0.4;
   filter: grayscale(1);
 }
-
 
 .dragging {
   opacity: 0.55;

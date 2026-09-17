@@ -12,8 +12,9 @@ export const useLogout = (): UseLogoutResult => {
   const navigate = useNavigate()
 
   const logout = useCallback(async () => {
-
-    await logoutMutation().unwrap().catch(() => undefined)
+    await logoutMutation()
+      .unwrap()
+      .catch(() => undefined)
     navigate('/login', { replace: true })
   }, [logoutMutation, navigate])
 

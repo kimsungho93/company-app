@@ -27,18 +27,29 @@ interface Session {
 }
 
 const room = (id: string): LotteryRoomSummary => ({
-  id, title: id, hostId: 1, hostName: '선도우', status: 'READY', memberCount: 1, participantCount: 13, winnerCount: 1,
+  id,
+  title: id,
+  hostId: 1,
+  hostName: '선도우',
+  status: 'READY',
+  memberCount: 1,
+  participantCount: 13,
+  winnerCount: 1,
 })
-const response = (rooms: LotteryRoomSummary[] = []) => new Response(JSON.stringify(rooms), { headers: { 'Content-Type': 'application/json' } })
+const response = (rooms: LotteryRoomSummary[] = []) =>
+  new Response(JSON.stringify(rooms), { headers: { 'Content-Type': 'application/json' } })
 const deferred = <T,>() => {
   let resolve!: (value: T) => void
-  const promise = new Promise<T>((done) => { resolve = done })
+  const promise = new Promise<T>((done) => {
+    resolve = done
+  })
   return { promise, resolve }
 }
-const createStore = () => configureStore({
-  reducer: { [baseApi.reducerPath]: baseApi.reducer },
-  middleware: (getDefault) => getDefault().concat(baseApi.middleware),
-})
+const createStore = () =>
+  configureStore({
+    reducer: { [baseApi.reducerPath]: baseApi.reducer },
+    middleware: (getDefault) => getDefault().concat(baseApi.middleware),
+  })
 
 let sessions: Session[]
 let stores: ReturnType<typeof createStore>[]
@@ -48,7 +59,9 @@ const setup = (strict = false) => {
   stores.push(store)
   return renderHook(() => useLotteryLobby(), {
     reactStrictMode: strict,
-    wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>,
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <Provider store={store}>{children}</Provider>
+    ),
   })
 }
 const emit = (session = sessions.at(-1)!, body: unknown = { type: 'ROOMS_CHANGED' }) => {
@@ -71,7 +84,8 @@ describe('useLotteryLobby', () => {
           handlers.set(destination, callback as (body: unknown) => void)
           return () => handlers.delete(destination)
         },
-        close: vi.fn(), publish: vi.fn(),
+        close: vi.fn(),
+        publish: vi.fn(),
       }
       sessions.push({ options, handlers, connection })
       options.onConnect(connection)
@@ -101,13 +115,17 @@ describe('useLotteryLobby', () => {
     await waitFor(() => expect(result.current.isFetching).toBe(false))
     expect(result.current.connectionStatus).toBe('connected')
     vi.useFakeTimers()
-    await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000)
+    })
     expect(mocks.fetch).toHaveBeenCalledTimes(2)
   })
 
   it('follows an invalidation during the real RTK initial request with a fresh request', async () => {
     const pending = deferred<Response>()
-    mocks.fetch.mockReturnValueOnce(pending.promise).mockImplementation(() => Promise.resolve(response([room('new-room')])))
+    mocks.fetch
+      .mockReturnValueOnce(pending.promise)
+      .mockImplementation(() => Promise.resolve(response([room('new-room')])))
     const { result } = setup()
     await waitFor(() => expect(mocks.fetch).toHaveBeenCalledOnce())
 
@@ -115,7 +133,9 @@ describe('useLotteryLobby', () => {
     emit()
     emit()
     expect(mocks.fetch).toHaveBeenCalledOnce()
-    await act(async () => { pending.resolve(response([room('old-room')])) })
+    await act(async () => {
+      pending.resolve(response([room('old-room')]))
+    })
 
     await waitFor(() => expect(result.current.data?.[0].id).toBe('new-room'))
     expect(mocks.fetch).toHaveBeenCalledTimes(2)
@@ -128,12 +148,16 @@ describe('useLotteryLobby', () => {
     await waitFor(() => expect(mocks.fetch).toHaveBeenCalledTimes(2))
     await waitFor(() => expect(result.current.isFetching).toBe(false))
     const pending = deferred<Response>()
-    mocks.fetch.mockReturnValueOnce(pending.promise).mockImplementation(() => Promise.resolve(response([room('latest')])))
+    mocks.fetch
+      .mockReturnValueOnce(pending.promise)
+      .mockImplementation(() => Promise.resolve(response([room('latest')])))
 
     emit()
     await waitFor(() => expect(mocks.fetch).toHaveBeenCalledTimes(3))
     for (let index = 0; index < 10; index++) emit()
-    await act(async () => { pending.resolve(response([room('stale')])) })
+    await act(async () => {
+      pending.resolve(response([room('stale')]))
+    })
 
     await waitFor(() => expect(result.current.data?.[0].id).toBe('latest'))
     expect(mocks.fetch).toHaveBeenCalledTimes(4)
@@ -164,7 +188,9 @@ describe('useLotteryLobby', () => {
     act(() => oldSession.options.onError())
     expect(result.current.connectionStatus).toBe('reconnecting')
     expect(oldSession.connection.close).toHaveBeenCalledOnce()
-    await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
+    })
     expect(sessions).toHaveLength(2)
     expect(result.current.connectionStatus).toBe('reconnecting')
 
@@ -172,7 +198,9 @@ describe('useLotteryLobby', () => {
     act(() => oldSession.options.onError())
     expect(mocks.fetch).toHaveBeenCalledTimes(2)
     emit()
-    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
     expect(mocks.fetch).toHaveBeenCalledTimes(3)
     expect(result.current.connectionStatus).toBe('connected')
   })
@@ -184,9 +212,13 @@ describe('useLotteryLobby', () => {
     for (const delay of [1000, 2000, 4000, 8000, 16_000, 30_000, 30_000]) {
       const count = sessions.length
       act(() => sessions.at(-1)!.options.onError())
-      await act(async () => { await vi.advanceTimersByTimeAsync(delay - 1) })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(delay - 1)
+      })
       expect(sessions).toHaveLength(count)
-      await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1)
+      })
       expect(sessions).toHaveLength(count + 1)
       expect(result.current.connectionStatus).toBe('reconnecting')
     }
@@ -196,48 +228,62 @@ describe('useLotteryLobby', () => {
   it('times out a connection that never receives subscription confirmation', async () => {
     vi.useFakeTimers()
     const { result } = setup()
-    await act(async () => { await vi.advanceTimersByTimeAsync(15_000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000)
+    })
     expect(result.current.connectionStatus).toBe('reconnecting')
     expect(sessions[0].connection.close).toHaveBeenCalledOnce()
-    await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
+    })
     expect(sessions).toHaveLength(2)
   })
 
   it('refreshes an expired token once before reconnecting', async () => {
-    mocks.reissue.mockImplementation(async () => { tokenStore.set('renewed-token'); return true })
+    mocks.reissue.mockImplementation(async () => {
+      tokenStore.set('renewed-token')
+      return true
+    })
     const { result } = setup()
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     vi.useFakeTimers()
     act(() => sessions[0].options.onError({ code: 'TOKEN_EXPIRED', message: '인증 만료' }))
-    await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
+    })
     expect(mocks.reissue).toHaveBeenCalledOnce()
     expect(mocks.connect.mock.calls[1][0].token).toBe('renewed-token')
     act(() => sessions[1].options.onError({ code: 'UNAUTHENTICATED', message: '인증 실패' }))
     expect(result.current.connectionStatus).toBe('authError')
-    await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000)
+    })
     expect(sessions).toHaveLength(2)
     expect(mocks.reissue).toHaveBeenCalledOnce()
   })
 
-  it.each(['manual', 'online', 'visibility'] as const)('recovers a failed token restore through %s refresh', async (trigger) => {
-    tokenStore.clear()
-    const { result } = setup()
-    await waitFor(() => expect(result.current.connectionStatus).toBe('reconnecting'))
-    expect(mocks.connect).not.toHaveBeenCalled()
-    expect(mocks.reissue).toHaveBeenCalledOnce()
-    tokenStore.set('restored-token')
+  it.each(['manual', 'online', 'visibility'] as const)(
+    'recovers a failed token restore through %s refresh',
+    async (trigger) => {
+      tokenStore.clear()
+      const { result } = setup()
+      await waitFor(() => expect(result.current.connectionStatus).toBe('reconnecting'))
+      expect(mocks.connect).not.toHaveBeenCalled()
+      expect(mocks.reissue).toHaveBeenCalledOnce()
+      tokenStore.set('restored-token')
 
-    await act(async () => {
-      if (trigger === 'manual') await result.current.refetch()
-      else if (trigger === 'online') window.dispatchEvent(new Event('online'))
-      else document.dispatchEvent(new Event('visibilitychange'))
-    })
+      await act(async () => {
+        if (trigger === 'manual') await result.current.refetch()
+        else if (trigger === 'online') window.dispatchEvent(new Event('online'))
+        else document.dispatchEvent(new Event('visibilitychange'))
+      })
 
-    expect(mocks.connect).toHaveBeenCalledOnce()
-    expect(mocks.connect.mock.calls[0][0].token).toBe('restored-token')
-    emit()
-    await waitFor(() => expect(result.current.connectionStatus).toBe('connected'))
-  })
+      expect(mocks.connect).toHaveBeenCalledOnce()
+      expect(mocks.connect.mock.calls[0][0].token).toBe('restored-token')
+      emit()
+      await waitFor(() => expect(result.current.connectionStatus).toBe('connected'))
+    },
+  )
 
   it('stops trailing requests, callbacks, and reconnect timers after unmount', async () => {
     const pending = deferred<Response>()
@@ -248,7 +294,9 @@ describe('useLotteryLobby', () => {
     emit()
     const old = sessions[0]
     unmount()
-    await act(async () => { pending.resolve(response()) })
+    await act(async () => {
+      pending.resolve(response())
+    })
     emit(old)
     act(() => old.options.onError())
     window.dispatchEvent(new Event('online'))
@@ -264,7 +312,9 @@ describe('useLotteryLobby', () => {
     const { unmount } = setup()
     unmount()
     tokenStore.set('restored-token')
-    await act(async () => { pending.resolve(true) })
+    await act(async () => {
+      pending.resolve(true)
+    })
     expect(mocks.connect).not.toHaveBeenCalled()
   })
 

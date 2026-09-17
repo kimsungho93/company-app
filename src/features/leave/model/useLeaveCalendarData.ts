@@ -1,8 +1,12 @@
 import { useMemo } from 'react'
 import { toErrorInfo } from '@/shared/api'
 import {
-  useCreateHolidayMutation, useCreateLeaveMutation, useDeleteHolidayMutation,
-  useDeleteLeaveMutation, useHolidaysQuery, useLeavesQuery,
+  useCreateHolidayMutation,
+  useCreateLeaveMutation,
+  useDeleteHolidayMutation,
+  useDeleteLeaveMutation,
+  useHolidaysQuery,
+  useLeavesQuery,
 } from '../api/leaveApi'
 import { eachDate } from './dateRange'
 import { leavesByDate } from './leaves'
@@ -10,7 +14,11 @@ import type { Holiday } from './types'
 
 export const useLeaveCalendarData = (window: { from: string; to: string }) => {
   const { data: leaves = [], isFetching, error: listError } = useLeavesQuery(window)
-  const { data: holidays = [], isFetching: holidaysFetching, error: holidayListError } = useHolidaysQuery(window)
+  const {
+    data: holidays = [],
+    isFetching: holidaysFetching,
+    error: holidayListError,
+  } = useHolidaysQuery(window)
 
   const [createLeave, createLeaveState] = useCreateLeaveMutation()
   const [deleteLeave, deleteLeaveState] = useDeleteLeaveMutation()
@@ -42,11 +50,17 @@ export const useLeaveCalendarData = (window: { from: string; to: string }) => {
   }
 
   return {
-    byDate, holidayByDate, busy, resetErrors,
+    byDate,
+    holidayByDate,
+    busy,
+    resetErrors,
     isFetching: isFetching || holidaysFetching,
     listError: errorOf(listError ?? holidayListError),
     leaveError: errorOf(createLeaveState.error ?? deleteLeaveState.error),
     holidayError: errorOf(createHolidayState.error ?? deleteHolidayState.error),
-    createLeave, deleteLeave, createHoliday, deleteHoliday,
+    createLeave,
+    deleteLeave,
+    createHoliday,
+    deleteHoliday,
   }
 }

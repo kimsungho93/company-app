@@ -37,9 +37,11 @@ describe('useLogin', () => {
   it('401 이면 어느 쪽이 틀렸는지 알려주지 않는다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'INVALID_CREDENTIALS', message: '비밀번호가 틀렸습니다' }, 401),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ code: 'INVALID_CREDENTIALS', message: '비밀번호가 틀렸습니다' }, 401),
+        ),
     )
     const { wrapper } = createTestWrapper()
     const { result } = renderHook(() => useLogin(), { wrapper })
@@ -85,9 +87,11 @@ describe('useLogin', () => {
   it('승인 대기 중이면 그 사실을 알린다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'APPROVAL_PENDING', message: '관리자 승인 대기 중입니다.' }, 403),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ code: 'APPROVAL_PENDING', message: '관리자 승인 대기 중입니다.' }, 403),
+        ),
     )
     const { wrapper } = createTestWrapper()
     const { result } = renderHook(() => useLogin(), { wrapper })
@@ -102,9 +106,11 @@ describe('useLogin', () => {
   it('거절된 계정이면 그 사실을 알린다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'SIGNUP_REJECTED', message: '가입이 거절되었습니다.' }, 403),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ code: 'SIGNUP_REJECTED', message: '가입이 거절되었습니다.' }, 403),
+        ),
     )
     const { wrapper } = createTestWrapper()
     const { result } = renderHook(() => useLogin(), { wrapper })

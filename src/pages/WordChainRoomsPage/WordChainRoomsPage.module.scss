@@ -46,7 +46,10 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: none;
-  transition: background 0.15s ease, translate 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    translate 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
     background: var(--accent-hi);

@@ -20,7 +20,11 @@ describe('Button', () => {
 
   it('외부 클래스가 기본 스타일을 보존하고 loading 중 클릭을 막는다', () => {
     const click = vi.fn()
-    render(<Button loading className="custom" onClick={click}>저장</Button>)
+    render(
+      <Button loading className="custom" onClick={click}>
+        저장
+      </Button>,
+    )
     const button = screen.getByRole('button', { name: '저장' })
     expect(button).toHaveClass(styles.button, 'custom')
     expect(button).toBeDisabled()

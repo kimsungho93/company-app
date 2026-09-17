@@ -18,7 +18,9 @@ describe('monthGrid', () => {
   })
 
   it('이번 달 날짜만 inMonth 다', () => {
-    const inMonth = monthGrid(2026, 8).flat().filter((d) => d.inMonth)
+    const inMonth = monthGrid(2026, 8)
+      .flat()
+      .filter((d) => d.inMonth)
 
     expect(inMonth).toHaveLength(31)
     expect(inMonth[0].iso).toBe('2026-08-01')
@@ -33,7 +35,9 @@ describe('monthGrid', () => {
   })
 
   it('윤년 2월을 정확히 센다', () => {
-    const inMonth = monthGrid(2028, 2).flat().filter((d) => d.inMonth)
+    const inMonth = monthGrid(2028, 2)
+      .flat()
+      .filter((d) => d.inMonth)
 
     expect(inMonth).toHaveLength(29)
     expect(inMonth.at(-1)?.iso).toBe('2028-02-29')

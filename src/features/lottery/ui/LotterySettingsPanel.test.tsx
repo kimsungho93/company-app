@@ -6,13 +6,31 @@ import type { LotteryRoomSnapshot } from '../api/types'
 import { LotterySettingsPanel } from './LotterySettingsPanel'
 
 const room: LotteryRoomSnapshot = {
-  id: 'room', title: '점심 추첨', hostId: 1, hostName: '선도우', participants: ['선도우', '육이슬'],
-  winnerCount: 1, status: 'READY', winners: [], members: [], version: 1,
-  serverTime: '2026-09-14T00:00:00Z', nextDrawAt: null, drawId: 1,
+  id: 'room',
+  title: '점심 추첨',
+  hostId: 1,
+  hostName: '선도우',
+  participants: ['선도우', '육이슬'],
+  winnerCount: 1,
+  status: 'READY',
+  winners: [],
+  members: [],
+  version: 1,
+  serverTime: '2026-09-14T00:00:00Z',
+  nextDrawAt: null,
+  drawId: 1,
 }
 
 const setup = (overrides: Partial<ComponentProps<typeof LotterySettingsPanel>> = {}) => {
-  const props = { room, isHost: true, busy: false, connected: true, onSave: vi.fn().mockResolvedValue(true), onStart: vi.fn().mockResolvedValue(true), ...overrides }
+  const props = {
+    room,
+    isHost: true,
+    busy: false,
+    connected: true,
+    onSave: vi.fn().mockResolvedValue(true),
+    onStart: vi.fn().mockResolvedValue(true),
+    ...overrides,
+  }
   const view = render(<LotterySettingsPanel {...props} />)
   const user = userEvent.setup()
   const openRoster = () => user.click(view.container.querySelector('summary')!)
@@ -33,12 +51,17 @@ describe('LotterySettingsPanel', () => {
     await openRoster()
     await user.type(screen.getByLabelText('이름 추가'), '  김성호  ')
     await user.click(screen.getByRole('button', { name: '추가' }))
-    expect(within(screen.getByRole('list', { name: '추첨 대상 명단' })).getByText('김성호')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('list', { name: '추첨 대상 명단' })).getByText('김성호'),
+    ).toBeInTheDocument()
     expect(screen.getByLabelText('이름 추가')).toHaveValue('')
     const start = screen.getByRole('button', { name: '저장하고 1명 추첨' })
     expect(start).toBeEnabled()
     await user.click(start)
-    expect(props.onStart).toHaveBeenCalledWith({ participants: ['선도우', '육이슬', '김성호'], winnerCount: 1 })
+    expect(props.onStart).toHaveBeenCalledWith({
+      participants: ['선도우', '육이슬', '김성호'],
+      winnerCount: 1,
+    })
     expect(props.onSave).not.toHaveBeenCalled()
   })
 
@@ -69,7 +92,9 @@ describe('LotterySettingsPanel', () => {
     await user.type(screen.getByLabelText('이름 추가'), ' 선도우 ')
     await user.click(screen.getByRole('button', { name: '추가' }))
     expect(screen.getByRole('alert')).toHaveTextContent('이미 명단에 있는 이름')
-    expect(within(screen.getByRole('list', { name: '추첨 대상 명단' })).getAllByRole('listitem')).toHaveLength(2)
+    expect(
+      within(screen.getByRole('list', { name: '추첨 대상 명단' })).getAllByRole('listitem'),
+    ).toHaveLength(2)
     expect(props.onSave).not.toHaveBeenCalled()
   })
 
@@ -104,7 +129,9 @@ describe('LotterySettingsPanel', () => {
   })
 
   it('limits names to 30 characters and disables adding at 50 participants', async () => {
-    const { openRoster } = setup({ room: { ...room, participants: Array.from({ length: 50 }, (_, index) => '참가자' + index) } })
+    const { openRoster } = setup({
+      room: { ...room, participants: Array.from({ length: 50 }, (_, index) => '참가자' + index) },
+    })
     await openRoster()
     expect(screen.getByLabelText('이름 추가')).toHaveAttribute('maxlength', '30')
     expect(screen.getByLabelText('이름 추가')).toBeDisabled()
@@ -123,27 +150,33 @@ describe('LotterySettingsPanel', () => {
     { isHost: false, room },
     { isHost: true, room: { ...room, status: 'FINISHED' as const } },
     { isHost: true, room: { ...room, status: 'DRAWING' as const } },
-  ])('shows a collapsed roster and plain count to viewers outside host preparation', async (overrides) => {
-    const { container, openRoster } = setup(overrides)
-    expect(container.querySelector('details')).not.toHaveAttribute('open')
-    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('이름 추가')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /추첨 시작/ })).not.toBeInTheDocument()
-    expect(screen.getByText('당첨 인원')).toBeInTheDocument()
-    expect(screen.getByText('1명')).toBeInTheDocument()
-    await openRoster()
-    expect(screen.getByRole('list', { name: '추첨 대상 명단' })).toHaveTextContent('선도우')
-    expect(screen.queryByRole('button', { name: /명단에서 빼기/ })).not.toBeInTheDocument()
-  })
+  ])(
+    'shows a collapsed roster and plain count to viewers outside host preparation',
+    async (overrides) => {
+      const { container, openRoster } = setup(overrides)
+      expect(container.querySelector('details')).not.toHaveAttribute('open')
+      expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('이름 추가')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /추첨 시작/ })).not.toBeInTheDocument()
+      expect(screen.getByText('당첨 인원')).toBeInTheDocument()
+      expect(screen.getByText('1명')).toBeInTheDocument()
+      await openRoster()
+      expect(screen.getByRole('list', { name: '추첨 대상 명단' })).toHaveTextContent('선도우')
+      expect(screen.queryByRole('button', { name: /명단에서 빼기/ })).not.toBeInTheDocument()
+    },
+  )
 
-  it.each([{ busy: true }, { connected: false }])('blocks edits and starting while unavailable', async (overrides) => {
-    const { openRoster } = setup(overrides)
-    await openRoster()
-    expect(screen.getByLabelText('이름 추가')).toBeDisabled()
-    expect(screen.getByLabelText('당첨 인원')).toBeDisabled()
-    expect(screen.getByRole('button', { name: '선도우 명단에서 빼기' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /추첨 시작/ })).toBeDisabled()
-  })
+  it.each([{ busy: true }, { connected: false }])(
+    'blocks edits and starting while unavailable',
+    async (overrides) => {
+      const { openRoster } = setup(overrides)
+      await openRoster()
+      expect(screen.getByLabelText('이름 추가')).toBeDisabled()
+      expect(screen.getByLabelText('당첨 인원')).toBeDisabled()
+      expect(screen.getByRole('button', { name: '선도우 명단에서 빼기' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: /추첨 시작/ })).toBeDisabled()
+    },
+  )
 
   it('starts an unchanged draft without sending redundant settings', async () => {
     const { user, props } = setup()

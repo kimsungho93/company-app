@@ -1,5 +1,3 @@
-
-
 const KEY = 'ibs.auth.rememberedEmail'
 
 export const loadRememberedEmail = (): string | null => {

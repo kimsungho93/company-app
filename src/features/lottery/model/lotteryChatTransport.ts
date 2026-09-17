@@ -6,7 +6,10 @@ export interface LotteryChatTransport {
   isConnected: () => boolean
   subscribeConnection: (listener: () => void) => () => void
   subscribe: (listener: (event: LotteryChatEvent) => void) => () => void
-  publish: <Command extends keyof LotteryChatCommands>(command: Command, body: LotteryChatCommands[Command]) => boolean
+  publish: <Command extends keyof LotteryChatCommands>(
+    command: Command,
+    body: LotteryChatCommands[Command],
+  ) => boolean
 }
 
 export const createLotteryChatTransport = (roomId: string) => {
@@ -20,7 +23,11 @@ export const createLotteryChatTransport = (roomId: string) => {
   const disconnect = () => {
     generation += 1
     subscriptions.forEach((unsubscribe) => {
-      try { unsubscribe() } catch { return }
+      try {
+        unsubscribe()
+      } catch {
+        return
+      }
     })
     subscriptions = []
     connection = null
@@ -34,13 +41,20 @@ export const createLotteryChatTransport = (roomId: string) => {
     isConnected: () => established,
     subscribeConnection: (listener: () => void) => {
       connectionListeners.add(listener)
-      return () => { connectionListeners.delete(listener) }
+      return () => {
+        connectionListeners.delete(listener)
+      }
     },
     subscribe: (listener: (event: LotteryChatEvent) => void) => {
       listeners.add(listener)
-      return () => { listeners.delete(listener) }
+      return () => {
+        listeners.delete(listener)
+      }
     },
-    publish: <Command extends keyof LotteryChatCommands>(command: Command, body: LotteryChatCommands[Command]) => {
+    publish: <Command extends keyof LotteryChatCommands>(
+      command: Command,
+      body: LotteryChatCommands[Command],
+    ) => {
       if (!connection || !established) return false
       try {
         connection.publish(`/app/lottery/rooms/${roomId}/chat/${command}`, body)
@@ -66,7 +80,9 @@ export const createLotteryChatTransport = (roomId: string) => {
       }
       subscriptions = [
         ready.subscribe<LotteryChatEvent>(`/topic/lottery/rooms/${roomId}/chat`, receive),
-        ready.subscribe<LotteryChatEvent>('/user/queue/lottery-chat', (event) => receive(event, true)),
+        ready.subscribe<LotteryChatEvent>('/user/queue/lottery-chat', (event) =>
+          receive(event, true),
+        ),
       ]
     },
     disconnect,

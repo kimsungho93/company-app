@@ -20,9 +20,7 @@ const writeStored = (next: ThemePreference): void => {
   try {
     if (next === 'system') localStorage.removeItem(THEME_STORAGE_KEY)
     else localStorage.setItem(THEME_STORAGE_KEY, next)
-  } catch {
-
-  }
+  } catch {}
 }
 
 const applyToDom = (next: ThemePreference): void => {
@@ -66,6 +64,4 @@ try {
   window.matchMedia(DARK_QUERY).addEventListener('change', () => {
     if (preference === 'system') listeners.forEach((listener) => listener())
   })
-} catch {
-
-}
+} catch {}

@@ -1,5 +1,12 @@
 import { API_BASE } from './apiBase'
-import { clearPendingLogout, getPendingLogout, errorCode, sessionEndReasonFor, sessionStore, withAuthLock } from './sessionStore'
+import {
+  clearPendingLogout,
+  getPendingLogout,
+  errorCode,
+  sessionEndReasonFor,
+  sessionStore,
+  withAuthLock,
+} from './sessionStore'
 import { tokenStore } from './tokenStore'
 
 export type ReissueResult = 'success' | 'terminal' | 'retryable' | 'cancelled'
@@ -10,7 +17,11 @@ const call = async (generation: number): Promise<ReissueResult> => {
   const pending = getPendingLogout()
   if (pending) {
     try {
-      const response = await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include', signal: AbortSignal.timeout(10_000) })
+      const response = await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: AbortSignal.timeout(10_000),
+      })
       if (response.ok) clearPendingLogout(pending)
     } catch {
       if (generation !== tokenStore.generation()) return 'cancelled'
@@ -53,7 +64,11 @@ export const reissueSession = (): Promise<ReissueResult> => {
   sessionStore.initialize()
   if (!inflight) {
     const generation = tokenStore.generation()
-    inflight = withAuthLock(() => call(generation)).catch((): ReissueResult => 'retryable').finally(() => { inflight = null })
+    inflight = withAuthLock(() => call(generation))
+      .catch((): ReissueResult => 'retryable')
+      .finally(() => {
+        inflight = null
+      })
   }
   return inflight
 }

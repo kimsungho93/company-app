@@ -6,11 +6,7 @@
   justify-content: center;
   gap: clamp(24px, 4vw, 60px);
   min-height: 100svh;
-  padding:
-    32px
-    max(24px, env(safe-area-inset-right))
-    32px
-    max(24px, env(safe-area-inset-left));
+  padding: 32px max(24px, env(safe-area-inset-right)) 32px max(24px, env(safe-area-inset-left));
   box-sizing: border-box;
   background: radial-gradient(
     900px 620px at 32% 45%,
@@ -44,10 +40,7 @@
     flex-direction: column;
     justify-content: flex-start;
     gap: 12px;
-    padding:
-      max(16px, env(safe-area-inset-top))
-      20px
-      calc(28px + env(safe-area-inset-bottom));
+    padding: max(16px, env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
   }
 
   .waferPane {

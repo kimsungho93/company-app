@@ -16,7 +16,12 @@ interface LeaveCalendarGridProps {
 }
 
 export const LeaveCalendarGrid = ({
-  grid, heading, todayIso, byDate, holidayByDate, onSelect,
+  grid,
+  heading,
+  todayIso,
+  byDate,
+  holidayByDate,
+  onSelect,
 }: LeaveCalendarGridProps) => (
   <table className={styles.table}>
     <caption className="visually-hidden">{heading} 휴가 현황</caption>

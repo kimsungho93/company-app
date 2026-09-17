@@ -9,7 +9,11 @@ export interface RoomListProps {
 }
 
 export const RoomList = ({ onJoin }: RoomListProps) => {
-  const { data: rooms = [], isLoading, error } = useRoomsQuery(undefined, {
+  const {
+    data: rooms = [],
+    isLoading,
+    error,
+  } = useRoomsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   })
 

@@ -22,8 +22,7 @@ const EyeOffIcon = () => {
   )
 }
 
-export interface TextFieldProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
+export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
   label: string
   type?: 'text' | 'email' | 'password'
   error?: string | null
@@ -51,7 +50,6 @@ export const TextField = ({
   return (
     <div className={styles.field}>
       <div className={styles.head}>
-
         <label className={styles.label} htmlFor={id}>
           {label}
         </label>
@@ -68,7 +66,6 @@ export const TextField = ({
           {...rest}
         />
         {isPassword && (
-
           <button
             type="button"
             className={styles.reveal}

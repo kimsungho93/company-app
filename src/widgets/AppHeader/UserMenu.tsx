@@ -10,7 +10,6 @@ export const UserMenu = () => {
 
   return (
     <div className={styles.user}>
-
       <span className={styles.userName} data-testid="user-name">
         {me?.name ?? ''}
       </span>

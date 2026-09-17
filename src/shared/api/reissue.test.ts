@@ -44,9 +44,11 @@ describe('reissueOnce', () => {
     tokenStore.set('stale')
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ code: 'INVALID_TOKEN' }), { status: 401 }),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ code: 'INVALID_TOKEN' }), { status: 401 }),
+        ),
     )
 
     await expect(reissueOnce()).resolves.toBe(false)

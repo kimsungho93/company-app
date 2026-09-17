@@ -73,9 +73,14 @@ describe('JoinRoomDialog', () => {
   it('비밀번호가 틀리면 서버 문구를 띄우고 창이 남는다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'WRONG_ROOM_PASSWORD', message: '비밀번호가 올바르지 않습니다.' }, 403),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(
+            { code: 'WRONG_ROOM_PASSWORD', message: '비밀번호가 올바르지 않습니다.' },
+            403,
+          ),
+        ),
     )
     const { user, onJoined } = setup()
 
@@ -93,7 +98,9 @@ describe('JoinRoomDialog', () => {
       'fetch',
       vi
         .fn()
-        .mockResolvedValue(jsonResponse({ code: 'ROOM_FULL', message: '방이 가득 찼습니다.' }, 409)),
+        .mockResolvedValue(
+          jsonResponse({ code: 'ROOM_FULL', message: '방이 가득 찼습니다.' }, 409),
+        ),
     )
     const { user } = setup()
 
@@ -106,9 +113,14 @@ describe('JoinRoomDialog', () => {
   it('다른 방으로 바꾸면 비밀번호와 오류가 비워진다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'WRONG_ROOM_PASSWORD', message: '비밀번호가 올바르지 않습니다.' }, 403),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(
+            { code: 'WRONG_ROOM_PASSWORD', message: '비밀번호가 올바르지 않습니다.' },
+            403,
+          ),
+        ),
     )
     const { user, onClose, onJoined, rerender } = setup()
 

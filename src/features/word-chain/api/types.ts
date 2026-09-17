@@ -51,11 +51,7 @@ export interface RoomState {
 
 export type BubbleState = 'PENDING' | 'PASS' | 'FAIL'
 
-export type FailReason =
-  | 'NOT_THREE_LETTERS'
-  | 'NOT_CHAINED'
-  | 'ALREADY_USED'
-  | 'NOT_IN_DICTIONARY'
+export type FailReason = 'NOT_THREE_LETTERS' | 'NOT_CHAINED' | 'ALREADY_USED' | 'NOT_IN_DICTIONARY'
 
 export interface Bubble {
   userId: number

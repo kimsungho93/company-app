@@ -10,14 +10,70 @@ const FIXED_TODAY = new Date(2026, 7, 18, 10, 0, 0)
 const ME = { id: 1, name: '김성호' }
 
 const LEAVES: LeaveEntry[] = [
-  { id: 1, userId: 1, name: '김성호', kind: 'ANNUAL', startDate: '2026-08-13', endDate: '2026-08-14' },
-  { id: 2, userId: 2, name: '이영희', kind: 'HALF_DAY_AM', startDate: '2026-08-14', endDate: '2026-08-14' },
-  { id: 3, userId: 3, name: '박철수', kind: 'ANNUAL', startDate: '2026-08-18', endDate: '2026-08-21' },
-  { id: 4, userId: 4, name: '오세훈', kind: 'HALF_DAY_PM', startDate: '2026-08-19', endDate: '2026-08-19' },
-  { id: 5, userId: 2, name: '이영희', kind: 'HALF_DAY_AM', startDate: '2026-08-19', endDate: '2026-08-19' },
-  { id: 6, userId: 5, name: '최민수', kind: 'ANNUAL', startDate: '2026-08-19', endDate: '2026-08-19' },
-  { id: 7, userId: 6, name: '윤서준', kind: 'OFFICIAL', startDate: '2026-08-19', endDate: '2026-08-19' },
-  { id: 8, userId: 7, name: '한지우', kind: 'ANNUAL', startDate: '2026-08-31', endDate: '2026-09-04' },
+  {
+    id: 1,
+    userId: 1,
+    name: '김성호',
+    kind: 'ANNUAL',
+    startDate: '2026-08-13',
+    endDate: '2026-08-14',
+  },
+  {
+    id: 2,
+    userId: 2,
+    name: '이영희',
+    kind: 'HALF_DAY_AM',
+    startDate: '2026-08-14',
+    endDate: '2026-08-14',
+  },
+  {
+    id: 3,
+    userId: 3,
+    name: '박철수',
+    kind: 'ANNUAL',
+    startDate: '2026-08-18',
+    endDate: '2026-08-21',
+  },
+  {
+    id: 4,
+    userId: 4,
+    name: '오세훈',
+    kind: 'HALF_DAY_PM',
+    startDate: '2026-08-19',
+    endDate: '2026-08-19',
+  },
+  {
+    id: 5,
+    userId: 2,
+    name: '이영희',
+    kind: 'HALF_DAY_AM',
+    startDate: '2026-08-19',
+    endDate: '2026-08-19',
+  },
+  {
+    id: 6,
+    userId: 5,
+    name: '최민수',
+    kind: 'ANNUAL',
+    startDate: '2026-08-19',
+    endDate: '2026-08-19',
+  },
+  {
+    id: 7,
+    userId: 6,
+    name: '윤서준',
+    kind: 'OFFICIAL',
+    startDate: '2026-08-19',
+    endDate: '2026-08-19',
+  },
+  {
+    id: 8,
+    userId: 7,
+    name: '한지우',
+    kind: 'ANNUAL',
+    startDate: '2026-08-31',
+    endDate: '2026-09-04',
+  },
 ]
 
 interface Call {
@@ -177,7 +233,14 @@ describe('LeaveCalendar', () => {
   })
 
   it('조회가 실패하면 알린다', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ code: 'INTERNAL_ERROR', message: '서버에 문제가 발생했습니다.' }, 500)))
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          json({ code: 'INTERNAL_ERROR', message: '서버에 문제가 발생했습니다.' }, 500),
+        ),
+    )
     setup()
 
     await waitFor(() =>
@@ -324,7 +387,10 @@ describe('LeaveCalendar', () => {
       it('겹치면 서버가 준 문구를 띄우고 팝업이 남는다', async () => {
         stubApi({
           fail: {
-            '/leaves': [409, { code: 'LEAVE_OVERLAP', message: '8월 13일부터 연차가 이미 있습니다.' }],
+            '/leaves': [
+              409,
+              { code: 'LEAVE_OVERLAP', message: '8월 13일부터 연차가 이미 있습니다.' },
+            ],
           },
         })
         const { user } = asMe()

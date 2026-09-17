@@ -169,8 +169,16 @@ describe('session-aware socket cleanup', () => {
     'stops publishing and reconnect callbacks after %s close',
     (reason) => {
       const onError = vi.fn()
-      const connection = connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
-      ;(captured.onWebSocketClose as (event: { code: number; reason: string }) => void)({ code: 4001, reason })
+      const connection = connectStomp({
+        url: 'ws://x/api/ws',
+        token: 'abc',
+        onConnect: vi.fn(),
+        onError,
+      })
+      ;(captured.onWebSocketClose as (event: { code: number; reason: string }) => void)({
+        code: 4001,
+        reason,
+      })
       connection.publish('/app/rooms/1/ready')
       expect(sessionStore.get().reason).toBe(reason)
       expect(deactivate).toHaveBeenCalled()
@@ -183,7 +191,8 @@ describe('session-aware socket cleanup', () => {
     const onError = vi.fn()
     connectStomp({ url: 'ws://x/api/ws', token: 'abc', onConnect: vi.fn(), onError })
     ;(captured.onWebSocketClose as (event: { code: number; reason: string }) => void)({
-      code: 1011, reason: 'authentication service unavailable',
+      code: 1011,
+      reason: 'authentication service unavailable',
     })
     expect(sessionStore.get().ended).toBe(false)
     expect(onError).toHaveBeenCalledOnce()

@@ -4,7 +4,10 @@ class Channel {
   static channels: Channel[] = []
   onmessage: ((event: MessageEvent) => void) | null = null
   name: string
-  constructor(name: string) { this.name = name; Channel.channels.push(this) }
+  constructor(name: string) {
+    this.name = name
+    Channel.channels.push(this)
+  }
   postMessage(data: unknown) {
     for (const other of Channel.channels) {
       if (other !== this && other.name === this.name) other.onmessage?.({ data } as MessageEvent)
@@ -42,7 +45,10 @@ describe('session synchronization between tabs', () => {
     a.tokenStore.set('secret-a')
     a.sessionStore.accept(session(), true)
     b.tokenStore.set('secret-b')
-    const updated = session('session-a', { serverTime: '2030-01-01T00:01:00Z', idleExpiresAt: '2030-01-01T00:31:00Z' })
+    const updated = session('session-a', {
+      serverTime: '2030-01-01T00:01:00Z',
+      idleExpiresAt: '2030-01-01T00:31:00Z',
+    })
     a.sessionStore.accept(updated)
     expect(b.sessionStore.get().session).toEqual(updated)
     expect(b.tokenStore.get()).toBe('secret-b')

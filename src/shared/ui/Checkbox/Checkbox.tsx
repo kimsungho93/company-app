@@ -2,8 +2,7 @@ import { useId } from 'react'
 import type { InputHTMLAttributes } from 'react'
 import styles from './Checkbox.module.scss'
 
-export interface CheckboxProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type'> {
   label: string
 
   labelHidden?: boolean
@@ -21,7 +20,6 @@ export const Checkbox = ({
 
   return (
     <div className={styles.row}>
-
       <input
         id={id}
         type="checkbox"

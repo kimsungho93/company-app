@@ -15,7 +15,9 @@ export const useLotteryLobby = () => {
   const fetching = useRef(isFetching)
   const refreshRef = useRef<() => Promise<void>>(() => Promise.resolve())
 
-  useEffect(() => { fetching.current = isFetching }, [isFetching])
+  useEffect(() => {
+    fetching.current = isFetching
+  }, [isFetching])
 
   useEffect(() => {
     let disposed = false
@@ -39,14 +41,18 @@ export const useLotteryLobby = () => {
         return running
       }
       trailing = fetching.current
-      running = Promise.resolve().then(async () => {
-        do {
-          if (disposed) break
-          await refetch()
-          if (disposed || !trailing) break
-          trailing = false
-        } while (!disposed)
-      }).finally(() => { running = null })
+      running = Promise.resolve()
+        .then(async () => {
+          do {
+            if (disposed) break
+            await refetch()
+            if (disposed || !trailing) break
+            trailing = false
+          } while (!disposed)
+        })
+        .finally(() => {
+          running = null
+        })
       return running
     }
     const open = async () => {
@@ -74,7 +80,12 @@ export const useLotteryLobby = () => {
           refreshToken = true
         }
         setConnectionStatus('reconnecting')
-        retryTimer = setTimeout(() => { void open() }, Math.min(1000 * 2 ** Math.min(retryCount++, 5), 30_000))
+        retryTimer = setTimeout(
+          () => {
+            void open()
+          },
+          Math.min(1000 * 2 ** Math.min(retryCount++, 5), 30_000),
+        )
       }
 
       connectTimeout = setTimeout(() => fail(), 15_000)
@@ -83,7 +94,10 @@ export const useLotteryLobby = () => {
           const restored = await reissueOnce()
           if (!active()) return
           if (!restored || !tokenStore.get()) {
-            if (!sessionStore.get().ended) { fail(); return }
+            if (!sessionStore.get().ended) {
+              fail()
+              return
+            }
             clearTimeout(connectTimeout)
             opening = false
             authFailed = true

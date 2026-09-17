@@ -56,7 +56,9 @@ export const JoinRoomDialog = ({ room, onClose, onJoined }: JoinRoomDialogProps)
             void submit()
           }}
         >
-          <h2 id={titleId} className={styles.title}>{room.name}</h2>
+          <h2 id={titleId} className={styles.title}>
+            {room.name}
+          </h2>
           <p className={styles.sub}>
             {room.playerCount}/{room.capacity} · 방장 {room.hostName}
           </p>

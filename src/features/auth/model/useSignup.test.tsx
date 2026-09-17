@@ -29,9 +29,11 @@ describe('useSignup', () => {
   it('이메일 중복은 폼 상단이 아니라 이메일 필드로 보낸다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'EMAIL_ALREADY_EXISTS', message: '이미 가입된 이메일입니다.' }, 409),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ code: 'EMAIL_ALREADY_EXISTS', message: '이미 가입된 이메일입니다.' }, 409),
+        ),
     )
     const { wrapper } = createTestWrapper()
     const { result } = renderHook(() => useSignup(), { wrapper })
@@ -52,12 +54,14 @@ describe('useSignup', () => {
   it('INVALID_INPUT 은 폼 상단에 띄운다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse(
-          { code: 'INVALID_INPUT', message: '이름은 2자 이상 10자 이하여야 합니다.' },
-          400,
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(
+            { code: 'INVALID_INPUT', message: '이름은 2자 이상 10자 이하여야 합니다.' },
+            400,
+          ),
         ),
-      ),
     )
     const { wrapper } = createTestWrapper()
     const { result } = renderHook(() => useSignup(), { wrapper })
@@ -85,9 +89,11 @@ describe('useSignup', () => {
   it('clearError 로 두 종류의 오류를 모두 지운다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({ code: 'EMAIL_ALREADY_EXISTS', message: '이미 가입된 이메일입니다.' }, 409),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ code: 'EMAIL_ALREADY_EXISTS', message: '이미 가입된 이메일입니다.' }, 409),
+        ),
     )
     const { wrapper } = createTestWrapper()
     const { result } = renderHook(() => useSignup(), { wrapper })

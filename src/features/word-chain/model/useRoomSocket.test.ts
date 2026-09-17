@@ -112,7 +112,10 @@ describe('useRoomSocket', () => {
     await waitFor(() => expect(handlers.has('/user/queue/errors')).toBe(true))
 
     act(() =>
-      handlers.get('/user/queue/errors')?.({ code: 'NOT_ALL_READY', message: '아직 준비 전입니다.' }),
+      handlers.get('/user/queue/errors')?.({
+        code: 'NOT_ALL_READY',
+        message: '아직 준비 전입니다.',
+      }),
     )
 
     expect(result.current.error).toBe('아직 준비 전입니다.')

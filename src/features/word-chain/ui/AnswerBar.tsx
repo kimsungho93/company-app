@@ -11,8 +11,7 @@ const JONGSEONG_RIEUL = 8
 const startHint = (word: string): string => {
   const syllable = word.slice(-1)
   const code = syllable.charCodeAt(0)
-  const jongseong =
-    code >= HANGUL_BASE && code <= HANGUL_LAST ? (code - HANGUL_BASE) % 28 : 0
+  const jongseong = code >= HANGUL_BASE && code <= HANGUL_LAST ? (code - HANGUL_BASE) % 28 : 0
   const particle = jongseong === 0 || jongseong === JONGSEONG_RIEUL ? '로' : '으로'
 
   return `${syllable}${particle} 시작하는 세 글자`

@@ -12,7 +12,13 @@ interface DialogProps {
 }
 
 export const Dialog = ({
-  open, labelledBy, describedBy, className, dismissible = true, onDismiss, children,
+  open,
+  labelledBy,
+  describedBy,
+  className,
+  dismissible = true,
+  onDismiss,
+  children,
 }: DialogProps) => {
   const ref = useRef<HTMLDialogElement>(null)
 
@@ -25,7 +31,11 @@ export const Dialog = ({
     return () => {
       if (dialog.open) dialog.close()
 
-      if (trigger instanceof HTMLElement && trigger.isConnected && !trigger.closest('dialog:not([open])')) {
+      if (
+        trigger instanceof HTMLElement &&
+        trigger.isConnected &&
+        !trigger.closest('dialog:not([open])')
+      ) {
         trigger.focus()
       }
     }
@@ -39,7 +49,11 @@ export const Dialog = ({
       aria-describedby={describedBy}
       onKeyDown={(event) => {
         if (event.key !== 'Escape' || dismissible) return
-        if (event.target instanceof Element && event.target.closest('dialog') !== event.currentTarget) return
+        if (
+          event.target instanceof Element &&
+          event.target.closest('dialog') !== event.currentTarget
+        )
+          return
         event.preventDefault()
         event.stopPropagation()
       }}

@@ -33,7 +33,9 @@
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 
   &:hover {
     color: var(--text-strong);
@@ -60,7 +62,9 @@
   cursor: pointer;
   white-space: nowrap;
   box-shadow: inset 0 0 0 1px var(--border);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 
   &:hover {
     color: var(--text-strong);

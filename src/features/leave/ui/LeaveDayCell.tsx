@@ -27,15 +27,17 @@ interface LeaveDayCellProps {
   onSelect: (iso: string) => void
 }
 
-export const LeaveDayCell = ({ day, dayEntries, isToday, holiday, onSelect }: LeaveDayCellProps) => {
+export const LeaveDayCell = ({
+  day,
+  dayEntries,
+  isToday,
+  holiday,
+  onSelect,
+}: LeaveDayCellProps) => {
   const hiddenCount = dayEntries.length - VISIBLE_PER_DAY
   return (
     <td
-      className={[
-        styles.cell,
-        day.inMonth ? '' : styles.outside,
-        isToday ? styles.today : '',
-      ]
+      className={[styles.cell, day.inMonth ? '' : styles.outside, isToday ? styles.today : '']
         .filter(Boolean)
         .join(' ')}
       aria-current={isToday ? 'date' : undefined}

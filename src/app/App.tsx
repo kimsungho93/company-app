@@ -6,7 +6,9 @@ import { store } from './store'
 
 const App = () => (
   <Provider store={store}>
-    <AuthBootstrap><RouterProvider router={router} /></AuthBootstrap>
+    <AuthBootstrap>
+      <RouterProvider router={router} />
+    </AuthBootstrap>
   </Provider>
 )
 

@@ -1,10 +1,10 @@
 [[redirects]]
-  from = "/api/*"
-  to = "https://company-backend-production-2da7.up.railway.app/api/:splat"
-  status = 200
-  force = true
+from = "/api/*"
+to = "https://company-backend-production-2da7.up.railway.app/api/:splat"
+status = 200
+force = true
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+from = "/*"
+to = "/index.html"
+status = 200

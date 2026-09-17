@@ -29,13 +29,14 @@ const NO_ERRORS: FieldErrors = { email: null, password: null }
 export const LoginForm = () => {
   const navigate = useNavigate()
   const { reason } = useSyncExternalStore(sessionStore.subscribe, sessionStore.get)
-  const sessionMessage = reason === 'SESSION_IDLE_EXPIRED'
-    ? '30분 동안 활동이 없어 로그아웃되었습니다. 다시 로그인해 주세요.'
-    : reason === 'SESSION_ABSOLUTE_EXPIRED'
-      ? '로그인 후 8시간이 지나 로그아웃되었습니다. 다시 로그인해 주세요.'
-      : reason === 'SESSION_REVOKED'
-        ? '로그인 세션이 종료되었습니다. 다시 로그인해 주세요.'
-        : null
+  const sessionMessage =
+    reason === 'SESSION_IDLE_EXPIRED'
+      ? '30분 동안 활동이 없어 로그아웃되었습니다. 다시 로그인해 주세요.'
+      : reason === 'SESSION_ABSOLUTE_EXPIRED'
+        ? '로그인 후 8시간이 지나 로그아웃되었습니다. 다시 로그인해 주세요.'
+        : reason === 'SESSION_REVOKED'
+          ? '로그인 세션이 종료되었습니다. 다시 로그인해 주세요.'
+          : null
   const signedUpEmail = (useLocation().state as LocationState | null)?.signedUpEmail ?? null
 
   const [initialEmail] = useState(() => signedUpEmail ?? loadRememberedEmail())
@@ -90,7 +91,11 @@ export const LoginForm = () => {
       }
     >
       <form onSubmit={onSubmit} noValidate>
-        {sessionMessage && <p className={styles.formNotice} role="status">{sessionMessage}</p>}
+        {sessionMessage && (
+          <p className={styles.formNotice} role="status">
+            {sessionMessage}
+          </p>
+        )}
         {signedUpEmail && !formError && (
           <p className={styles.formNotice} role="status">
             가입 신청이 접수됐습니다. 관리자 승인 후 로그인할 수 있습니다.
@@ -131,7 +136,11 @@ export const LoginForm = () => {
           value={password}
           disabled={busy}
           error={submitted ? errors.password : null}
-          aside={<a className={styles.link} href="#help">비밀번호 찾기</a>}
+          aside={
+            <a className={styles.link} href="#help">
+              비밀번호 찾기
+            </a>
+          }
           onChange={(e) => {
             setPassword(e.target.value)
             if (submitted) revalidate(email, e.target.value)
@@ -150,9 +159,10 @@ export const LoginForm = () => {
           />
         </div>
 
-        <Button type="submit" variant="accent" size="large" fullWidth loading={busy}>{status === 'success' ? '접속 중…' : '로그인'}</Button>
+        <Button type="submit" variant="accent" size="large" fullWidth loading={busy}>
+          {status === 'success' ? '접속 중…' : '로그인'}
+        </Button>
       </form>
-
     </AuthCard>
   )
 }

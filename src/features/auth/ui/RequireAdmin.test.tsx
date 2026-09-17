@@ -31,7 +31,10 @@ describe('RequireAdmin', () => {
   })
 
   it('me 로딩 중에는 아무것도 렌더하지 않는다', () => {
-    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => {})),
+    )
     renderAt('/admin/users')
 
     expect(screen.queryByText('승인 관리')).not.toBeInTheDocument()
