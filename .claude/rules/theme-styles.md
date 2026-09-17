@@ -20,11 +20,11 @@ paths:
 
 - 진실은 `<html data-theme>` 속성이다. `shared/theme` 의 `themeStore` 가 이 속성과 `localStorage` 의 `ibs.theme` 을 함께 관리하고 `useTheme` 이 `useSyncExternalStore` 로 구독한다. **Redux 에 복사하지 않는다** — `index.html` 의 인라인 스크립트와 진실이 두 곳으로 갈린다.
 - **`index.html` 의 인라인 스크립트를 지우지 않는다.** 첫 페인트 전에 `data-theme` 을 박지 않으면 새로고침마다 반대 테마가 한 번 번쩍인다. React 이펙트는 첫 페인트 뒤에 돈다.
-- 셀렉터에 `:root` 를 붙이지 않은 이유는 하위 요소에 붙여도 동작해야 해서다. `AuthLayout` 이 `<main data-theme="dark">` 로 로그인·회원가입을 항상 다크로 고정한다. 웨이퍼 노광은 어두운 배경에 다이가 빛나는 게 개념의 전부라 라이트에서 성립하지 않는다.
+- 셀렉터에 `:root` 를 붙이지 않은 이유는 하위 요소에 붙여도 동작해야 해서다. `AuthLayout` 이 `<main data-theme="dark">` 로 로그인·회원가입을 항상 다크로 고정한다. 폼은 다크 토큰을 유지하고 3D 캠퍼스의 밝은 장면 팔레트는 배경 패널 안에 한정한다.
 - **토큰 이름은 톤이 아니라 역할이다.** `--bg-deep` 이 아니라 `--bg-sunken`, `--text-hi` 가 아니라 `--text-strong`. 톤 기반 이름은 반대 테마에서 뜻을 잃는다.
 - `--text-subtle` 은 양쪽 다 대비 2.9:1 이라 **장식성 라벨 전용**이고 본문에 쓰지 않는다.
 - **`--accent` 는 테마마다 관계가 뒤집힌다.** 다크는 시안 바탕에 어두운 글자, 라이트는 어두운 청록 바탕에 흰 글자다. 시안(`#22d3ee`)은 흰 배경에서 대비 1.6:1 이라 그대로 쓸 수 없다. `--accent-ink` 가 "강조색 위에 얹는 글자색" 이라는 역할 이름이라 값만 뒤집으면 `Button` 은 안 바뀐다.
 
 ## 폰트 — Wanted Sans Variable
 
-npm 패키지의 **split 서브셋**을 `main.tsx` 에서 import 한다. `unicode-range` 로 실제 쓰는 글자 범위만 내려받는다. 통짜(complete) 파일은 1.29MB 라 쓰지 않는다. 캔버스에 이 폰트로 글자를 그릴 때는 `useFontReady` 로 로딩을 기다린다 (`wafer-canvas.md`).
+npm 패키지의 **split 서브셋**을 `main.tsx` 에서 import 한다. `unicode-range` 로 실제 쓰는 글자 범위만 내려받는다. 통짜(complete) 파일은 1.29MB 라 쓰지 않는다. 캠퍼스 간판 텍스처는 시스템 글꼴을 사용하며 한국어 브랜드·안내 문구는 DOM으로 표시한다.

@@ -55,7 +55,7 @@ src/app → pages → widgets → features → shared
 | `/games/word-chain`, `/games/word-chain/:roomId` | 끝말잇기 방 목록·방 |
 | `/games/lottery`, `/games/lottery/:roomId`       | 사람 뽑기 로비·방   |
 
-인증 가드는 레이아웃 바깥에 두며 `AuthBootstrap`이 복구를 마치기 전이나 일시 장애 상태에서는 보호 라우터를 표시하지 않는다. 관리 화면과 메뉴의 역할 검사는 사용자에게 보여 줄 UI를 정한다. 서버의 요청별 권한 검사는 별도로 필요하다. 인증 배경의 웨이퍼 애니메이션은 회사의 반도체·스마트팩토리 맥락을 반영한다.
+인증 가드는 레이아웃 바깥에 두며 `AuthBootstrap`이 복구를 마치기 전이나 일시 장애 상태에서는 보호 라우터를 표시하지 않는다. 관리 화면과 메뉴의 역할 검사는 사용자에게 보여 줄 UI를 정한다. 서버의 요청별 권한 검사는 별도로 필요하다. 인증 화면은 SK hynix CI가 있는 공장 정문의 3D 캠퍼스와 다크 폼을 조립한다. 원근 카메라·하늘 반사광·절차적 재질과 가지/잎·인물·차량 모델을 사용하며, 공식 CI의 출처는 `src/features/auth/ui/campus/assets/README.md`에 보존한다. 배경은 Three.js로 지연 로딩하며 일시정지·동작 줄이기와 WebGL 실패 시 정적 대체 화면을 지원한다.
 
 개발 시 다음 설정을 함께 확인한다.
 
