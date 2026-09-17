@@ -1,4 +1,4 @@
-import type { UserStatus } from '@/features/auth'
+export type UserStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export interface AdminUser {
   id: number

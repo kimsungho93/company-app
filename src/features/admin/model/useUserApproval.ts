@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import type { UserStatus } from '@/features/auth'
 import {
-  useAdminUsersQuery, useApproveUserMutation, useRejectUserMutation,
+  useAdminUsersQuery,
+  useApproveUserMutation,
+  useRejectUserMutation,
 } from '../api/adminUsersApi'
-import type { AdminUser } from '../api/types'
+import type { AdminUser, UserStatus } from '../api/types'
 import { summarizeResults } from './summarizeResults'
 import type { ActionNotice } from './summarizeResults'
 
@@ -31,7 +32,8 @@ export const useUserApproval = (currentUserId?: number) => {
   const allSelected = rows.length > 0 && rows.every((u) => selected.has(u.id))
   const someSelected = rows.some((u) => selected.has(u.id)) && !allSelected
   const selectedRows = rows.filter((u) => selected.has(u.id))
-  const selfSelected = currentUserId !== undefined && selectedRows.some((u) => u.id === currentUserId)
+  const selfSelected =
+    currentUserId !== undefined && selectedRows.some((u) => u.id === currentUserId)
 
   const canApprove = status !== 'APPROVED'
   const canReject = status !== 'REJECTED'
@@ -65,10 +67,26 @@ export const useUserApproval = (currentUserId?: number) => {
   }
 
   return {
-    status, selected, pending, notice, rows, isFetching, error, refetch, busy,
+    status,
+    selected,
+    pending,
+    notice,
+    rows,
+    isFetching,
+    error,
+    refetch,
+    busy,
     loading: isFetching && users === undefined,
-    allSelected, someSelected, selectedRows, selfSelected, canApprove, canReject,
-    changeTab, toggleOne, run, setPending,
+    allSelected,
+    someSelected,
+    selectedRows,
+    selfSelected,
+    canApprove,
+    canReject,
+    changeTab,
+    toggleOne,
+    run,
+    setPending,
     toggleAll: () => setSelected(allSelected ? new Set() : new Set(rows.map((u) => u.id))),
   }
 }

@@ -1,9 +1,9 @@
-import type { UserStatus } from '@/features/auth'
 import { toErrorInfo } from '@/shared/api'
 import { Button } from '@/shared/ui/Button'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { useUserApproval } from '../model/useUserApproval'
 import type { PendingAction } from '../model/useUserApproval'
+import type { UserStatus } from '../api/types'
 import { ApprovalToolbar } from './ApprovalToolbar'
 import { UserApprovalRow } from './UserApprovalRow'
 import styles from './UserApprovalList.module.scss'
@@ -43,9 +43,27 @@ interface UserApprovalListProps {
 
 export const UserApprovalList = ({ currentUserId }: UserApprovalListProps) => {
   const {
-    status, selected, pending, notice, rows, isFetching, error, refetch, loading, busy,
-    allSelected, someSelected, selectedRows, selfSelected, canApprove, canReject,
-    changeTab, toggleOne, toggleAll, run, setPending,
+    status,
+    selected,
+    pending,
+    notice,
+    rows,
+    isFetching,
+    error,
+    refetch,
+    loading,
+    busy,
+    allSelected,
+    someSelected,
+    selectedRows,
+    selfSelected,
+    canApprove,
+    canReject,
+    changeTab,
+    toggleOne,
+    toggleAll,
+    run,
+    setPending,
   } = useUserApproval(currentUserId)
   const tab = TABS.find((t) => t.status === status) ?? TABS[0]
 
@@ -104,7 +122,11 @@ export const UserApprovalList = ({ currentUserId }: UserApprovalListProps) => {
         ))}
 
       <div className={styles.panel} role="tabpanel" aria-busy={isFetching}>
-        {loading && <p className={styles.empty} role="status">불러오는 중…</p>}
+        {loading && (
+          <p className={styles.empty} role="status">
+            불러오는 중…
+          </p>
+        )}
         {error && (
           <div className={styles.failure} role="alert">
             <p>{toErrorInfo(error).message}</p>

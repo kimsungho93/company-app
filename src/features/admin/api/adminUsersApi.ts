@@ -1,6 +1,5 @@
 import { baseApi } from '@/shared/api'
-import type { UserStatus } from '@/features/auth'
-import type { AdminUser } from './types'
+import type { AdminUser, UserStatus } from './types'
 
 export const adminUsersApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
