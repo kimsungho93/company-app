@@ -1,33 +1,51 @@
+import { useCallback, useState } from 'react'
 import { Outlet } from 'react-router'
-import { CampusBackdrop } from './campus/CampusBackdrop'
+import { useFontReady } from '@/shared/lib/useFontReady'
+import { usePrefersReducedMotion } from '@/shared/lib/usePrefersReducedMotion'
+import { WaferCanvas } from '@/shared/ui/WaferCanvas'
 import styles from './AuthLayout.module.scss'
 
+const WAFER_TEXT = 'IBS'
+
+const FONT_SPEC = '500 100px "Wanted Sans Variable"'
+const INTRO_SEEN_KEY = 'ibs.intro.seen'
+
+const shouldSkipIntro = (): boolean => {
+  if (import.meta.env.DEV) return false
+  try {
+    return sessionStorage.getItem(INTRO_SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 export const AuthLayout = () => {
+  const reducedMotion = usePrefersReducedMotion()
+  const fontReady = useFontReady(FONT_SPEC, WAFER_TEXT)
+  const [skipIntro] = useState(shouldSkipIntro)
+
+  const handleComplete = useCallback(() => {
+    try {
+      sessionStorage.setItem(INTRO_SEEN_KEY, '1')
+    } catch {
+      return
+    }
+  }, [])
+
   return (
     <main className={styles.page} data-theme="dark">
-      <section className={styles.campusPane} aria-label="SK hynix 캠퍼스">
-        <div className={styles.brand} aria-hidden="true">
-          <img src="/logo-mark.png" alt="" width={40} height={40} />
-          <span>아이비에스</span>
-        </div>
-        <div className={styles.intro}>
-          <p className={styles.headline}>
-            우리의 하루가
-            <br />
-            시작되는 곳.
-          </p>
-        </div>
-        <CampusBackdrop />
-        <span className={styles.location} aria-hidden="true">
-          <span />
-          SKHNIX 2 CAMPUS
-        </span>
+      <section className={styles.waferPane} aria-hidden="true">
+        <WaferCanvas
+          text={WAFER_TEXT}
+          fontReady={fontReady}
+          reducedMotion={reducedMotion}
+          skipIntro={skipIntro}
+          onComplete={handleComplete}
+        />
       </section>
+
       <section className={styles.formPane}>
         <Outlet />
-        <span className={styles.signature} aria-hidden="true">
-          IBS · WORK & LIFE
-        </span>
       </section>
     </main>
   )

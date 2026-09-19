@@ -1,180 +1,63 @@
 @use '@/shared/styles' as s;
 
 .page {
-  --campus-sky: #c8dce6;
-  --campus-ink: #243e4e;
-  --campus-muted: #54707e;
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(400px, 1fr);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(24px, 4vw, 60px);
   min-height: 100svh;
-  max-width: 1920px;
-  margin: 0 auto;
-  isolation: isolate;
-  padding: 20px;
-  gap: 20px;
+  padding: 32px max(24px, env(safe-area-inset-right)) 32px max(24px, env(safe-area-inset-left));
   box-sizing: border-box;
-  background: var(--bg);
+  background: radial-gradient(
+    900px 620px at 32% 45%,
+    var(--wafer-glow) 0%,
+    var(--bg) 60%,
+    var(--bg-sunken) 100%
+  );
+}
 
-  &::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background: var(--bg);
-  }
-}
-.campusPane {
-  position: relative;
-  min-width: 0;
-  min-height: 640px;
-  overflow: hidden;
-  isolation: isolate;
-  border-radius: 24px;
-  background: var(--campus-sky);
-  color: var(--campus-ink);
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      rgb(233 244 250 / 65%),
-      transparent 34%,
-      transparent 76%,
-      rgb(13 26 35 / 46%)
-    );
-  }
-}
-.brand {
-  position: absolute;
-  top: 38px;
-  left: 40px;
-  z-index: 2;
+.waferPane {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 27px;
-  font-weight: 750;
-  letter-spacing: -1px;
-  img {
-    display: block;
-    width: 40px;
-    height: 40px;
-  }
+
+  flex: 0 1 auto;
+  width: min(40vw, 520px);
+  min-width: 260px;
+  min-height: 0;
+  height: min(76svh, 600px);
 }
-.intro {
-  position: absolute;
-  top: 112px;
-  left: 44px;
-  z-index: 2;
-  pointer-events: none;
-}
-.headline {
-  margin: 0;
-  font-size: clamp(28px, 2.5vw, 40px);
-  line-height: 1.24;
-  font-weight: 650;
-  letter-spacing: -1.8px;
-}
-.location {
-  position: absolute;
-  bottom: 32px;
-  left: 40px;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  letter-spacing: 1.8px;
-  font-weight: 600;
-  color: #fff;
-  text-shadow: 0 1px 6px rgb(0 0 0 / 40%);
-  > span {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #ea002c;
-  }
-}
+
 .formPane {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 32px;
-  min-width: 0;
-  padding: 60px 20px;
+  justify-content: center;
+
+  width: 400px;
 }
-.signature {
-  color: var(--text-subtle);
-  font-size: 10px;
-  letter-spacing: 1.8px;
-}
+
 @include s.below(s.$bp-tablet) {
   .page {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    padding: 12px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: max(16px, env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
   }
-  .campusPane {
-    min-height: 360px;
-    height: 40svh;
-    max-height: 440px;
-    border-radius: 20px;
+
+  .waferPane {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 420px;
+    height: clamp(170px, 28svh, 280px);
   }
-  .brand {
-    top: 24px;
-    left: 26px;
-    font-size: 23px;
-  }
-  .brand img {
-    width: 32px;
-    height: 32px;
-  }
-  .intro {
-    display: none;
-  }
-  .headline {
-    font-size: 31px;
-    letter-spacing: -1.1px;
-  }
-  .location {
-    bottom: 23px;
-    left: 27px;
-    font-size: 9px;
-  }
+
   .formPane {
     width: 100%;
-    max-width: 480px;
-    box-sizing: border-box;
-    justify-self: center;
-    padding: 32px 12px 20px;
-    gap: 22px;
+    max-width: 400px;
   }
 }
-@include s.below(s.$bp-mobile) {
-  .campusPane {
-    min-height: 272px;
-    height: 32svh;
-    max-height: 330px;
-  }
-  .brand {
-    top: 20px;
-    left: 20px;
-    font-size: 21px;
-    gap: 7px;
-  }
-  .intro {
-    display: none;
-  }
-  .location {
-    bottom: 18px;
-    left: 21px;
-    font-size: 8px;
-  }
-  .formPane {
-    padding: 24px 2px 16px;
+
+@media (max-width: s.$bp-tablet) and (max-height: 520px) {
+  .waferPane {
+    height: 130px;
   }
 }

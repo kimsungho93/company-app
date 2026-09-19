@@ -21,12 +21,12 @@
 
 `.claude/rules/`의 `paths`가 해당 영역에 연결된다. 상세 정책은 각 파일과 현재 코드·계약을 확인하며 공통 문서에 중복하지 않는다.
 
-| 규칙                                                   | 적용 영역                                         |
-| ------------------------------------------------------ | ------------------------------------------------- |
-| [auth-session.md](.claude/rules/auth-session.md)       | `shared/api`, 인증·관리 feature, `app`, `widgets` |
-| [websocket.md](.claude/rules/websocket.md)             | `shared/ws`, 끝말잇기, 사람 뽑기                  |
-| [word-chain.md](.claude/rules/word-chain.md)           | 끝말잇기 feature·page                             |
-| [lottery.md](.claude/rules/lottery.md)                 | 사람 뽑기 feature·page                            |
-| [leave.md](.claude/rules/leave.md)                     | 휴가 feature·page                                 |
-| [campus-backdrop.md](.claude/rules/campus-backdrop.md) | `campus`, `AuthLayout`, `AuthCard`                |
-| [theme-styles.md](.claude/rules/theme-styles.md)       | SCSS, `shared/theme`, `index.html`                |
+| 규칙                                             | 적용 영역                                         |
+| ------------------------------------------------ | ------------------------------------------------- |
+| [auth-session.md](.claude/rules/auth-session.md) | `shared/api`, 인증·관리 feature, `app`, `widgets` |
+| [websocket.md](.claude/rules/websocket.md)       | `shared/ws`, 끝말잇기, 사람 뽑기                  |
+| [word-chain.md](.claude/rules/word-chain.md)     | 끝말잇기 feature·page                             |
+| [lottery.md](.claude/rules/lottery.md)           | 사람 뽑기 feature·page                            |
+| [leave.md](.claude/rules/leave.md)               | 휴가 feature·page                                 |
+| [wafer-canvas.md](.claude/rules/wafer-canvas.md) | `WaferCanvas`, `AuthLayout`, `AuthCard`           |
+| [theme-styles.md](.claude/rules/theme-styles.md) | SCSS, `shared/theme`, `index.html`                |
